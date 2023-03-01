@@ -1,8 +1,12 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { typeORMConfig } from './configs/typeorm.config';
+import { AuthMiddleware } from './middleware/auth.middleware';
+import { UserController } from './users/users.controller';
+import { UsersModule } from './users/users.module';
 
 @Module({
     imports: [
@@ -12,20 +16,24 @@ import { AppService } from './app.service';
         }),
 
         /* TypeOrm */
-        TypeOrmModule.forRoot({
-            type: process.env.TYPEORM_TYPE as any,
-            host: process.env.TYPEORM_HOST,
-            port: Number(process.env.TYPEORM_PORT),
-            username: process.env.TYPEORM_USERNAME,
-            password: process.env.TYPEORM_PASSWORD,
-            database: process.env.TYPEORM_DATABASE,
-            entities: [],
-            synchronize: true, //배포시 false로 바꿔야함
-        }),
+        TypeOrmModule.forRoot(typeORMConfig),
 
-
+        UsersModule,
     ],
     controllers: [AppController],
     providers: [AppService],
 })
-export class AppModule { }
+
+
+export class AppModule{}
+// export class AppModule implements NestModule { 
+//     configure(consumer: MiddlewareConsumer) {
+//         // consumer
+//         //     .apply(AuthMiddleware)
+//         //     //exclude 함수는 제외 하고싶은 라우터를 등록합니다.
+//         //     .exclude({ path: 'user/create_user', method: RequestMethod.POST }) // 유저 생성
+//         //     .exclude({ path: 'user/user_all', method: RequestMethod.GET }) // 유저 전체 조회
+//         //     .forRoutes(UserController); // 1.유저 컨트롤러 등록
+//         //     // .forRoutes('user'); // 2.유저 컨트롤러 경로 등록 -> 위 1번과 동일
+//     }
+// }
