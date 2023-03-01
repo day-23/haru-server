@@ -1,18 +1,18 @@
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique } from 'typeorm';
 
 @Entity()
-@Unique(['user_id'])
+@Unique(['email'])
 export class User extends BaseEntity{
     @PrimaryGeneratedColumn('uuid')
     id: string;
   
     @Column({ type: 'varchar', length: 50, comment: '유저 아이디' })
-    user_id: string;
+    email: string;
   
     @Column({ type: 'varchar', length: 255, comment: '유저 비밀번호' })
     password: string;
   
-    @Column({ type: 'varchar', length: 255, comment: 'salt' })
+    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' })
     salt: string;
   
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })

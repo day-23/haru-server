@@ -7,10 +7,23 @@ import { UserRepository } from 'src/repository/user.repository';
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly userService: UserService) {}
+    constructor(private readonly userService: UserService) { }
 
     @Get()
     async findAll(): Promise<User[]> {
-      return await this.userService.getAllUsers();
+        return await this.userService.getAllUsers();
     }
+
+
+    @Get('/:email')
+    async findUserByEmail(@Param() params): Promise<User>{
+        return await this.userService.getUserByEmail(params.email)
+    }
+
+    /* 회원가입 */
+    @Post('/signup')
+    async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
+        return await this.userService.createUser(createUserDto)
+    }
+
 }

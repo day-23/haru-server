@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
+
+/* 미들웨어 테스트용 */
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction) {
