@@ -8,29 +8,25 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
 
-        const status =
-            exception instanceof HttpException
-                ? exception.getStatus()
-                : HttpStatus.INTERNAL_SERVER_ERROR;
+        const status = exception.getStatus();
+        const error = exception.getResponse() as
+            | string
+            | { error: string; statusCode: number; message: string | string[] };
 
-        /**
-         * @author Ryan
-         * @description HttpException에서 전송한 데이터를 추출할 때 사용
-         */
-        const res: any = exception.getResponse();
 
-        const url: string = request.url
-        const error: string = res.error;
-        const timestamp: string = new Date().toISOString()
-
-        console.log('요청 url : ', url)
-        console.log('error 정보 : ', error)
-        console.log('발생 시간 : ', timestamp)
-
-        /* 클라이언트에게 정보를 전달한다. */
-        response.status(status).json({
-            success: false,
-            message: res.message,
-        });
+        if (typeof error === 'string') {
+            response.status(status).json({
+                success: false,
+                timestamp: new Date().toISOString(),
+                path: request.url,
+                error,
+            });
+        } else {
+            response.status(status).json({
+                success: false,
+                timestamp: new Date().toISOString(),
+                ...error,
+            });
+        }
     }
 } 

@@ -4,12 +4,16 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { setupSwagger } from './common/swagger';
 import * as expressBasicAuth from 'express-basic-auth'
+import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());
+
+    //success
+    app.useGlobalInterceptors(new SuccessInterceptor());
 
     //Global Middleware 설정 -> Cors 속성 활성화
     app.enableCors({
