@@ -43,7 +43,7 @@ async function bootstrap() {
     if(process.env.MODE == 'dev'){
         //접근 비밀번호 설정
         app.use(
-            ['/api-docs', 'docs-json'],
+            ['/docs', 'docs-json'],
             expressBasicAuth({
                 challenge: true,
                 users: {
