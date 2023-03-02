@@ -19,4 +19,5 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     database: 'haru',
     entities: [User], // Entity 연결
     synchronize: true, //배포시 false로 바꿔야함
+    logging: true, // 배포시 false로 바꿔야함
 }

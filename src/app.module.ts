@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { typeORMConfig } from './configs/typeorm.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
     imports: [
@@ -26,7 +27,14 @@ import { AuthModule } from './auth/auth.module';
 })
 
 
-export class AppModule { }
+export class AppModule implements NestModule {
+    private readonly isDev: boolean = process.env.MODE === 'dev' ? true : false;
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(LoggerMiddleware)
+            .forRoutes('*');
+    }
+}
 // export class AppModule implements NestModule {
 //     configure(consumer: MiddlewareConsumer) {
 //         // consumer
