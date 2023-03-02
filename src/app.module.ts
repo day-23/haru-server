@@ -1,11 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeORMConfig } from './configs/typeorm.config';
-import { AuthMiddleware } from './middleware/auth.middleware';
-import { UserController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 
@@ -28,8 +26,8 @@ import { AuthModule } from './auth/auth.module';
 })
 
 
-export class AppModule{}
-// export class AppModule implements NestModule { 
+export class AppModule { }
+// export class AppModule implements NestModule {
 //     configure(consumer: MiddlewareConsumer) {
 //         // consumer
 //         //     .apply(AuthMiddleware)

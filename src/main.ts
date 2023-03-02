@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
+import { setupSwagger } from './common/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -32,6 +33,10 @@ async function bootstrap() {
             disableErrorMessages: true,
         }),
     );
+
+    //Swagger 환경설정 연결
+    if(process.env.MODE == 'dev')
+        setupSwagger(app);
 
     await app.listen(process.env.PORT);
 }

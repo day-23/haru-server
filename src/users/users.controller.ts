@@ -5,9 +5,11 @@ import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/repository/user.repository';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.gaurd';
+import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 
 @Controller('user')
+@ApiTags('유저 API')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
@@ -23,7 +25,6 @@ export class UserController {
     }
 
 
-
     @Get('/:email')
     async findUserByEmail(@Param() params): Promise<User> {
         return await this.userService.getUserByEmail(params.email)
@@ -31,6 +32,8 @@ export class UserController {
 
     /* 회원가입 */
     @Post('/signup')
+    @ApiOperation({ summary: '회원가입 API', description: '유저를 생성한다.' })
+    @ApiCreatedResponse({ description: '유저를 생성한다.', type: User })
     async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
         return await this.userService.createUser(createUserDto)
     }
