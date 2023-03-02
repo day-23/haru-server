@@ -4,6 +4,7 @@ import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/repository/user.repository';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.gaurd';
 
 
 @Controller('user')
@@ -15,9 +16,16 @@ export class UserController {
         return await this.userService.getAllUsers();
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('/user_all')
+    getUserAll(): Promise<User[]> {
+        return this.userService.getAllUsers();
+    }
+
+
 
     @Get('/:email')
-    async findUserByEmail(@Param() params): Promise<User>{
+    async findUserByEmail(@Param() params): Promise<User> {
         return await this.userService.getUserByEmail(params.email)
     }
 
@@ -29,10 +37,10 @@ export class UserController {
 
     @UseGuards(LocalAuthGuard)
     @Post('/auth/login')
-    async login(@Req() req){
-      console.log('Login Route')
-      
-      return req.user
+    async login(@Req() req) {
+        console.log('Login Route')
+
+        return req.user
     }
 
 }
