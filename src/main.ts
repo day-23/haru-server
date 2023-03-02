@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { setupSwagger } from './common/swagger';
+import * as expressBasicAuth from 'express-basic-auth'
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -35,8 +36,19 @@ async function bootstrap() {
     );
 
     //Swagger 환경설정 연결
-    if(process.env.MODE == 'dev')
+    if(process.env.MODE == 'dev'){
+        //접근 비밀번호 설정
+        app.use(
+            ['/api-docs', 'docs-json'],
+            expressBasicAuth({
+                challenge: true,
+                users: {
+                    [process.env.SWAGGER_USER]: process.env.SWAGGER_PASSWORD,
+                }
+            })
+        )
         setupSwagger(app);
+    }
 
     await app.listen(process.env.PORT);
 }
