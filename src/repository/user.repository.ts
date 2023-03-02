@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from 'src/users/dto/users.dto';
 import { Repository } from 'typeorm';
@@ -27,6 +27,15 @@ export class UserRepository {
 
     async delete(id: string): Promise<void> {
         await this.repository.delete(id);
+    }
+
+    //로그인 유저 조회
+    async findByLogin(email: string, password: string) : Promise<User>{
+        const user = await this.repository.findOne({where : {email, password}})
+        if(!user){
+            throw new ForbiddenException('아이디와 비밀번호를 다시 확인해주세요.')
+        }
+        return user
     }
 
 }

@@ -7,6 +7,7 @@ import { typeORMConfig } from './configs/typeorm.config';
 import { AuthMiddleware } from './middleware/auth.middleware';
 import { UserController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
@@ -19,6 +20,8 @@ import { UsersModule } from './users/users.module';
         TypeOrmModule.forRoot(typeORMConfig),
 
         UsersModule,
+
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppService],
