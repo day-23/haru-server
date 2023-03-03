@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
 
@@ -28,4 +29,7 @@ export class Todo extends BaseEntity {
     @OneToMany(() => TodoLog, (todolog) => todolog.id)
     todolog: TodoLog;
 
+    /* 태그 : 태그투두 = 1:N */
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
+    tagWithTodo: TagWithTodo;
 }

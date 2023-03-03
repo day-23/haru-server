@@ -1,12 +1,19 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
 import { PostImage } from './post-image.entity';
+import { TagWithPost } from './tag-with-post.entity';
 import { User } from './user.entity';
 
 @Entity()
 export class Post extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    title: string
+
+    @Column()
+    text: string
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -31,4 +38,9 @@ export class Post extends BaseEntity {
     /* 게시글 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.id)
     comment: Comment[]
+
+    /* 게시물 : 태그게시물 = 1:N */
+    @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.id)
+    tagWithTodo: TagWithPost;
+
 }
