@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AwsService } from './aws/aws.service';
+import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 
 @Module({
     imports: [
@@ -22,7 +23,7 @@ import { AwsService } from './aws/aws.service';
         AuthModule,
     ],
     controllers: [AppController],
-    providers: [AppService, AwsService],
+    providers: [AppService, AwsService, CheckApiKeyMiddleware],
 })
 
 

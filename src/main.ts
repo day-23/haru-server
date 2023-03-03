@@ -5,9 +5,14 @@ import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { setupSwagger } from './common/swagger';
 import * as expressBasicAuth from 'express-basic-auth'
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
+import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+
+
+    /* API KEY 검사 */
+    app.use(new CheckApiKeyMiddleware().use);
 
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());
@@ -39,6 +44,8 @@ async function bootstrap() {
         }),
     );
 
+    
+
     //Swagger 환경설정 연결
     if(process.env.MODE == 'dev'){
         //접근 비밀번호 설정
@@ -53,6 +60,7 @@ async function bootstrap() {
         )
         setupSwagger(app);
     }
+
 
     await app.listen(process.env.PORT);
 }
