@@ -2,6 +2,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from 'src/entity/user.entity';
 
 /* TypeOrm 사용을 위한 Config */
+/* 현재는 테스트 용 DB라 괜찮은데, 상용 DB로 변경시 .env로 가져와야함 */
 export const typeORMConfig: TypeOrmModuleOptions = {
     type: "mysql",
     // Error : .env 적용이 안됨 //
