@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Schedule } from './schedule.entity';
 import { User } from './user.entity';
 
 @Entity()
-export class Tag extends BaseEntity{
+export class Category extends BaseEntity{
     @PrimaryGeneratedColumn('uuid')
     id: string;
   
@@ -16,10 +17,15 @@ export class Tag extends BaseEntity{
     @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
     deletedAt?: Date | null;
 
-
     /* 다른 엔터티들간의 관계 */
-    /* 태그 : 사용자 = N:1 */
-    @ManyToOne(() => User, (user) => user.id)
-    @JoinColumn({ name: 'user_id' })
+    /* 카테고리 : 사용자 = N : 1 */
+    @ManyToOne(()=>User, (user)=>user.id)
+    @JoinColumn({name: 'user_id'})
     user: User;
+
+    /* 카테고리 : 스케줄 = 1:N */
+    @OneToMany(()=> Schedule, (schedule) => schedule.id)
+    scheduleId: Schedule[];
+
+
 }

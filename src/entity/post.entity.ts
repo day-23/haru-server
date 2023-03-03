@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { PostImage } from './post-image.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class Post extends BaseEntity{
@@ -17,4 +19,12 @@ export class Post extends BaseEntity{
 
 
     /* 다른 엔터티들간의 관계 */
+    /* 게시글 : 사용자 = N:1 */
+    @ManyToOne(() => User, (user) => user.id)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    /* 게시글 : 사진 = 1:N */
+    @OneToMany(()=>PostImage, (postImage)=> postImage.id)
+    postImage : PostImage;
 }

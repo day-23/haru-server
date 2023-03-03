@@ -1,5 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Follow } from './follow.entity';
+import { Following } from './following.entity';
+import { Post } from './post.entity';
 import { ProfileImage } from './profile-image.entity';
+import { Category } from './schedule-category.entity';
+import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 
 @Entity({ name: 'user' })
@@ -43,9 +48,31 @@ export class User extends BaseEntity {
     @OneToMany(() => ProfileImage, (profileImage) => profileImage.id)
     profile_image_id: ProfileImage[];
 
+    /* 사용자 : 팔로우  -  1:N  */
+    @OneToMany(() => Follow, (follow) => follow.id)
+    follow_id: Post[];
+
+    /* 사용자 : 팔로윙  -  1:N  */
+    @OneToMany(() => Following, (following) => following.id)
+    following_id: Post[];
+
+    /* 사용자 : 게시글  -  1:N  */
+    @OneToMany(() => Post, (post) => post.id)
+    post_id: Post[];
 
     /* 사용자 : 투두  -  1:N  */
     @OneToMany(() => Todo, (todo) => todo.id)
     todo_id: Todo[];
 
+    /* 사용자 : 태그 -  1:N  */
+    @OneToMany(() => Tag, (tag) => tag.id)
+    tag_id: Tag[];
+
+    /* 사용자 : 스케줄 카테고리 -  1:N  */
+    @OneToMany(() => Category, (category) => category.id)
+    category_id: Tag[];
+
+    /* 사용자 : 스케줄 -  1:N  */
+    @OneToMany(() => Tag, (schedule) => schedule.id)
+    schedule: Tag[];
 }
