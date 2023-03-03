@@ -12,6 +12,11 @@ export class Todo extends BaseEntity {
     @Column()
     content: string;
 
+    @Column({
+        length : 500
+    })
+    memo: string;
+
     @Column()
     repeatOption: string;
 
