@@ -18,6 +18,7 @@ export class ProfileImage extends BaseEntity {
 
 
     /* 다른 엔터티들간의 관계 */
+    /* 프로필 이미지 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
     user: User;

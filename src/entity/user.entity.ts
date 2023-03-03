@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ProfileImage } from './profile-image.entity';
+import { Todo } from './todo.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -41,5 +42,10 @@ export class User extends BaseEntity {
     /* 사용자 : 프로필 이미지  -  1:N  */
     @OneToMany(() => ProfileImage, (profileImage) => profileImage.id)
     profile_image_id: ProfileImage[];
+
+
+    /* 사용자 : 투두  -  1:N  */
+    @OneToMany(() => Todo, (todo) => todo.id)
+    todo_id: Todo[];
 
 }

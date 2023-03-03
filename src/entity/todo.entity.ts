@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity()
 export class Todo extends BaseEntity{
@@ -17,4 +18,9 @@ export class Todo extends BaseEntity{
 
 
     /* 다른 엔터티들간의 관계 */
+    /* 투두 : 사용자 = N:1 */
+    @ManyToOne(() => User, (user) => user.id)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+    
 }
