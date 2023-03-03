@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { SubTodo } from './sub-todo.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
@@ -7,6 +8,15 @@ import { User } from './user.entity';
 export class Todo extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    content: string;
+
+    @Column()
+    repeatOption: string;
+
+    @Column()
+    repeat: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -27,9 +37,14 @@ export class Todo extends BaseEntity {
 
     /* 투두 : 투두로그 = 1:N */
     @OneToMany(() => TodoLog, (todolog) => todolog.id)
-    todolog: TodoLog;
+    todolog: TodoLog[];
 
     /* 태그 : 태그투두 = 1:N */
     @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
-    tagWithTodo: TagWithTodo;
+    tagWithTodo: TagWithTodo[];
+
+    /* 투두 : 하위항목 = 1:N */
+    @OneToMany(() => SubTodo, (subtodo) => subtodo.id)
+    subtodo: SubTodo[];
+
 }

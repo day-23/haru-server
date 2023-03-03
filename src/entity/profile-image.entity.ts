@@ -1,10 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity({ name: 'profile_image' })
 export class ProfileImage extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    url: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;

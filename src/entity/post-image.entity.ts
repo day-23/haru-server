@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
 import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
@@ -7,6 +7,9 @@ import { Post } from './post.entity';
 export class PostImage extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    url: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;

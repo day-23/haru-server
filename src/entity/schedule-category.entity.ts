@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, OneToMany, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Schedule } from './schedule.entity';
 import { User } from './user.entity';
 
@@ -6,6 +6,9 @@ import { User } from './user.entity';
 export class Category extends BaseEntity{
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    content: string;
   
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -26,6 +29,5 @@ export class Category extends BaseEntity{
     /* 카테고리 : 스케줄 = 1:N */
     @OneToMany(()=> Schedule, (schedule) => schedule.id)
     scheduleId: Schedule[];
-
 
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany, Column } from 'typeorm';
 import { Post } from './post.entity';
 import { TagWithPost } from './tag-with-post.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
@@ -9,6 +9,9 @@ import { User } from './user.entity';
 export class Tag extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column()
+    content: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -23,10 +26,10 @@ export class Tag extends BaseEntity {
     /* 다른 엔터티들간의 관계 */
     /* 태그 : 태그투두 = 1:N */
     @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
-    tagWithTodo: TagWithTodo;
+    tagWithTodo: TagWithTodo[];
 
     /* 태그 : 태그게시물 = 1:N */
     @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.id)
-    tagWithPost: TagWithPost;
+    tagWithPost: TagWithPost[];
 
 }

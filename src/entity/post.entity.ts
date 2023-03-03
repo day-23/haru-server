@@ -42,7 +42,7 @@ export class Post extends BaseEntity {
 
     /* 게시물 : 태그게시물 = 1:N */
     @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.id)
-    tagWithTodo: TagWithPost;
+    tagWithTodo: TagWithPost[];
 
     /* 게시물 : 좋아요 = 1:N */
     @OneToMany(() => PostLike, (postlike) => postlike.id)
