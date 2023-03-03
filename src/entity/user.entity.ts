@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
 import { Following } from './following.entity';
 import { Post } from './post.entity';
@@ -59,6 +60,10 @@ export class User extends BaseEntity {
     /* 사용자 : 게시글  -  1:N  */
     @OneToMany(() => Post, (post) => post.id)
     post_id: Post[];
+
+    /* 사용자 : 댓글 - 1:N */
+    @OneToMany(()=> Comment, (comment)=>comment.id)
+    comment_id : Comment[];
 
     /* 사용자 : 투두  -  1:N  */
     @OneToMany(() => Todo, (todo) => todo.id)

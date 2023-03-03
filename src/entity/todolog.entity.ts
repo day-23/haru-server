@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Todo } from './todo.entity';
 
 @Entity()
-export class TodoLog extends BaseEntity{
+export class TodoLog extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -17,4 +18,8 @@ export class TodoLog extends BaseEntity{
 
 
     /* 다른 엔터티들간의 관계 */
+    /* 투두로그 : 투두 = N : 1 */
+    @ManyToOne(() => Todo, (todo) => todo.id)
+    @JoinColumn({ name: 'todo_id' })
+    todo: Todo;
 }
