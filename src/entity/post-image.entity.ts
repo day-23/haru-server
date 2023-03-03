@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Comment } from './comment.entity';
+import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
 
 @Entity()
@@ -27,5 +28,9 @@ export class PostImage extends BaseEntity {
     /* 사진 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.id)
     comment: Comment[];
+
+    /* 사진 : 좋아요 = 1:N */
+    @OneToMany(() => PostLike, (postlike) => postlike.id)
+    postlike: PostLike[];
 
 }

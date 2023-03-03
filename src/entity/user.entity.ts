@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, U
 import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
 import { Following } from './following.entity';
+import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
 import { ProfileImage } from './profile-image.entity';
 import { Category } from './schedule-category.entity';
@@ -62,8 +63,8 @@ export class User extends BaseEntity {
     post_id: Post[];
 
     /* 사용자 : 댓글 - 1:N */
-    @OneToMany(()=> Comment, (comment)=>comment.id)
-    comment_id : Comment[];
+    @OneToMany(() => Comment, (comment) => comment.id)
+    comment_id: Comment[];
 
     /* 사용자 : 투두  -  1:N  */
     @OneToMany(() => Todo, (todo) => todo.id)
@@ -80,4 +81,9 @@ export class User extends BaseEntity {
     /* 사용자 : 스케줄 -  1:N  */
     @OneToMany(() => Tag, (schedule) => schedule.id)
     schedule: Tag[];
+
+    /* 사용자 : 좋아요 - 1:N */
+    @OneToMany(() => PostLike, (postlike) => postlike.id)
+    postLike: PostLike[];
+
 }

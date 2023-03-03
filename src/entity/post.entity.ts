@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
 import { PostImage } from './post-image.entity';
+import { PostLike } from './post-like.entity';
 import { TagWithPost } from './tag-with-post.entity';
 import { User } from './user.entity';
 
@@ -13,7 +14,7 @@ export class Post extends BaseEntity {
     title: string
 
     @Column()
-    text: string
+    content: string
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -42,5 +43,9 @@ export class Post extends BaseEntity {
     /* 게시물 : 태그게시물 = 1:N */
     @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.id)
     tagWithTodo: TagWithPost;
+
+    /* 게시물 : 좋아요 = 1:N */
+    @OneToMany(() => PostLike, (postlike) => postlike.id)
+    postlike: PostLike[]
 
 }
