@@ -10,13 +10,10 @@ import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middlew
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-
-    /* API KEY 검사 */
-    app.use(new CheckApiKeyMiddleware().use);
-
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());
 
+    console.log("?")
     //success
     app.useGlobalInterceptors(new SuccessInterceptor());
 

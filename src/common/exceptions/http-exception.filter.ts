@@ -1,5 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { UnauthorizaedException } from './unauthorized.exception';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -7,6 +8,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
+
+        if (exception instanceof UnauthorizaedException) {
+            return response.status(HttpStatus.UNAUTHORIZED).json({
+                success: false,
+                timestamp: new Date().toISOString(),
+                message: 'Invalid API key',
+            });
+        }
 
         const status = exception.getStatus();
         const error = exception.getResponse() as
@@ -29,4 +38,4 @@ export class HttpExceptionFilter implements ExceptionFilter {
             });
         }
     }
-} 
+}
