@@ -7,6 +7,7 @@ import * as expressBasicAuth from 'express-basic-auth'
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 
+/* main */
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
