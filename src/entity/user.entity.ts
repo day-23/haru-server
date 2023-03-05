@@ -30,7 +30,7 @@ export class User extends BaseEntity {
     @Column({ type: 'tinyint', comment: '유저 나이' })
     age: number;
 
-    @Column({ type: 'varchar', length: 30, comment: '핸드폰' })
+    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' })
     phone: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })

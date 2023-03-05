@@ -9,12 +9,19 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AwsService } from './aws/aws.service';
 import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
     imports: [
         /* .env 파일 사용하기 위한 모듈 전역으로 설정 */
         ConfigModule.forRoot({
             isGlobal: true
+        }),
+
+        /* 초당 너무 많은 요청을 막기 위한 모듈 */
+        ThrottlerModule.forRoot({
+            ttl: 60, // Time window (in seconds) for which requests will be counted (e.g., 60 seconds)
+            limit: 100, // Maximum number of requests allowed per window (e.g., 100 requests per 60 seconds)
         }),
 
         /* TypeOrm */
