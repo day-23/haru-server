@@ -42,20 +42,20 @@ export class AuthService {
         return null;
     }
 
-    // async naverGetUserInfo(accessToken: string) {
-    //     const api_url = 'https://openapi.naver.com/v1/nid/me';
-    //     const { data } = await axios.get(api_url, {
-    //         headers: {
-    //             Authorization: 'Bearer ' + accessToken,
-    //         },
-    //     });
+    async naverGetUserInfo(accessToken: string) {
+        const api_url = 'https://openapi.naver.com/v1/nid/me';
+        const { data } = await axios.get(api_url, {
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+            },
+        });
 
-    //     return this.signUp(
-    //         data.response.email,
-    //         data.response.name,
-    //         data.response.mobile,
-    //     );
-    // }
+        return this.signUp(
+            data.response.email,
+            data.response.name,
+            data.response.mobile,
+        );
+    }
 
     async signUp(email: string, name: string, phone: string = '') {
         const createUserDto: CreateUserDto = {

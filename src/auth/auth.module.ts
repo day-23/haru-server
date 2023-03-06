@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/auth.jwt.strategy';
 import { GoogleStrategy } from './strategies/auth.google.strategy';
 import { AuthController } from './auth.controller';
 import { UserService } from 'src/users/users.service';
+import { NaverStrategy } from './strategies/auth.naver.strategy';
 
 @Module({
     controllers: [AuthController],
@@ -21,7 +22,7 @@ import { UserService } from 'src/users/users.service';
             //토큰 서명 값 설정
             secret: jwtConstants.secret,
             //토큰 유효시간 (임의 60초)
-            signOptions: { expiresIn: '60s' },
+            signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
         }),
     ],
     providers: [
@@ -31,6 +32,7 @@ import { UserService } from 'src/users/users.service';
         JwtStrategy,
         GoogleStrategy,
         UserService,
+        NaverStrategy,
     ],
 })
 export class AuthModule {}

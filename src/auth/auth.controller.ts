@@ -34,27 +34,27 @@ export class AuthController {
         return res.send(accessToken);
     }
 
-    // @Get('naver')
-    // @UseGuards(NaverAuthGuard)
-    // async naverLogin(@Req() req) {}
+    @Get('naver')
+    @UseGuards(NaverAuthGuard)
+    async naverLogin(@Req() req) {}
 
-    // @Get('naver')
-    // @UseGuards(NaverAuthGuard)
-    // async naverCallback(@Req() req, @Res() res) {
-    //     let user: User = await this.userService.getUserByEmail(req.user.email);
+    @Get('naver/callback')
+    @UseGuards(NaverAuthGuard)
+    async naverCallback(@Req() req, @Res() res) {
+        let user: User = await this.userService.getUserByEmail(req.user.email);
 
-    //     if (!user) {
-    //         user = await this.authService.naverGetUserInfo(
-    //             req.user.accessToken,
-    //         );
-    //     }
+        if (!user) {
+            user = await this.authService.naverGetUserInfo(
+                req.user.accessToken,
+            );
+        }
 
-    //     const { cookie, accessToken } = await this.authService.getAccessToken(
-    //         user,
-    //     );
+        const { cookie, accessToken } = await this.authService.getAccessToken(
+            user,
+        );
 
-    //     res.setHeader('Set-Cookie', cookie);
-    //     console.log('naver Login');
-    //     return res.send(user);
-    // }
+        res.setHeader('Set-Cookie', cookie);
+        console.log('naver Login');
+        return res.send(accessToken);
+    }
 }
