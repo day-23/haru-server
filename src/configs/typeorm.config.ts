@@ -19,6 +19,6 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     password: 'dlalswo8!',
     database: 'haru',
     entities: ['dist/**/*.entity.{ts,js}'], // Entity 연결
-    synchronize: true, //배포시 false로 바꿔야함
+    synchronize: false, //배포시 false로 바꿔야함
     logging: true, // 배포시 false로 바꿔야함
 }
