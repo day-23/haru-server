@@ -22,6 +22,7 @@ export class CheckApiKeyMiddleware implements NestMiddleware {
         console.log('validApiKeys', this.validApiKeys);
         const apiKey = req.headers['x-api-key'] as string;
 
+        /* API key 검증하는 부분 */
         // if (!apiKey || !this.validApiKeys.includes(apiKey)) {
         //     throw new UnauthorizedException('Invalid API key');
         // }

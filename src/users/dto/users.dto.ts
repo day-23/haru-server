@@ -22,7 +22,7 @@ export class CreateUserDto {
 
     @IsString()
     // @IsNotEmpty()
-    @IsOptional()
+    @IsOptional() // 필수 값이 아니라 선택 값으로
     @MinLength(8)
     @MaxLength(16)
     // 최소 8자 및 최대 16자, 하나 이상의 대문자, 하나의 소문자, 하나의 숫자 및 하나의 특수 문자

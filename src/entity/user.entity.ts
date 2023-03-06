@@ -38,16 +38,16 @@ export class User extends BaseEntity {
     })
     password: string;
 
-    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' })
+    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' }) // nullable : true 추가
     salt: string;
 
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
     name: string;
 
-    @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' })
+    @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 
-    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' })
+    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
