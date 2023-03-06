@@ -4,7 +4,7 @@ import { User } from 'src/entity/user.entity';
 /* TypeOrm 사용을 위한 Config */
 /* 현재는 테스트 용 DB라 괜찮은데, 상용 DB로 변경시 .env로 가져와야함 */
 export const typeORMConfig: TypeOrmModuleOptions = {
-    type: "mysql",
+    type: 'mysql',
     // Error : .env 적용이 안됨 //
     // host: process.env.TYPEORM_HOST,
     // port: Number(process.env.TYPEORM_PORT),
@@ -19,6 +19,6 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     password: 'dlalswo8!',
     database: 'haru',
     entities: ['dist/**/*.entity.{ts,js}'], // Entity 연결
-    synchronize: false, //배포시 false로 바꿔야함
+    synchronize: true, //배포시 false로 바꿔야함
     logging: true, // 배포시 false로 바꿔야함
-}
+};

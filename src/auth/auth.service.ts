@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/repository/user.repository';
 
 @Injectable()
 export class AuthService {
-    constructor(private userRepository: UserRepository, private readonly jwtService: JwtService) { }
+    constructor(
+        private userRepository: UserRepository,
+        private readonly jwtService: JwtService,
+    ) {}
 
     /**
      * @author Ryan
@@ -32,5 +36,18 @@ export class AuthService {
             return result;
         }
         return null;
+    }
+
+    async login(user: User) {
+        const payload = {
+            email: user.email,
+            name: user.name,
+        };
+
+        const token = this.jwtService.sign(payload);
+
+        const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${process.env.JWT_EXPIRATION_TIME}`;
+
+        return cookie;
     }
 }

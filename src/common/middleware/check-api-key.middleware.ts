@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, NestMiddleware } from '@nestjs/common';
+import {
+    Injectable,
+    UnauthorizedException,
+    NestMiddleware,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 /* API KEY Middleware */
@@ -15,7 +19,7 @@ export class CheckApiKeyMiddleware implements NestMiddleware {
     }
 
     use(req: Request, res: Response, next: NextFunction) {
-        console.log('validApiKeys', this.validApiKeys)
+        console.log('validApiKeys', this.validApiKeys);
         const apiKey = req.headers['x-api-key'] as string;
 
         if (!apiKey || !this.validApiKeys.includes(apiKey)) {
