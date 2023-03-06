@@ -10,6 +10,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AwsService } from './aws/aws.service';
 import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { TodosModule } from './todos/todos.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
         TypeOrmModule.forRoot(typeORMConfig),
         UsersModule,
         AuthModule,
+        TodosModule,
     ],
     controllers: [AppController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],
