@@ -3,6 +3,7 @@ import {
     IsNotEmpty,
     IsNumber,
     IsOptional,
+    isString,
     IsString,
     Matches,
     MaxLength,
@@ -41,6 +42,10 @@ export class CreateUserDto {
     // @IsNotEmpty()
     @IsOptional()
     age: number; //유저 나이
+
+    @IsString()
+    @IsOptional()
+    phone: string;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {

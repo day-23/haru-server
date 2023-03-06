@@ -5,7 +5,7 @@ import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { setupSwagger } from './common/swagger';
 import * as expressBasicAuth from 'express-basic-auth';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
-// import * as cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 
 /* main */
 async function bootstrap() {
@@ -25,7 +25,7 @@ async function bootstrap() {
         optionsSuccessStatus: 200,
     });
 
-    // app.use(cookieParser());
+    app.use(cookieParser());
 
     app.useGlobalPipes(
         new ValidationPipe({

@@ -1,9 +1,9 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { User } from 'src/entity/user.entity';
-import { CreateUserDto } from 'src/users/dto/users.dto';
 import { UserService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { NaverAuthGuard } from './guards/naver-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,19 +22,39 @@ export class AuthController {
         let user: User = await this.userService.getUserByEmail(req.user.email);
 
         if (!user) {
-            const createUserDto: CreateUserDto = {
-                email: req.user.email,
-                password: '',
-                name: req.user.name,
-                age: 24,
-            };
-            user = await this.userService.createUser(createUserDto);
+            user = await this.authService.signUp(req.user.email, req.user.name);
         }
 
-        const cookie = this.authService.login(user);
+        const { cookie, accessToken } = await this.authService.getAccessToken(
+            user,
+        );
 
         res.setHeader('Set-Cookie', cookie);
         console.log('google Login');
-        return res.send(user);
+        return res.send(accessToken);
     }
+
+    // @Get('naver')
+    // @UseGuards(NaverAuthGuard)
+    // async naverLogin(@Req() req) {}
+
+    // @Get('naver')
+    // @UseGuards(NaverAuthGuard)
+    // async naverCallback(@Req() req, @Res() res) {
+    //     let user: User = await this.userService.getUserByEmail(req.user.email);
+
+    //     if (!user) {
+    //         user = await this.authService.naverGetUserInfo(
+    //             req.user.accessToken,
+    //         );
+    //     }
+
+    //     const { cookie, accessToken } = await this.authService.getAccessToken(
+    //         user,
+    //     );
+
+    //     res.setHeader('Set-Cookie', cookie);
+    //     console.log('naver Login');
+    //     return res.send(user);
+    // }
 }
