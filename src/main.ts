@@ -3,9 +3,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { setupSwagger } from './common/swagger';
-import * as expressBasicAuth from 'express-basic-auth'
+import * as expressBasicAuth from 'express-basic-auth';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
-import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
+import * as cookieParser from 'cookie-parser';
 
 /* main */
 async function bootstrap() {
@@ -14,7 +14,7 @@ async function bootstrap() {
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    console.log("?")
+    console.log('?');
     //success
     app.useGlobalInterceptors(new SuccessInterceptor());
 
@@ -24,6 +24,8 @@ async function bootstrap() {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         optionsSuccessStatus: 200,
     });
+
+    app.use(cookieParser());
 
     app.useGlobalPipes(
         new ValidationPipe({
@@ -42,10 +44,8 @@ async function bootstrap() {
         }),
     );
 
-    
-
     //Swagger 환경설정 연결
-    if(process.env.MODE == 'dev'){
+    if (process.env.MODE == 'dev') {
         //접근 비밀번호 설정
         app.use(
             ['/docs', 'docs-json'],
@@ -53,12 +53,11 @@ async function bootstrap() {
                 challenge: true,
                 users: {
                     [process.env.SWAGGER_USER]: process.env.SWAGGER_PASSWORD,
-                }
-            })
-        )
+                },
+            }),
+        );
         setupSwagger(app);
     }
-
 
     await app.listen(process.env.PORT);
 }

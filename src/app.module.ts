@@ -15,7 +15,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     imports: [
         /* .env 파일 사용하기 위한 모듈 전역으로 설정 */
         ConfigModule.forRoot({
-            isGlobal: true
+            isGlobal: true,
         }),
 
         /* 초당 너무 많은 요청을 막기 위한 모듈 */
@@ -32,8 +32,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
     controllers: [AppController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],
 })
-
-
 export class AppModule implements NestModule {
     /* 개발 환경의 경우 서버에서 로그 찍어주기 */
     private readonly isDev: boolean = process.env.MODE === 'dev' ? true : false;

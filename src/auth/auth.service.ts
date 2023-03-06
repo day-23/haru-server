@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/repository/user.repository';
+import { CreateUserDto } from 'src/users/dto/users.dto';
+import { UserService } from 'src/users/users.service';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
-    constructor(private userRepository: UserRepository, private readonly jwtService: JwtService) { }
+    constructor(
+        private userRepository: UserRepository,
+        private readonly jwtService: JwtService,
+        private userService: UserService,
+    ) {}
 
     /**
      * @author Ryan
@@ -32,5 +40,45 @@ export class AuthService {
             return result;
         }
         return null;
+    }
+
+    async naverGetUserInfo(accessToken: string) {
+        const api_url = 'https://openapi.naver.com/v1/nid/me';
+        const { data } = await axios.get(api_url, {
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+            },
+        });
+
+        return this.signUp(
+            data.response.email,
+            data.response.name,
+            data.response.mobile,
+        );
+    }
+
+    async signUp(email: string, name: string, phone: string = '') {
+        const createUserDto: CreateUserDto = {
+            email: email,
+            password: '',
+            name: name,
+            age: 24,
+            phone: phone,
+        };
+
+        return await this.userService.createUser(createUserDto);
+    }
+
+    async getAccessToken(user: User) {
+        const payload = {
+            email: user.email,
+            name: user.name,
+        };
+
+        const token = this.jwtService.sign(payload);
+
+        const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${process.env.JWT_EXPIRATION_TIME}`;
+
+        return { cookie: cookie, accessToken: token };
     }
 }

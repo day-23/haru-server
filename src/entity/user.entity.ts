@@ -1,4 +1,16 @@
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, Unique, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    BaseEntity,
+    CreateDateColumn,
+    UpdateDateColumn,
+    DeleteDateColumn,
+    Unique,
+    OneToOne,
+    JoinColumn,
+    OneToMany,
+} from 'typeorm';
 import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
 import { Following } from './following.entity';
@@ -18,19 +30,24 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 50, comment: '유저 아이디' })
     email: string;
 
-    @Column({ type: 'varchar', length: 255, comment: '유저 비밀번호' })
+    @Column({
+        nullable: true,
+        type: 'varchar',
+        length: 255,
+        comment: '유저 비밀번호',
+    })
     password: string;
 
-    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' })
+    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' }) // nullable : true 추가
     salt: string;
 
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
     name: string;
 
-    @Column({ type: 'tinyint', comment: '유저 나이' })
+    @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 
-    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' })
+    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
@@ -42,7 +59,6 @@ export class User extends BaseEntity {
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
     @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
     deletedAt?: Date | null;
-
 
     /* 다른 엔터티들간의 관계 */
 
@@ -85,5 +101,4 @@ export class User extends BaseEntity {
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => PostLike, (postlike) => postlike.id)
     postLike: PostLike[];
-
 }
