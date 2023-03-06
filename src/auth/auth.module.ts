@@ -21,8 +21,7 @@ import { NaverStrategy } from './strategies/auth.naver.strategy';
         JwtModule.register({
             //토큰 서명 값 설정
             secret: jwtConstants.secret,
-            //토큰 유효시간 (임의 60초)
-            signOptions: { expiresIn: process.env.JWT_EXPIRATION_TIME },
+            signOptions: { expiresIn: '1h' },
         }),
     ],
     providers: [
