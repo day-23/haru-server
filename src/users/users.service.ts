@@ -6,25 +6,29 @@ import { CreateUserDto } from './dto/users.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+    constructor(private readonly userRepository: UserRepository) { }
 
-  async getAllUsers(): Promise<User[]> {
-    return await this.userRepository.findAll();
-  }
+    async findOne(id: string): Promise<User> {
+        return await this.userRepository.findOne(id);
+    }
 
-  async getUserByEmail(email: string): Promise<User> {
-    return await this.userRepository.findByEmail(email);
-  }
+    async getAllUsers(): Promise<User[]> {
+        return await this.userRepository.findAll();
+    }
 
-  async createUser(user: CreateUserDto): Promise<User> {
-    return await this.userRepository.create(user);
-  }
+    async getUserByEmail(email: string): Promise<User> {
+        return await this.userRepository.findByEmail(email);
+    }
 
-  async updateUser(id: string, user: User): Promise<User> {
-    return await this.userRepository.update(id, user);
-  }
+    async createUser(user: CreateUserDto): Promise<User> {
+        return await this.userRepository.create(user);
+    }
 
-  async deleteUser(id: string): Promise<void> {
-    return await this.userRepository.delete(id);
-  }
+    async updateUser(id: string, user: User): Promise<User> {
+        return await this.userRepository.update(id, user);
+    }
+
+    async deleteUser(id: string): Promise<void> {
+        return await this.userRepository.delete(id);
+    }
 }
