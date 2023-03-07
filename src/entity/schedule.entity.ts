@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, JoinColumn, ManyToOne, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, JoinColumn, ManyToOne, Column, OneToMany } from 'typeorm';
+import { Alarm } from './alarm.entity';
 import { Category } from './schedule-category.entity';
 import { User } from './user.entity';
 
@@ -38,10 +39,13 @@ export class Schedule extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-
     /* 스케줄 : 카테고리 = N:1 */
     @ManyToOne(() => Category, (category) => category.id)
     @JoinColumn({ name: 'category_id' })
     category: Category;
+
+    /* 스케줄 : 알람 = 1:N */
+    @OneToMany(()=> Alarm, (alarm)=>alarm.id)
+    alarm : Alarm[];
 
 }

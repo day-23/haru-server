@@ -1,5 +1,5 @@
 import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import * as expressBasicAuth from 'express-basic-auth';
@@ -17,7 +17,7 @@ async function bootstrap() {
     console.log('?');
 
     // success interceptor -> 필요없는 것 같아 제외
-    // app.useGlobalInterceptors(new SuccessInterceptor());
+    app.useGlobalInterceptors(new SuccessInterceptor(new Reflector()));
 
     //Global Middleware 설정 -> Cors 속성 활성화
     app.enableCors({

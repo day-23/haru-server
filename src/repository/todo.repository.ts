@@ -21,24 +21,14 @@ export class TodoRepository {
         });
         const totalPages = Math.ceil(count / limit);
         return {
-            success: true,
             data: users,
             pagination: {
-                total_items: count,
-                items_per_page: limit,
-                current_page: page,
-                total_pages: totalPages,
+                totalItems: count,
+                itemsPerPage: limit,
+                currentPage: page,
+                totalPages: totalPages,
             },
         };
-
-
-        // return await this.repository.find({
-        //     skip,
-        //     take,
-        //     order: {
-        //         createdAt: 'DESC'
-        //     }
-        // })
     }
 
     async create(todo: CreateTodoDto): Promise<Todo> {
