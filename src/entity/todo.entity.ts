@@ -4,7 +4,6 @@ import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
 
-
 @Entity({ name: 'todo' })
 export class Todo extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')

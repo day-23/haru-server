@@ -21,7 +21,6 @@ export class CreateTodoDto{
     @IsOptional() /* nullable */
     repeat: string;
 
-
     @ApiProperty({description: 'todo에 작성하는 메모'})
     @IsString()
     memo: string;
