@@ -4,7 +4,8 @@ import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
 
-@Entity()
+
+@Entity({ name: 'todo' })
 export class Todo extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -18,7 +19,16 @@ export class Todo extends BaseEntity {
     memo: string;
 
     @Column()
+    todayTodo : boolean;
+
+    @CreateDateColumn({ name: 'alarm', comment: '알림설정' })
+    alarm : Date;
+
+    @Column()
     repeatOption: string;
+
+    @Column()
+    flag: boolean;
 
     @Column()
     repeat: string;

@@ -12,7 +12,7 @@ export class TodosService {
         return await this.todoRepository.findAll()
     }
 
-    async getAllTodosByPagination(page = 1, limit = 10): Promise<Todo[]> {
+    async getTodosByPagination(page = 1, limit = 10) {
         return await this.todoRepository.findByPagination(page, limit)
     }
 

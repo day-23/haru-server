@@ -11,17 +11,34 @@ export class TodoRepository {
         return await this.repository.find()
     }
 
-    async findByPagination(page = 1, limit = 10): Promise<Todo[]> {
+    async findByPagination(page = 1, limit = 10) {
         const skip = (page - 1) * limit;
         const take = limit;
 
-        return await this.repository.find({
+        const [users, count] = await this.repository.findAndCount({
             skip,
-            take,
-            order: {
-                createdAt: 'DESC'
-            }
-        })
+            take: limit,
+        });
+        const totalPages = Math.ceil(count / limit);
+        return {
+            success: true,
+            data: users,
+            pagination: {
+                total_items: count,
+                items_per_page: limit,
+                current_page: page,
+                total_pages: totalPages,
+            },
+        };
+
+
+        // return await this.repository.find({
+        //     skip,
+        //     take,
+        //     order: {
+        //         createdAt: 'DESC'
+        //     }
+        // })
     }
 
     async create(todo: CreateTodoDto): Promise<Todo> {
