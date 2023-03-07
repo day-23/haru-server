@@ -4,6 +4,9 @@ import { map, tap } from 'rxjs/operators';
 
 @Injectable()
 export class SuccessInterceptor implements NestInterceptor {
+
+
+    
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
         // console.log('Before...');
 

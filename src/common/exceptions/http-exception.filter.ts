@@ -17,10 +17,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
             });
         }
 
+        console.log("here")
         const status = exception.getStatus();
         const error = exception.getResponse() as
             | string
             | { error: string; statusCode: number; message: string | string[] };
+
+        console.log(error)
 
 
         if (typeof error === 'string') {
