@@ -23,7 +23,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             | string
             | { error: string; statusCode: number; message: string | string[] };
 
-        console.log(error)
+        console.log('http-exception:', exception)
 
 
         if (typeof error === 'string') {
@@ -37,10 +37,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
             response.status(status).json({
                 success: false,
                 // timestamp: new Date().toISOString(),
-                error : {
-                    code : error.statusCode,
-                    message : error.error,
-                    devMessage : error.message
+                error: {
+                    code: error.statusCode,
+                    message: error.error,
+                    devMessage: error.message
                 },
             });
         }

@@ -1,21 +1,27 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateTodoDto } from "src/todos/dto/create.dto";
+import { UserService } from "src/users/users.service";
 import { Repository } from "typeorm";
 
 export class TodoRepository {
-    constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>) { }
+    constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
+        private readonly userService: UserService
+    ) { }
 
     async findAll(): Promise<Todo[]> {
         return await this.repository.find()
     }
 
-    async findByPagination(page = 1, limit = 10) {
+    async findByPagination(userId: string, paginationDto: PaginationDto) {
+        const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
         const take = limit;
 
         const [users, count] = await this.repository.findAndCount({
+            where: { user: { id: userId } },
             skip,
             take: limit,
         });
@@ -31,9 +37,10 @@ export class TodoRepository {
         };
     }
 
-    async create(todo: CreateTodoDto): Promise<Todo> {
+    async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
+        const user = await this.userService.findOne(userId);
         try {
-            return await this.repository.save({ ...todo });
+            return this.repository.save({ ...todo, user });
         } catch (error) {
             throw new HttpException(
                 {
