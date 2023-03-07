@@ -2,10 +2,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
-import { setupSwagger } from './common/swagger';
 import * as expressBasicAuth from 'express-basic-auth';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
 import * as cookieParser from 'cookie-parser';
+import { setupSwagger } from './common/swagger/swagger';
 
 /* main */
 async function bootstrap() {
@@ -15,8 +15,9 @@ async function bootstrap() {
     app.useGlobalFilters(new HttpExceptionFilter());
 
     console.log('?');
-    //success
-    app.useGlobalInterceptors(new SuccessInterceptor());
+
+    // success interceptor -> 필요없는 것 같아 제외
+    // app.useGlobalInterceptors(new SuccessInterceptor());
 
     //Global Middleware 설정 -> Cors 속성 활성화
     app.enableCors({
@@ -40,7 +41,7 @@ async function bootstrap() {
             whitelist: true,
             forbidNonWhitelisted: true,
             transform: true,
-            disableErrorMessages: true,
+            disableErrorMessages: false,
         }),
     );
 
