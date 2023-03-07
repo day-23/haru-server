@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoLog } from './todolog.entity';
@@ -13,23 +14,23 @@ export class Todo extends BaseEntity {
     content: string;
 
     @Column({
-        length : 500
+        nullable: true,
+        length: 500
     })
     memo: string;
 
+    /* 오늘 할일 */
     @Column()
-    todayTodo : boolean;
+    todayTodo: boolean;
 
-    @CreateDateColumn({ name: 'alarm', comment: '알림설정' })
-    alarm : Date;
-
-    @Column()
-    repeatOption: string;
-
+    /* 중요한 */
     @Column()
     flag: boolean;
 
-    @Column()
+    @Column({ nullable: true })
+    repeatOption: string;
+
+    @Column({ nullable: true, })
     repeat: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
@@ -60,5 +61,9 @@ export class Todo extends BaseEntity {
     /* 투두 : 하위항목 = 1:N */
     @OneToMany(() => SubTodo, (subtodo) => subtodo.id)
     subtodo: SubTodo[];
+
+    /* 투두 : 알람 = 1:N */
+    @OneToMany(()=> Alarm, (alarm)=>alarm.id)
+    alarm : Alarm[];
 
 }
