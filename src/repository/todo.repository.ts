@@ -29,15 +29,6 @@ export class TodoRepository {
                 totalPages: totalPages,
             },
         };
-
-
-        // return await this.repository.find({
-        //     skip,
-        //     take,
-        //     order: {
-        //         createdAt: 'DESC'
-        //     }
-        // })
     }
 
     async create(todo: CreateTodoDto): Promise<Todo> {
