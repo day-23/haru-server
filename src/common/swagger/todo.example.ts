@@ -1,15 +1,22 @@
 export const swaggerTodoCreateExample = {
     "success": true,
     "data": {
-        "userId": "abcdefasdf1221e4312",
+        "userId": "005224c0-eec1-4638-9143-58cbfc9688c5",
         "content": "boxing",
         "repeatOption": "주",
         "repeat": "1111100",
         "memo": "momo is pig",
+        "tags": [
+            "운동 -> id값",
+            "복싱 -> id값",
+            "잽잽원투원투 -> id값"
+        ],
+        "flag": false,
+        "todayTodo": false,
         "deletedAt": null,
-        "id": "807fa31d-6e3c-4a11-a900-7edc763d9640",
-        "createdAt": "2023-03-06T07:55:22.002Z",
-        "updatedAt": "2023-03-06T07:55:22.002Z"
+        "id": "54788aa9-8dc9-45d1-bd7d-fe37f17517f8",
+        "createdAt": "2023-03-06T23:38:19.678Z",
+        "updatedAt": "2023-03-06T23:38:19.678Z"
     }
 }
 

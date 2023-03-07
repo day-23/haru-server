@@ -30,7 +30,7 @@ export class Todo extends BaseEntity {
     @Column({ nullable: true })
     repeatOption: string;
 
-    @Column({ nullable: true, })
+    @Column({length: 7, nullable: true, })
     repeat: string;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
