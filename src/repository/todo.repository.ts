@@ -91,10 +91,10 @@ export class TodoRepository {
         }
     }
 
-
-
-    async delete(id: string): Promise<void> {
-        await this.repository.delete(id);
+    async delete(userId: string, todoId: string): Promise<void> {
+        await this.repository.delete({
+            user: userId,
+            id: todoId
+        });
     }
-
 }

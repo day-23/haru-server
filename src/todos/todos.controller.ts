@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -42,7 +42,7 @@ export class TodosController {
     }
 
     @Patch('/:todoId')
-    @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
+    @ApiOperation({ summary: '투두 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
         description: '투두를 수정한다.', schema: {
             example: swaggerTodoCreateExample
@@ -50,7 +50,19 @@ export class TodosController {
     })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() todo: any,): Promise<Todo> {
+        @Body() todo: Todo): Promise<Todo> {
         return this.todoService.updateTodo(userId, todoId, todo);
+    }
+
+    @Delete('/:todoId')
+    @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '투두를 삭제한다.', schema: {
+            example: swaggerTodoCreateExample
+        }
+    })
+    async delete(@Param('userId') userId: string,
+        @Param('todoId') todoId: string): Promise<void> {
+        return this.todoService.deleteTodo(userId, todoId);
     }
 }
