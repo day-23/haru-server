@@ -21,7 +21,7 @@ export class TodoRepository {
         const take = limit;
 
         const [users, count] = await this.repository.findAndCount({
-            where: { user: { id: userId } },
+            where: { user: userId  },
             skip,
             take: limit,
         });
@@ -40,7 +40,12 @@ export class TodoRepository {
     async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
         const user = await this.userService.findOne(userId);
         try {
-            return this.repository.save({ ...todo, user });
+            const newTodo = new Todo({
+                ...todo,
+                repeatEnd: new Date(todo.repeatEnd),
+                user: user.id,
+              });
+            return this.repository.save(newTodo);
         } catch (error) {
             throw new HttpException(
                 {

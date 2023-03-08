@@ -27,10 +27,18 @@ export class CreateTodoDto {
     @IsOptional() /* nullable */
     repeatOption: string;
 
+    @ApiProperty({description:'반복 끝', nullable : true})
+    @IsOptional()
+    repeatEnd : string;
+
     @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(7)
     @IsOptional() /* nullable */
     repeat: string;
+
+    @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
+    @IsOptional() /* nullable */
+    endDate : Date;
 
     @ApiProperty({ description: 'tag의 이름들' })
     @IsString({ each: true })

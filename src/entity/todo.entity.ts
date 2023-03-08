@@ -7,6 +7,13 @@ import { User } from './user.entity';
 
 @Entity({ name: 'todo' })
 export class Todo extends BaseEntity {
+    constructor(data?: Partial<Todo>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -33,6 +40,12 @@ export class Todo extends BaseEntity {
     @Column({length: 7, nullable: true, })
     repeat: string;
 
+    @CreateDateColumn({ name: 'repeat_end', comment: '구간 끝', nullable: true, })
+    repeatEnd: Date;
+
+    @CreateDateColumn({ name: 'end_date', comment: '마감일' })
+    endDate : Date;
+
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
 
@@ -48,7 +61,7 @@ export class Todo extends BaseEntity {
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    user: string;
 
     /* 투두 : 투두로그 = 1:N */
     @OneToMany(() => TodoLog, (todolog) => todolog.id)

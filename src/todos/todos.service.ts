@@ -13,7 +13,7 @@ export class TodosService {
         return await this.todoRepository.findAll()
     }
 
-    async getTodosByPagination(userId: string, paginationDto: PaginationDto) {
+    async getTodosByPagination(userId: string, paginationDto : PaginationDto) {
         return await this.todoRepository.findByPagination(userId, paginationDto)
     }
 
