@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -39,5 +39,18 @@ export class TodosController {
     async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<Todo> {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
+    }
+
+    @Patch('/:todoId')
+    @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
+    @ApiCreatedResponse({
+        description: '투두를 수정한다.', schema: {
+            example: swaggerTodoCreateExample
+        }
+    })
+    async update(@Param('userId') userId: string,
+        @Param('todoId') todoId: string,
+        @Body() todo: any,): Promise<Todo> {
+        return this.todoService.updateTodo(userId, todoId, todo);
     }
 }
