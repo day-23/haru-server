@@ -45,10 +45,10 @@ export class Todo extends BaseEntity {
     @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
 
-    @Column({ name: 'end_date', comment: '마감일', nullable:true })
+    @Column({comment: '마감일', nullable:true })
     endDate: Date;
 
-    @Column({ name: 'end_date', comment: '마감일, 마감 시간', nullable:true })
+    @Column({comment: '마감일, 마감 시간', nullable:true })
     endDateTime: Date;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
@@ -60,7 +60,6 @@ export class Todo extends BaseEntity {
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
     @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
     deletedAt?: Date | null;
-
 
     /* 다른 엔터티들간의 관계 */
     /* 투두 : 사용자 = N:1 */
