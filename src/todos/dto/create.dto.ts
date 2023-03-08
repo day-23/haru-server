@@ -1,10 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
 
 export class CreateTodoDto {
     @ApiProperty({ description: 'todo 내용' })
+    @MinLength(1)
     @MaxLength(200)
     @IsString()
     content: string;
@@ -22,10 +23,22 @@ export class CreateTodoDto {
     @IsBoolean()
     flag: boolean;
 
+    @ApiProperty({ description: '마감날짜', nullable: true })
+    @IsOptional() /* nullable */
+    endDate : string;
+
+    @ApiProperty({ description: '마감날짜+시간', nullable: true })
+    @IsOptional() /* nullable */
+    endDateTime : string;
+
     @ApiProperty({ description: 'todo 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
     @MaxLength(10)
     @IsOptional() /* nullable */
     repeatOption: string;
+
+    @ApiProperty({description:'반복 끝', nullable : true})
+    @IsOptional()
+    repeatEnd : string;
 
     @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(7)

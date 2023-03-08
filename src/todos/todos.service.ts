@@ -21,8 +21,8 @@ export class TodosService {
         return await this.todoRepository.create(userId, todo);
     }
 
-    async updateTodo(id: string, todo: Todo): Promise<Todo> {
-        return await this.todoRepository.update(id, todo);
+    async updateTodo(userId: string, todoId: string, todo: Todo): Promise<Todo> {
+        return await this.todoRepository.update(userId, todoId, todo);
     }
 
     async deleteTodo(id: string): Promise<void> {

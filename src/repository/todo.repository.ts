@@ -5,6 +5,10 @@ import { Todo } from "src/entity/todo.entity";
 import { CreateTodoDto } from "src/todos/dto/create.dto";
 import { UserService } from "src/users/users.service";
 import { Repository } from "typeorm";
+import * as moment from 'moment-timezone';
+import { makeDateApplyTimeZone } from "src/common/makeDate";
+
+
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
@@ -21,7 +25,7 @@ export class TodoRepository {
         const take = limit;
 
         const [users, count] = await this.repository.findAndCount({
-            where: { user: { id: userId } },
+            where: { user: userId },
             skip,
             take: limit,
         });
@@ -39,8 +43,16 @@ export class TodoRepository {
 
     async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
         const user = await this.userService.findOne(userId);
+
         try {
-            return this.repository.save({ ...todo, user });
+            const newTodo = new Todo({
+                ...todo,
+                repeatEnd: makeDateApplyTimeZone(todo.repeatEnd),
+                endDate: makeDateApplyTimeZone(todo.endDate),
+                endDateTime: makeDateApplyTimeZone(todo.endDateTime),
+                user: user.id,
+            });
+            return this.repository.save(newTodo);
         } catch (error) {
             throw new HttpException(
                 {
@@ -52,10 +64,34 @@ export class TodoRepository {
         }
     }
 
-    async update(id: string, todo: Todo): Promise<Todo> {
-        await this.repository.update(id, todo);
-        return await this.repository.findOne({ where: { id } });
+    async update(userId: string, todoId: string, todo: Todo): Promise<Todo> {
+        const existingTodo = await this.repository.findOne({ where: { id: todoId } });
+
+        if (!existingTodo) {
+            throw new HttpException(
+                'Todo not found',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        try {
+            const updatedTodo = new Todo({
+                ...existingTodo,
+                ...todo,
+            });
+            return this.repository.save(updatedTodo);
+        } catch (error) {
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        }
     }
+
+
 
     async delete(id: string): Promise<void> {
         await this.repository.delete(id);

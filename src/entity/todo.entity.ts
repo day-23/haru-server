@@ -1,3 +1,4 @@
+import { MinLength } from 'class-validator';
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
@@ -7,10 +8,18 @@ import { User } from './user.entity';
 
 @Entity({ name: 'todo' })
 export class Todo extends BaseEntity {
+    constructor(data?: Partial<Todo>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
+    @MinLength(1)
     content: string;
 
     @Column({
@@ -30,8 +39,17 @@ export class Todo extends BaseEntity {
     @Column({ nullable: true })
     repeatOption: string;
 
-    @Column({length: 7, nullable: true, })
+    @Column({ length: 7, nullable: true, })
     repeat: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    repeatEnd: Date;
+
+    @Column({ name: 'end_date', comment: '마감일', nullable:true })
+    endDate: Date;
+
+    @Column({ name: 'end_date', comment: '마감일, 마감 시간', nullable:true })
+    endDateTime: Date;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;
@@ -48,7 +66,7 @@ export class Todo extends BaseEntity {
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
-    user: User;
+    user: string;
 
     /* 투두 : 투두로그 = 1:N */
     @OneToMany(() => TodoLog, (todolog) => todolog.id)
@@ -63,7 +81,7 @@ export class Todo extends BaseEntity {
     subtodo: SubTodo[];
 
     /* 투두 : 알람 = 1:N */
-    @OneToMany(()=> Alarm, (alarm)=>alarm.id)
-    alarm : Alarm[];
+    @OneToMany(() => Alarm, (alarm) => alarm.id)
+    alarm: Alarm[];
 
 }
