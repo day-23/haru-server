@@ -26,9 +26,8 @@ export class SubTodo extends BaseEntity {
     @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
     deletedAt?: Date | null;
 
-
     /* 다른 엔터티들간의 관계 */
-    @ManyToOne(() => Todo, (todo) => todo.id)
+    @ManyToOne(() => Todo, (todo) => todo.id, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
 }

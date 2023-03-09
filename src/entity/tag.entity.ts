@@ -36,11 +36,11 @@ export class Tag extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 태그 : 태그투두 = 1:N */
-    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
-    tagWithTodo: TagWithTodo[];
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.tag)
+    tagWithTodos: TagWithTodo[];
 
     /* 태그 : 태그게시물 = 1:N */
-    @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.id)
+    @OneToMany(() => TagWithPost, (tagwithpost) => tagwithpost.tag)
     tagWithPost: TagWithPost[];
 
 }

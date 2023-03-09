@@ -16,7 +16,7 @@ export class TodosController {
 
     @PaginatedResponse()
     @Get('todos')
-    @ApiOperation({ summary: '투두 조회 API', description: '투두를 조회한다.' })
+    @ApiOperation({ summary: '투두 페이지네이션 전체 조회 API', description: '투두를 조회한다.' })
     @ApiCreatedResponse({
         description: '투두 페이지네이션 방식으로 조회한다.', schema: {
             example: swaggerGetTodosByPagination
@@ -32,7 +32,7 @@ export class TodosController {
 
     @PaginatedResponse()
     @Get('todos/date')
-    @ApiOperation({ summary: '투두 조회 API', description: '투두를 조회한다.' })
+    @ApiOperation({ summary: '투두 날짜 파라미터로 조회 API', description: '투두를 조회한다.' })
     @ApiCreatedResponse({
         description: '투두 페이지네이션 방식으로 조회한다.', schema: {
             example: swaggerGetTodosByPagination

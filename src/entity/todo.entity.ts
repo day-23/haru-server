@@ -54,7 +54,7 @@ export class Todo extends BaseEntity {
     @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
@@ -71,13 +71,13 @@ export class Todo extends BaseEntity {
     @OneToMany(() => TodoLog, (todolog) => todolog.id)
     todoLog: TodoLog[];
 
-    /* 태그 : 태그투두 = 1:N */
-    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
-    tagWithTodo: TagWithTodo[];
+    /* 투두 : 태그투두 = 1:N */
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.todo)
+    tagWithTodos: TagWithTodo[] | string[];
 
     /* 투두 : 하위항목 = 1:N */
     @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)
-    subTodos: SubTodo[];
+    subTodos: SubTodo[] | string[];
 
     /* 투두 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.id)
