@@ -4,7 +4,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
-import { CreateTodoDto, UpdateTodoDto } from './dto/create.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { TodosService } from './todos.service';
 
 

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
-import { CreateTodoDto, UpdateTodoDto } from './dto/create.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 
 @Injectable()
 export class TodosService {
