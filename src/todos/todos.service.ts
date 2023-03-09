@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
@@ -11,6 +12,10 @@ export class TodosService {
 
     async getAllTodos(): Promise<Todo[]> {
         return await this.todoRepository.findAll()
+    }
+
+    async getTodosByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        return await this.todoRepository.findByDate(userId, datePaginationDto)
     }
 
     async getTodosByPagination(userId: string, paginationDto: PaginationDto) {

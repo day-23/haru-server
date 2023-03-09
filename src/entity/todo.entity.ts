@@ -69,7 +69,7 @@ export class Todo extends BaseEntity {
 
     /* 투두 : 투두로그 = 1:N */
     @OneToMany(() => TodoLog, (todolog) => todolog.id)
-    todolog: TodoLog[];
+    todoLog: TodoLog[];
 
     /* 태그 : 태그투두 = 1:N */
     @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
@@ -77,7 +77,7 @@ export class Todo extends BaseEntity {
 
     /* 투두 : 하위항목 = 1:N */
     @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)
-    subtodos: SubTodo[];
+    subTodos: SubTodo[];
 
     /* 투두 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.id)
