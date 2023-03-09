@@ -6,6 +6,14 @@ import { User } from './user.entity';
 
 @Entity()
 export class TagWithTodo extends BaseEntity {
+    constructor(data?: Partial<TagWithTodo>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -23,11 +31,11 @@ export class TagWithTodo extends BaseEntity {
     /* tagwithtodo : tag = N : 1 */
     @ManyToOne(() => Tag, (tag) => tag.id)
     @JoinColumn({ name: 'tag_id' })
-    tag: Tag;
+    tag: Tag | string;
 
     /* tagwithtodo : 투두 = N : 1 */
     @ManyToOne(() => Todo, (todo) => todo.id)
     @JoinColumn({ name: 'todo_id' })
-    todo: Todo;
+    todo: Todo | string;
 
 }

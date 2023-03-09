@@ -10,12 +10,16 @@ import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
+import { TagsService } from "src/tags/tags.service";
+import { TagWithTodo } from "src/entity/tag-with-todo.entity";
 
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
-        private readonly userService: UserService
+        @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
+        private readonly userService: UserService,
+        private readonly tagsService : TagsService
     ) { }
 
     async findAll(): Promise<Todo[]> {
@@ -74,8 +78,7 @@ export class TodoRepository {
 
     /* 투두 생성 함수 */
     async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
-        const user = await this.userService.findOne(userId);
-
+        // const user = await this.userService.findOne(userId);
         try {
             const newTodo = new Todo({
                 ...todo,
@@ -87,16 +90,25 @@ export class TodoRepository {
             
             /* 서브 투두 데이터 저장 */
             const subTodos = todo.subTodos.map(subTodo => {
-
                 const newSubTodo = new SubTodo({
                     todo: ret.id,
                     content: subTodo
                 });
                 return newSubTodo;
             });
-    
             await this.subTodoRepository.save(subTodos);
 
+            /* 투두에 대한 태그 저장 */
+            const savedTags = await this.tagsService.createTags(userId, {contents:todo.tags})
+            const tagWithTodos = savedTags.map((tag)=>{
+                const newTagWithTodo = new TagWithTodo({
+                    todo : ret.id,
+                    tag: tag.id,
+                })
+                return newTagWithTodo
+            })
+
+            this.tagWithTodoRepository.save(tagWithTodos)
             return ret;
 
         } catch (error) {
