@@ -12,7 +12,7 @@ import { SubTodo } from "src/entity/sub-todo.entity";
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
-        @InjectRepository(Todo) private readonly subTodoRepository: Repository<SubTodo>,
+        @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
         private readonly userService: UserService
     ) { }
 
@@ -29,6 +29,7 @@ export class TodoRepository {
             where: { user: { id: userId } },
             skip,
             take: limit,
+            order: { createdAt: "DESC" }
         });
 
         const totalPages = Math.ceil(count / limit);
@@ -52,13 +53,19 @@ export class TodoRepository {
                 user : userId,
             });
 
+            /* 투두 데이터 저장 */
             const ret = await this.repository.save(newTodo);
             
-            console.log(todo.subTodos)
-
-            console.log(ret)
-            console.log('ret value', ret.id)
-
+            /* 서브 투두 데이터 저장 */
+            const subTodos = todo.subTodos.map(subTodo => {
+                const newSubTodo = new SubTodo({
+                    todo: ret.id,
+                    content: subTodo
+                });
+                return newSubTodo;
+            });
+    
+            await this.subTodoRepository.save(subTodos);
             return ret;
 
         } catch (error) {
