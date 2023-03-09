@@ -22,6 +22,7 @@ export class TodoRepository {
         return await this.repository.find()
     }
 
+    /* 투두 데이트 페이지네이션 함수 */
     async findByDate(userId:string, datePaginationDto: DatePaginationDto){
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
@@ -79,7 +80,6 @@ export class TodoRepository {
             const newTodo = new Todo({
                 ...todo,
                 user : userId,
-                subTodos:[]
             });
 
             /* 투두 데이터 저장 */
@@ -124,7 +124,6 @@ export class TodoRepository {
             const updatedTodo = new Todo({
                 ...existingTodo,
                 ...todo,
-                subTodos:[]
             });
             return this.repository.save(updatedTodo);
         } catch (error) {

@@ -1,7 +1,6 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
 import { CreateTagsDto } from "src/tags/dto/create.tag.dto";
-import { UserService } from "src/users/users.service";
 import { In, Repository } from "typeorm";
 
 
