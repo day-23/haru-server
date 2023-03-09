@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SubTodo } from 'src/entity/sub-todo.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { User } from 'src/entity/user.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
@@ -9,7 +10,7 @@ import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo, User])],
+    imports: [TypeOrmModule.forFeature([Todo, User, SubTodo])],
     controllers: [TodosController],
     providers: [TodosService, TodoRepository, UserService, UserRepository]
 })

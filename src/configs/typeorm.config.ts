@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { User } from 'src/entity/user.entity';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 /* TypeOrm 사용을 위한 Config */
 /* 현재는 테스트 용 DB라 괜찮은데, 상용 DB로 변경시 .env로 가져와야함 */
@@ -22,4 +22,5 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     synchronize: true, //배포시 false로 바꿔야함
     logging: true, // 배포시 false로 바꿔야함
     timezone: 'Asia/Seoul',
+    namingStrategy: new SnakeNamingStrategy()
 };

@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
-
 
 
 export class CreateTodoDto {
@@ -25,11 +25,13 @@ export class CreateTodoDto {
 
     @ApiProperty({ description: '마감날짜', nullable: true })
     @IsOptional() /* nullable */
-    endDate : string;
+    @Transform(({ value }) => new Date(value))
+    endDate : Date;
 
     @ApiProperty({ description: '마감날짜+시간', nullable: true })
     @IsOptional() /* nullable */
-    endDateTime : string;
+    @Transform(({ value }) => new Date(value))
+    endDateTime : Date;
 
     @ApiProperty({ description: 'todo 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
     @MaxLength(10)
@@ -38,7 +40,8 @@ export class CreateTodoDto {
 
     @ApiProperty({description:'반복 끝', nullable : true})
     @IsOptional()
-    repeatEnd : string;
+    @Transform(({ value }) => new Date(value))
+    repeatEnd : Date;
 
     @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(7)
@@ -48,4 +51,15 @@ export class CreateTodoDto {
     @ApiProperty({ description: 'tag의 이름들' })
     @IsString({ each: true })
     tags: string[];
+
+    @ApiProperty({ description: 'subTodos의 내용들' })
+    @IsString({ each: true })
+    subTodos: string[];
+}
+
+
+export class UpdateTodoDto extends PartialType(CreateTodoDto){
+    @ApiProperty({ description: '반복 끝', nullable : true })
+    @IsOptional()
+    repeatEnd : Date;
 }

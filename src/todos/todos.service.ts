@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
-import { CreateTodoDto } from './dto/create.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.dto';
 
 @Injectable()
 export class TodosService {
@@ -21,7 +21,7 @@ export class TodosService {
         return await this.todoRepository.create(userId, todo);
     }
 
-    async updateTodo(userId: string, todoId: string, todo: Todo): Promise<Todo> {
+    async updateTodo(userId: string, todoId: string, todo: UpdateTodoDto): Promise<Todo> {
         return await this.todoRepository.update(userId, todoId, todo);
     }
 

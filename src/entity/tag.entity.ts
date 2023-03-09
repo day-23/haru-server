@@ -13,15 +13,19 @@ export class Tag extends BaseEntity {
     @Column()
     content: string;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
+    @DeleteDateColumn()
     deletedAt?: Date | null;
+
+    @ManyToOne(()=> User, (user)=>user.id)
+    @JoinColumn({ name: 'user_id' })
+    user: string;
 
     /* 다른 엔터티들간의 관계 */
     /* 태그 : 태그투두 = 1:N */
