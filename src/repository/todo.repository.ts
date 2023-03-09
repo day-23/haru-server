@@ -2,16 +2,17 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateTodoDto } from "src/todos/dto/create.dto";
+import { CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.dto";
 import { UserService } from "src/users/users.service";
 import { Repository } from "typeorm";
-import * as moment from 'moment-timezone';
-import { makeDateApplyTimeZone } from "src/common/makeDate";
+// import { makeDateStringToUtcDate } from "src/common/makeDate";
+import { SubTodo } from "src/entity/sub-todo.entity";
 
 
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
+        @InjectRepository(Todo) private readonly subTodoRepository: Repository<SubTodo>,
         private readonly userService: UserService
     ) { }
 
@@ -24,14 +25,15 @@ export class TodoRepository {
         const skip = (page - 1) * limit;
         const take = limit;
 
-        const [users, count] = await this.repository.findAndCount({
-            where: { user: userId },
+        const [todos, count] = await this.repository.findAndCount({
+            where: { user: { id: userId } },
             skip,
             take: limit,
         });
+
         const totalPages = Math.ceil(count / limit);
         return {
-            data: users,
+            data: todos,
             pagination: {
                 totalItems: count,
                 itemsPerPage: limit,
@@ -47,12 +49,18 @@ export class TodoRepository {
         try {
             const newTodo = new Todo({
                 ...todo,
-                repeatEnd: makeDateApplyTimeZone(todo.repeatEnd),
-                endDate: makeDateApplyTimeZone(todo.endDate),
-                endDateTime: makeDateApplyTimeZone(todo.endDateTime),
-                user: user.id,
+                user : userId,
             });
-            return this.repository.save(newTodo);
+
+            const ret = await this.repository.save(newTodo);
+            
+            console.log(todo.subTodos)
+
+            console.log(ret)
+            console.log('ret value', ret.id)
+
+            return ret;
+
         } catch (error) {
             throw new HttpException(
                 {
@@ -64,7 +72,7 @@ export class TodoRepository {
         }
     }
 
-    async update(userId: string, todoId: string, todo: Todo): Promise<Todo> {
+    async update(userId: string, todoId: string, todo: UpdateTodoDto): Promise<Todo> {
         const existingTodo = await this.repository.findOne({ where: { id: todoId } });
 
         if (!existingTodo) {
@@ -77,7 +85,7 @@ export class TodoRepository {
         try {
             const updatedTodo = new Todo({
                 ...existingTodo,
-                ...todo,
+                ...todo
             });
             return this.repository.save(updatedTodo);
         } catch (error) {
@@ -93,7 +101,7 @@ export class TodoRepository {
 
     async delete(userId: string, todoId: string): Promise<void> {
         await this.repository.delete({
-            user: userId,
+            user: { id: userId },
             id: todoId
         });
     }

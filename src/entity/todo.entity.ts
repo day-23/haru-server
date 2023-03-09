@@ -65,7 +65,7 @@ export class Todo extends BaseEntity {
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
-    user: string;
+    user: User | string;
 
     /* 투두 : 투두로그 = 1:N */
     @OneToMany(() => TodoLog, (todolog) => todolog.id)

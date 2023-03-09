@@ -4,7 +4,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
-import { CreateTodoDto } from './dto/create.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.dto';
 import { TodosService } from './todos.service';
 
 
@@ -50,7 +50,7 @@ export class TodosController {
     })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() todo: Todo): Promise<Todo> {
+        @Body() todo: UpdateTodoDto): Promise<Todo> {
         return this.todoService.updateTodo(userId, todoId, todo);
     }
 
