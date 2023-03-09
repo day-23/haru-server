@@ -3,6 +3,13 @@ import { Todo } from './todo.entity';
 
 @Entity()
 export class SubTodo extends BaseEntity {
+    constructor(data?: Partial<SubTodo>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -23,5 +30,5 @@ export class SubTodo extends BaseEntity {
     /* 다른 엔터티들간의 관계 */
     @ManyToOne(() => Todo, (todo) => todo.id)
     @JoinColumn({ name: 'todo_id' })
-    todo: Todo;
+    todo: Todo | string;
 }

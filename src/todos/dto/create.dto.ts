@@ -59,7 +59,4 @@ export class CreateTodoDto {
 
 
 export class UpdateTodoDto extends PartialType(CreateTodoDto){
-    @ApiProperty({ description: '반복 끝', nullable : true })
-    @IsOptional()
-    repeatEnd : Date;
 }

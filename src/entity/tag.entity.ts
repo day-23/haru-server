@@ -7,6 +7,13 @@ import { User } from './user.entity';
 
 @Entity()
 export class Tag extends BaseEntity {
+    constructor(data?: Partial<Tag>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -25,7 +32,7 @@ export class Tag extends BaseEntity {
 
     @ManyToOne(()=> User, (user)=>user.id)
     @JoinColumn({ name: 'user_id' })
-    user: string;
+    user: User | string;
 
     /* 다른 엔터티들간의 관계 */
     /* 태그 : 태그투두 = 1:N */

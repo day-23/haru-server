@@ -51,14 +51,14 @@ export class Todo extends BaseEntity {
     @Column({comment: '마감일, 마감 시간', nullable:true })
     endDateTime: Date;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
+    @DeleteDateColumn()
     deletedAt?: Date | null;
 
     /* 다른 엔터티들간의 관계 */
@@ -76,8 +76,8 @@ export class Todo extends BaseEntity {
     tagWithTodo: TagWithTodo[];
 
     /* 투두 : 하위항목 = 1:N */
-    @OneToMany(() => SubTodo, (subtodo) => subtodo.id)
-    subtodo: SubTodo[];
+    @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)
+    subtodos: SubTodo[];
 
     /* 투두 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.id)
