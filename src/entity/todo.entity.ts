@@ -54,7 +54,7 @@ export class Todo extends BaseEntity {
     @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({ select: false })
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */

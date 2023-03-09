@@ -19,7 +19,7 @@ export class TodoRepository {
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
         @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
         private readonly userService: UserService,
-        private readonly tagsService : TagsService
+        private readonly tagsService: TagsService
     ) { }
 
     async findAll(): Promise<Todo[]> {
@@ -27,21 +27,37 @@ export class TodoRepository {
     }
 
     /* 투두 데이트 페이지네이션 함수 */
-    async findByDate(userId:string, datePaginationDto: DatePaginationDto){
+    async findByDate(userId: string, datePaginationDto: DatePaginationDto) {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
-        /* subtodo 조인, Date 페이지네이션 */
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-                .leftJoinAndSelect('todo.subTodos', 'subtodo')
-                .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-                .where('todo.user = :userId', { userId })
-                .andWhere('todo.repeatEnd BETWEEN :startDate AND :endDate', { startDate, endDate })
-                .orderBy('todo.createdAt', 'DESC')
-                .getManyAndCount();
+        // /* subtodo, tag 조인, 페이지네이션 */
+        const [todos,count] = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .orderBy('todo.createdAt', 'DESC')
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .addSelect(['subtodo.id', 'subtodo.content'])
+            .addSelect(['tagwithtodo.id'])
+            .addSelect(['tag.id', 'tag.content'])
+            .getManyAndCount();
+
+        /* tag 내용 파싱 */
+        const result = todos.map(({ tagWithTodos, ...todo }) => ({
+            ...todo,
+            tags: tagWithTodos.map((tagWithTodo) => {
+                return {
+                    id: tagWithTodo.tag.id,
+                    content: tagWithTodo.tag.content
+                }
+            })
+        }))
+
 
         return {
-            data: todos,
+            data: result,
             pagination: {
                 totalItems: count,
                 startDate,
@@ -55,35 +71,36 @@ export class TodoRepository {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
-        // /* subtodo 조인, 페이지네이션 */
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-                .leftJoinAndSelect('todo.subTodos', 'subtodo')
-                .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-                .leftJoinAndSelect('tagwithtodo.tag', 'tag')
-                .where('todo.user = :userId', { userId })
-                .orderBy('todo.createdAt', 'DESC')
-                .skip(skip)
-                .take(limit)
-                .getManyAndCount();
-
-        // const [todos, count] = await this.repository.createQueryBuilder('todo')
-        //         .leftJoinAndSelect('todo.subTodos', 'subtodo')
-        //         .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-        //         .leftJoinAndSelect('tagwithtodo.tag', 'tag')
-        //         .where('todo.user = :userId', { userId })
-        //         .orderBy('todo.createdAt', 'DESC')
-        //         .skip(skip)
-        //         .take(limit)
-        //         .select(['todo.id as todoId', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime'])
-        //         .addSelect(['subtodo.id', 'subtodo.content'])
-        //         .addSelect(['tagwithtodo.id'])
-        //         .addSelect(['tag.id', 'tag.content'])
-        //         .getRawMany();
-
+        // /* subtodo, tag 조인, 페이지네이션 */
+        const [todos,count] = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .orderBy('todo.createdAt', 'DESC')
+            .skip(skip)
+            .take(limit)
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .addSelect(['subtodo.id', 'subtodo.content'])
+            .addSelect(['tagwithtodo.id'])
+            .addSelect(['tag.id', 'tag.content'])
+            .getManyAndCount();
 
         const totalPages = Math.ceil(count / limit);
+
+        /* tag 내용 파싱 */
+        const result = todos.map(({tagWithTodos, ...todo}) => ({
+            ...todo,
+            tags : tagWithTodos.map((tagWithTodo)=> {
+                return {
+                    id: tagWithTodo.tag.id,
+                    content: tagWithTodo.tag.content
+                }
+            })
+        }))
+
         return {
-            data: todos,
+            data: result,
             pagination: {
                 totalItems: count,
                 itemsPerPage: limit,
@@ -99,12 +116,12 @@ export class TodoRepository {
         try {
             const newTodo = new Todo({
                 ...todo,
-                user : userId,
+                user: userId,
             });
 
             /* 투두 데이터 저장 */
             const ret = await this.repository.save(newTodo);
-            
+
             /* 서브 투두 데이터 저장 */
             const subTodos = todo.subTodos.map(subTodo => {
                 const newSubTodo = new SubTodo({
@@ -116,10 +133,10 @@ export class TodoRepository {
             await this.subTodoRepository.save(subTodos);
 
             /* 투두에 대한 태그 저장 */
-            const savedTags = await this.tagsService.createTags(userId, {contents:todo.tags})
-            const tagWithTodos = savedTags.map((tag)=>{
+            const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags })
+            const tagWithTodos = savedTags.map((tag) => {
                 const newTagWithTodo = new TagWithTodo({
-                    todo : ret.id,
+                    todo: ret.id,
                     tag: tag.id,
                 })
                 return newTagWithTodo
