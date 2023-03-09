@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.dto";
+import { CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
@@ -14,7 +14,6 @@ import { Tag } from "src/entity/tag.entity";
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
-        @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
         private readonly userService: UserService
     ) { }
 

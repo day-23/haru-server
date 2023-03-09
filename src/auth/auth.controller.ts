@@ -1,4 +1,5 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { User } from 'src/entity/user.entity';
 import { UserService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
@@ -6,6 +7,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { KakaoAuthGuard } from './guards/kakao-auth.guard';
 import { NaverAuthGuard } from './guards/naver-auth.guard';
 
+@ApiTags('유저 인증 API')
 @Controller('auth')
 export class AuthController {
     constructor(
