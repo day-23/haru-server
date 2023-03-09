@@ -1,22 +1,30 @@
 export const swaggerTodoCreateExample = {
     "success": true,
     "data": {
-        "userId": "005224c0-eec1-4638-9143-58cbfc9688c5",
-        "content": "boxing",
+        "content": "createdat sort 테스트",
         "repeatOption": "주",
         "repeat": "1111100",
         "memo": "momo is pig",
         "tags": [
-            "운동 -> id값",
-            "복싱 -> id값",
-            "잽잽원투원투 -> id값"
+            "운동",
+            "복싱",
+            "잽잽투원투원투"
+        ],
+        "subTodos": [
+            "운동",
+            "복싱",
+            "잽잽투원투원투"
         ],
         "flag": false,
+        "repeatEnd": "2023-03-08T06:30:00.000Z",
         "todayTodo": false,
+        "user": "005224c0-eec1-4638-9143-58cbfc9688c5",
+        "endDate": null,
+        "endDateTime": null,
         "deletedAt": null,
-        "id": "54788aa9-8dc9-45d1-bd7d-fe37f17517f8",
-        "createdAt": "2023-03-06T23:38:19.678Z",
-        "updatedAt": "2023-03-06T23:38:19.678Z"
+        "id": "cd7c5e08-a31e-4c6f-a38e-f75961e2c9e1",
+        "createdAt": "2023-03-09T16:09:19.781Z",
+        "updatedAt": "2023-03-09T16:09:19.781Z"
     }
 }
 
@@ -25,127 +33,236 @@ export const swaggerGetTodosByPagination = {
     "success": true,
     "data": [
         {
-            "id": "1108dda3-d13e-467e-a8e6-4106d54638fc",
-            "content": "boxing",
+            "id": "cd7c5e08-a31e-4c6f-a38e-f75961e2c9e1",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "abcd",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:32:36.243Z",
-            "updatedAt": "2023-03-06T07:32:36.243Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T16:09:19.781Z",
+            "updatedAt": "2023-03-09T16:09:19.781Z",
+            "deletedAt": null,
+            "subtodos": [
+                {
+                    "id": "5f1449ae-7e36-4082-9770-d4b913ebb938",
+                    "content": "복싱",
+                    "createdAt": "2023-03-09T16:09:19.856Z",
+                    "updatedAt": "2023-03-09T16:09:19.856Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "e8ac9355-410d-4393-8117-a3d49935db3b",
+                    "content": "운동",
+                    "createdAt": "2023-03-09T16:09:19.834Z",
+                    "updatedAt": "2023-03-09T16:09:19.834Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "ef33eb0a-f59b-44ec-ac24-b59f724e6904",
+                    "content": "잽잽투원투원투",
+                    "createdAt": "2023-03-09T16:09:19.873Z",
+                    "updatedAt": "2023-03-09T16:09:19.873Z",
+                    "deletedAt": null
+                }
+            ]
         },
         {
-            "id": "45bbfdc2-09df-4020-87f8-8a49d148e16c",
-            "content": "boxing",
+            "id": "5bf352e9-d460-4ce3-bd36-50addcfae3e2",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:36:55.246Z",
-            "updatedAt": "2023-03-06T07:36:55.246Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T15:15:39.511Z",
+            "updatedAt": "2023-03-09T15:15:39.511Z",
+            "deletedAt": null,
+            "subtodos": [
+                {
+                    "id": "389c80ab-1a12-463f-b59a-9209119619f9",
+                    "content": "운동",
+                    "createdAt": "2023-03-09T15:15:39.905Z",
+                    "updatedAt": "2023-03-09T15:15:39.905Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "4a0b9dc6-d0d2-4234-ac48-bb6eace2d8f6",
+                    "content": "잽잽투원투원투",
+                    "createdAt": "2023-03-09T15:15:40.205Z",
+                    "updatedAt": "2023-03-09T15:15:40.205Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "76bbd592-dd83-40e6-8a95-51c57c17e1e7",
+                    "content": "복싱",
+                    "createdAt": "2023-03-09T15:15:40.100Z",
+                    "updatedAt": "2023-03-09T15:15:40.100Z",
+                    "deletedAt": null
+                }
+            ]
         },
         {
-            "id": "513ef01b-abf1-431a-b890-d69e66f7081a",
-            "content": "boxing",
+            "id": "67764a89-374e-4e83-9cf6-db37c81fc4d8",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:34:31.491Z",
-            "updatedAt": "2023-03-06T07:34:31.491Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:46:31.579Z",
+            "updatedAt": "2023-03-09T13:46:31.579Z",
+            "deletedAt": null,
+            "subtodos": [
+                {
+                    "id": "836c0a7d-5c13-44d1-a375-2b15ce956b9b",
+                    "content": "잽잽투원투원투",
+                    "createdAt": "2023-03-09T13:46:31.826Z",
+                    "updatedAt": "2023-03-09T13:46:31.826Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "930abc29-af6f-4862-aa25-73b7ae42d0d6",
+                    "content": "복싱",
+                    "createdAt": "2023-03-09T13:46:31.735Z",
+                    "updatedAt": "2023-03-09T13:46:31.735Z",
+                    "deletedAt": null
+                },
+                {
+                    "id": "9ae725dd-041f-498a-9723-4f72311ca739",
+                    "content": "운동",
+                    "createdAt": "2023-03-09T13:46:31.705Z",
+                    "updatedAt": "2023-03-09T13:46:31.705Z",
+                    "deletedAt": null
+                }
+            ]
         },
         {
-            "id": "60dd8635-2461-4085-9955-5d479cb34f10",
-            "content": "boxing",
+            "id": "65e8de6f-614a-4828-b713-3bd5ccc07990",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:32:47.736Z",
-            "updatedAt": "2023-03-06T07:32:47.736Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:45:44.381Z",
+            "updatedAt": "2023-03-09T13:45:44.381Z",
+            "deletedAt": null,
+            "subtodos": []
         },
         {
-            "id": "6e65b58d-df98-4e8f-9ccb-568442528a32",
-            "content": "boxing",
+            "id": "d63f1e50-97a4-47e4-8c7a-b210f4c63f38",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:34:30.624Z",
-            "updatedAt": "2023-03-06T07:34:30.624Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:45:30.375Z",
+            "updatedAt": "2023-03-09T13:45:30.375Z",
+            "deletedAt": null,
+            "subtodos": []
         },
         {
-            "id": "807fa31d-6e3c-4a11-a900-7edc763d9640",
-            "content": "boxing",
+            "id": "bb000a25-1bf5-4c5a-9136-7bf0ea34b7f2",
+            "content": "createdat sort 테스트",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:55:22.002Z",
-            "updatedAt": "2023-03-06T07:55:22.002Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:40:24.567Z",
+            "updatedAt": "2023-03-09T13:40:24.567Z",
+            "deletedAt": null,
+            "subtodos": []
         },
         {
-            "id": "e4ff4c62-7cf8-445f-925c-86b724084b81",
-            "content": "boxing",
+            "id": "bba90716-5369-4ef8-87ca-6418219ec785",
+            "content": "지금 쏘기",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:36:55.812Z",
-            "updatedAt": "2023-03-06T07:36:55.812Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:37:22.780Z",
+            "updatedAt": "2023-03-09T13:37:22.780Z",
+            "deletedAt": null,
+            "subtodos": []
         },
         {
-            "id": "e6dede6f-05d6-4986-a01f-624bb3a8fd3d",
-            "content": "boxing",
+            "id": "ae20721f-24a0-47fa-bfae-4df056245052",
+            "content": "지금 쏘기",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:36:56.215Z",
-            "updatedAt": "2023-03-06T07:36:56.215Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:33:48.884Z",
+            "updatedAt": "2023-03-09T13:33:48.884Z",
+            "deletedAt": null,
+            "subtodos": []
         },
         {
-            "id": "ea20a3f2-666e-41a2-a4be-df681543c966",
-            "content": "boxing",
+            "id": "64abaa9a-eab4-499d-a638-f838de6fbc8e",
+            "content": "지금 쏘기",
             "memo": "momo is pig",
             "todayTodo": false,
-            "alarm": "2023-03-06T08:24:23.615Z",
-            "repeatOption": "주",
             "flag": false,
+            "repeatOption": "주",
             "repeat": "1111100",
-            "createdAt": "2023-03-06T07:36:53.917Z",
-            "updatedAt": "2023-03-06T07:36:53.917Z",
-            "deletedAt": null
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:01:29.193Z",
+            "updatedAt": "2023-03-09T13:01:29.193Z",
+            "deletedAt": null,
+            "subtodos": []
+        },
+        {
+            "id": "1ab2e931-a926-46f1-aa53-f1263803aba0",
+            "content": "지금 쏘기",
+            "memo": "momo is pig",
+            "todayTodo": false,
+            "flag": false,
+            "repeatOption": "주",
+            "repeat": "1111100",
+            "repeatEnd": "2023-03-08T06:30:00.000Z",
+            "endDate": null,
+            "endDateTime": null,
+            "createdAt": "2023-03-09T13:00:24.599Z",
+            "updatedAt": "2023-03-09T13:00:24.599Z",
+            "deletedAt": null,
+            "subtodos": []
         }
     ],
     "pagination": {
-        "totalItems": 9,
+        "totalItems": 103,
         "itemsPerPage": 10,
         "currentPage": 1,
-        "totalPages": 1
+        "totalPages": 11
     }
 }

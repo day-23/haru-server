@@ -7,12 +7,14 @@ import { UserService } from "src/users/users.service";
 import { Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
 import { SubTodo } from "src/entity/sub-todo.entity";
+import { Tag } from "src/entity/tag.entity";
 
 
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
+        @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
         private readonly userService: UserService
     ) { }
 
@@ -20,17 +22,19 @@ export class TodoRepository {
         return await this.repository.find()
     }
 
+    /* 투두 페이지네이션 함수 */
     async findByPagination(userId: string, paginationDto: PaginationDto) {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
-        const take = limit;
 
-        const [todos, count] = await this.repository.findAndCount({
-            where: { user: { id: userId } },
-            skip,
-            take: limit,
-            order: { createdAt: "DESC" }
-        });
+        /* subtodo 조인, 페이지네이션 */
+        const [todos, count] = await this.repository.createQueryBuilder('todo')
+                .leftJoinAndSelect('todo.subtodos', 'subtodo')
+                .where('todo.user = :userId', { userId })
+                .orderBy('todo.createdAt', 'DESC')
+                .skip(skip)
+                .take(limit)
+                .getManyAndCount();
 
         const totalPages = Math.ceil(count / limit);
         return {
@@ -44,6 +48,7 @@ export class TodoRepository {
         };
     }
 
+    /* 투두 생성 함수 */
     async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
         const user = await this.userService.findOne(userId);
 
@@ -66,6 +71,20 @@ export class TodoRepository {
             });
     
             await this.subTodoRepository.save(subTodos);
+
+
+            // /* 태그 데이터 저장 */
+            // const tags = todo.tags.map((tag) => {
+            //     const newTag = new Tag({
+            //         todo: ret.id,
+            //         content: tag
+            //     });
+            //     return newTag;
+            // });
+    
+            // await this.tagRepository.save(tags);
+
+
             return ret;
 
         } catch (error) {
