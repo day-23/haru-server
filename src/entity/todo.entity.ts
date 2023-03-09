@@ -72,8 +72,8 @@ export class Todo extends BaseEntity {
     todoLog: TodoLog[];
 
     /* 태그 : 태그투두 = 1:N */
-    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.id)
-    tagWithTodo: TagWithTodo[];
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.todo)
+    tagWithTodos: TagWithTodo[] | string[];
 
     /* 투두 : 하위항목 = 1:N */
     @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)

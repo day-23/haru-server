@@ -34,6 +34,7 @@ export class TodoRepository {
         /* subtodo 조인, Date 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
                 .leftJoinAndSelect('todo.subTodos', 'subtodo')
+                .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
                 .where('todo.user = :userId', { userId })
                 .andWhere('todo.repeatEnd BETWEEN :startDate AND :endDate', { startDate, endDate })
                 .orderBy('todo.createdAt', 'DESC')
@@ -47,7 +48,6 @@ export class TodoRepository {
                 endDate
             },
         };
-
     }
 
     /* 투두 페이지네이션 함수 */
@@ -55,14 +55,31 @@ export class TodoRepository {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
-        /* subtodo 조인, 페이지네이션 */
+        // /* subtodo 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
                 .leftJoinAndSelect('todo.subTodos', 'subtodo')
+                .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+                .leftJoinAndSelect('tagwithtodo.tag', 'tag')
                 .where('todo.user = :userId', { userId })
                 .orderBy('todo.createdAt', 'DESC')
                 .skip(skip)
                 .take(limit)
                 .getManyAndCount();
+
+        // const [todos, count] = await this.repository.createQueryBuilder('todo')
+        //         .leftJoinAndSelect('todo.subTodos', 'subtodo')
+        //         .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+        //         .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+        //         .where('todo.user = :userId', { userId })
+        //         .orderBy('todo.createdAt', 'DESC')
+        //         .skip(skip)
+        //         .take(limit)
+        //         .select(['todo.id as todoId', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime'])
+        //         .addSelect(['subtodo.id', 'subtodo.content'])
+        //         .addSelect(['tagwithtodo.id'])
+        //         .addSelect(['tag.id', 'tag.content'])
+        //         .getRawMany();
+
 
         const totalPages = Math.ceil(count / limit);
         return {
