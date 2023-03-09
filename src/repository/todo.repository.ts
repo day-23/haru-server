@@ -8,7 +8,8 @@ import { Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
 import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
-
+import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
+import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 
 
 export class TodoRepository {
@@ -21,6 +22,29 @@ export class TodoRepository {
         return await this.repository.find()
     }
 
+    async findByDate(userId:string, datePaginationDto: DatePaginationDto){
+        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
+        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
+
+        /* subtodo 조인, Date 페이지네이션 */
+        const [todos, count] = await this.repository.createQueryBuilder('todo')
+                .leftJoinAndSelect('todo.subTodos', 'subtodo')
+                .where('todo.user = :userId', { userId })
+                .andWhere('todo.repeatEnd BETWEEN :startDate AND :endDate', { startDate, endDate })
+                .orderBy('todo.createdAt', 'DESC')
+                .getManyAndCount();
+
+        return {
+            data: todos,
+            pagination: {
+                totalItems: count,
+                startDate,
+                endDate
+            },
+        };
+
+    }
+
     /* 투두 페이지네이션 함수 */
     async findByPagination(userId: string, paginationDto: PaginationDto) {
         const { page, limit } = paginationDto
@@ -28,7 +52,7 @@ export class TodoRepository {
 
         /* subtodo 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
-                .leftJoinAndSelect('todo.subtodos', 'subtodo')
+                .leftJoinAndSelect('todo.subTodos', 'subtodo')
                 .where('todo.user = :userId', { userId })
                 .orderBy('todo.createdAt', 'DESC')
                 .skip(skip)
@@ -55,6 +79,7 @@ export class TodoRepository {
             const newTodo = new Todo({
                 ...todo,
                 user : userId,
+                subTodos:[]
             });
 
             /* 투두 데이터 저장 */
@@ -62,6 +87,7 @@ export class TodoRepository {
             
             /* 서브 투두 데이터 저장 */
             const subTodos = todo.subTodos.map(subTodo => {
+
                 const newSubTodo = new SubTodo({
                     todo: ret.id,
                     content: subTodo
@@ -70,19 +96,6 @@ export class TodoRepository {
             });
     
             await this.subTodoRepository.save(subTodos);
-
-
-            // /* 태그 데이터 저장 */
-            // const tags = todo.tags.map((tag) => {
-            //     const newTag = new Tag({
-            //         todo: ret.id,
-            //         content: tag
-            //     });
-            //     return newTag;
-            // });
-    
-            // await this.tagRepository.save(tags);
-
 
             return ret;
 
@@ -110,7 +123,8 @@ export class TodoRepository {
         try {
             const updatedTodo = new Todo({
                 ...existingTodo,
-                ...todo
+                ...todo,
+                subTodos:[]
             });
             return this.repository.save(updatedTodo);
         } catch (error) {

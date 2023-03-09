@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
+import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
@@ -27,6 +28,22 @@ export class TodosController {
     async getTodosByPagination(@Param('userId') userId, @Query() paginationDto: PaginationDto) {
         console.log('hello')
         return await this.todoService.getTodosByPagination(userId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('todos/date')
+    @ApiOperation({ summary: '투두 조회 API', description: '투두를 조회한다.' })
+    @ApiCreatedResponse({
+        description: '투두 페이지네이션 방식으로 조회한다.', schema: {
+            example: swaggerGetTodosByPagination
+        }
+    })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'endDate', type: String, required: true, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'startDate', type: String, required: true, description: '페이지 번호 (기본값: 1)' })
+    async getTodosByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
+        console.log('hello')
+        return await this.todoService.getTodosByDate(userId, datePaginationDto);
     }
 
     @Post()
