@@ -12,6 +12,7 @@ import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middlew
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TodosModule } from './todos/todos.module';
 import { TagsModule } from './tags/tags.module';
+import { AlarmsModule } from './alarms/alarms.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { TagsModule } from './tags/tags.module';
         AuthModule,
         TodosModule,
         TagsModule,
+        AlarmsModule,
     ],
     controllers: [AppController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],

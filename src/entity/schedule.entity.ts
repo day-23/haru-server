@@ -12,15 +12,25 @@ export class Schedule extends BaseEntity {
     content: string;
 
     @Column({
-        length : 500
+        length : 500,
+        nullable : true
     })
     memo: string;
 
-    @Column()
+    @Column({ nullable: true })
     repeatOption: string;
 
-    @Column()
+    @Column({ length: 7, nullable: true, })
     repeat: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    repeatEnd: Date;
+
+    @Column({comment: '마감일', nullable:true })
+    endDate: Date;
+
+    @Column({comment: '마감일, 마감 시간', nullable:true })
+    endDateTime: Date;
 
     @CreateDateColumn({ name: 'create_at', comment: '생성일' })
     createdAt: Date;

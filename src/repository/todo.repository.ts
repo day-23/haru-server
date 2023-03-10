@@ -12,11 +12,13 @@ import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { TagsService } from "src/tags/tags.service";
 import { TagWithTodo } from "src/entity/tag-with-todo.entity";
+import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
+        @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
         @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService
@@ -110,6 +112,25 @@ export class TodoRepository {
         };
     }
 
+
+    /* 태그 별로 투두를 조회하는 함수 */
+    async findByTagId(userId: string, getByTagDto: GetByTagDto){
+        const tagId = getByTagDto.tagId
+
+        const ret = await this.tagRepository.createQueryBuilder('tag')
+                                        .leftJoinAndSelect('tag.tagWithTodos', 'tagWithTodos')
+                                        .leftJoinAndSelect('tagWithTodos.todo', 'todo')
+                                        .leftJoinAndSelect('todo.subTodos', 'subTodos')
+                                        .where('tag.id = :tagId', {tagId})
+                                        .andWhere('tag.user = :userId', {userId})
+                                        // .select(['tag.id', 'tag.content'])
+                                        // .addSelect(['tagWithTodos.id'])
+                                        .getMany()
+        return {
+            data: ret
+        }
+    }
+
     /* 투두 생성 함수 */
     async create(userId: string, todo: CreateTodoDto): Promise<Todo> {
         // const user = await this.userService.findOne(userId);
@@ -138,6 +159,7 @@ export class TodoRepository {
                 const newTagWithTodo = new TagWithTodo({
                     todo: ret.id,
                     tag: tag.id,
+                    user: userId
                 })
                 return newTagWithTodo
             })
