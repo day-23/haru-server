@@ -113,7 +113,7 @@ export class TodoRepository {
     }
 
 
-
+    /* 태그 별로 투두를 조회하는 함수 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto){
         const tagId = getByTagDto.tagId
 
