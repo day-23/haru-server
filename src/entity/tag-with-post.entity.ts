@@ -20,6 +20,11 @@ export class TagWithPost extends BaseEntity {
     deletedAt?: Date | null;
 
     /* 다른 엔터티들간의 관계 */
+    /* tagwithtodo : user = N : 1 */
+    @ManyToOne(() => User, (user) => user.id, { onDelete:'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
+    user: User | string;
+
     /* tagwithpost : tag = N : 1 */
     @ManyToOne(() => Tag, (tag) => tag.id)
     @JoinColumn({ name: 'tag_id' })

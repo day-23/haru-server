@@ -5,6 +5,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
 import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { GetByTagDto } from './dto/geybytag.todo.dto';
 
 @Injectable()
 export class TodosService {
@@ -20,6 +21,10 @@ export class TodosService {
 
     async getTodosByPagination(userId: string, paginationDto: PaginationDto) {
         return await this.todoRepository.findByPagination(userId, paginationDto)
+    }
+
+    async getTodosByTag(userId:string, getByTagDto:GetByTagDto){
+        return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
 
     async createTodo(userId: string, todo: CreateTodoDto): Promise<Todo> {

@@ -6,6 +6,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
 import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { TodosService } from './todos.service';
 
 
@@ -46,6 +47,23 @@ export class TodosController {
         return await this.todoService.getTodosByDate(userId, datePaginationDto);
     }
 
+    @PaginatedResponse()
+    @Get('todos/tag')
+    @ApiOperation({ summary: '태그 별로 투두 조회 API', description: '태그별로 투두를 조회한다.' })
+    @ApiCreatedResponse({
+        description: '태그 별로 투두를 페이지네이션 방식으로 조회한다.', schema: {
+            example: swaggerGetTodosByPagination
+        }
+    })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiParam({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
+    async getTodosByTag(@Param('userId') userId, @Query() getByTagDto: GetByTagDto) {
+        return await this.todoService.getTodosByTag(userId, getByTagDto);
+    }
+
+
+
+
     @Post()
     @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
     @ApiCreatedResponse({
@@ -82,4 +100,7 @@ export class TodosController {
         @Param('todoId') todoId: string): Promise<void> {
         return this.todoService.deleteTodo(userId, todoId);
     }
+
+
+
 }
