@@ -37,33 +37,24 @@ export class TagRepository {
 
     async findAllTagsByUserId(userId: string): Promise<Tag[]> {
         return await this.repository.createQueryBuilder('tag')
-                .select(['tag.id', 'tag.content', 'tag.user'])
-                .where('tag.user.id = :userId', { userId })
-                .getMany()
+            .select(['tag.id', 'tag.content', 'tag.user'])
+            .where('tag.user.id = :userId', { userId })
+            .getMany()
     }
 
-    async findTagById(tagId: string): Promise<Tag> {
-        return this.repository.findOne({ where: { id: tagId }});
+    async findTagByUserAndTagId(userId: string, tagId: string): Promise<Tag> {
+        return this.repository.findOne({ where: { id: tagId, user: { id: userId } } });
     }
 
     async updateTag(userId: string, tagId: string, updateTagDto: UpdateTagDto): Promise<Tag> {
-        const existingTag = await this.findTagById(tagId);
+        /* tagId와 userId로 쿼리 */
+        const existingTag = await this.findTagByUserAndTagId(userId, tagId);
         if (!existingTag) {
             throw new HttpException(
                 'Tag not found',
                 HttpStatus.NOT_FOUND,
             );
         }
-
-        // Add validation to check that the user ID of the tag matches the user ID passed as a parameter
-        /* user validation 추가 필요 */
-        // console.log('DEBUG', existingTag)
-        // if (existingTag.user !== userId) {
-        //     throw new HttpException(
-        //         'Unauthorized',
-        //         HttpStatus.UNAUTHORIZED,
-        //     );
-        // }
 
         try {
             const updatedTag = new Tag({
@@ -90,9 +81,9 @@ export class TagRepository {
     }
 
     async deleteTags(userId: string, deleteTagsDto: DeleteTagsDto): Promise<void> {
-        try{
-            await this.repository.delete({ id: In(deleteTagsDto.tagIds), user:userId });
-        }catch (error) {
+        try {
+            await this.repository.delete({ id: In(deleteTagsDto.tagIds), user: userId });
+        } catch (error) {
             throw new HttpException(
                 {
                     message: 'SQL error',
