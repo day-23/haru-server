@@ -58,7 +58,7 @@ export class TodosController {
         return await this.todoService.createTodo(userId, createTodoDto)
     }
 
-    @Patch('/:todoId')
+    @Patch(':todoId')
     @ApiOperation({ summary: '투두 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
         description: '투두를 수정한다.', schema: {
@@ -71,7 +71,7 @@ export class TodosController {
         return this.todoService.updateTodo(userId, todoId, todo);
     }
 
-    @Delete('/:todoId')
+    @Delete(':todoId')
     @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
     @ApiCreatedResponse({
         description: '투두를 삭제한다.', schema: {
