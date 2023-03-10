@@ -1,29 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
 import { TagRepository } from 'src/repository/tag.repository';
-import { CreateTagsDto } from './dto/create.tag.dto';
+import { CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
 
 @Injectable()
 export class TagsService {
     constructor(private readonly tagRepository: TagRepository) { }
 
-    // async getAllTags(): Promise<Tag[]> {
-    //     return await this.tagRepository.findAll()
-    // }
-
-    // async getTagsByPagination(userId: string, paginationDto: PaginationDto) {
-    //     return await this.tagRepository.findByPagination(userId, paginationDto)
-    // }
-
     async createTags(userId: string, createTagDto: CreateTagsDto): Promise<Tag[]> {
-        return await this.tagRepository.createTags(userId, createTagDto);
+        return await this.tagRepository.saveTags(userId, createTagDto);
     }
 
-    // async updateTag(userId: string, TagId: string, Tag: UpdateTagDto): Promise<Tag> {
-    //     return await this.tagRepository.update(userId, TagId, Tag);
+    async getTagsByUserId(userId: string): Promise<Tag[]> {
+        return this.tagRepository.findAllTagsByUserId(userId);
+    }
+
+    // async getOneTag(tagId: string): Promise<Tag> {
+    //     return this.tagRepository.findOne(tagId);
     // }
 
-    // async deleteTag(userId: string, TagId: string): Promise<void> {
-    //     return await this.tagRepository.delete(userId, TagId);
-    // }
+    async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<Tag> {
+        return this.tagRepository.updateTag(userId, tagId, updateTagDto);
+    }
+
+    async deleteTag(userId: string, tagId:string): Promise<void> {
+        return await this.tagRepository.deleteOneTag(userId, tagId);
+    }
+
+    async deleteTags(userId: string, deleteTagsDto: DeleteTagsDto):Promise<void> {
+        return await this.tagRepository.deleteTags(userId, deleteTagsDto)
+    }
 }
