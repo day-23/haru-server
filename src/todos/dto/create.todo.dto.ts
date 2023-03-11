@@ -25,12 +25,12 @@ export class CreateTodoDto {
 
     @ApiProperty({ description: '마감날짜', nullable: true })
     @IsOptional() /* nullable */
-    @Transform(({ value }) => new Date(value))
+    @Transform(({ value }) => value ? new Date(value) : null)
     endDate : Date;
 
     @ApiProperty({ description: '마감날짜+시간', nullable: true })
     @IsOptional() /* nullable */
-    @Transform(({ value }) => new Date(value))
+    @Transform(({ value }) => value ? new Date(value) : null)
     endDateTime : Date;
 
     @ApiProperty({ description: 'todo 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -40,7 +40,7 @@ export class CreateTodoDto {
 
     @ApiProperty({description:'반복 끝', nullable : true})
     @IsOptional()
-    @Transform(({ value }) => new Date(value))
+    @Transform(({ value }) => value ? new Date(value) : null)
     repeatEnd : Date;
 
     @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
