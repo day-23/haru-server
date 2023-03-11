@@ -153,6 +153,8 @@ export class TodoRepository {
             const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags })
             const retTags = savedTags.map(({ id, content }) => ({ id, content }));
 
+            /* 투두 알람 저장 */
+
             /* 사용자에 대한 태그와 투두의 정보 저장 */
             const tagWithTodos = savedTags.map(({ id: tag }) => ({
                 todo: ret.id,

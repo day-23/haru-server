@@ -81,6 +81,6 @@ export class Todo extends BaseEntity {
 
     /* 투두 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.id)
-    alarm: Alarm[];
+    alarms: Alarm[];
 
 }
