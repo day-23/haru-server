@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
-import { Repository } from "typeorm";
+import { EntityManager, getRepository, Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
 import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
@@ -23,12 +23,15 @@ export class TodoRepository {
         @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
         @InjectRepository(Alarm) private readonly alarmRepository: Repository<Alarm>,
         private readonly userService: UserService,
-        private readonly tagsService: TagsService
+        private readonly tagsService: TagsService,
+        @InjectEntityManager()
+        private readonly entityManager: EntityManager,
     ) { }
 
     async findAll(): Promise<Todo[]> {
         return await this.repository.find()
     }
+
 
     /* 투두 데이트 페이지네이션 함수 */
     async findByDate(userId: string, datePaginationDto: DatePaginationDto) {
@@ -49,6 +52,7 @@ export class TodoRepository {
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
             .getManyAndCount();
+
 
         /* tag 내용 파싱 */
         const result = todos.map(({ tagWithTodos, ...todo }) => ({
@@ -79,6 +83,7 @@ export class TodoRepository {
         // /* subtodo, tag 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
@@ -87,6 +92,7 @@ export class TodoRepository {
             .take(limit)
             .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
+            .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
             .getManyAndCount();
@@ -123,6 +129,7 @@ export class TodoRepository {
         const ret = await this.tagRepository.createQueryBuilder('tag')
             .leftJoinAndSelect('tag.tagWithTodos', 'tagWithTodos')
             .leftJoinAndSelect('tagWithTodos.todo', 'todo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('tag.id = :tagId', { tagId })
             .andWhere('tag.user = :userId', { userId })
@@ -136,52 +143,60 @@ export class TodoRepository {
 
     /* 투두 생성 함수 */
     async create(userId: string, todo: CreateTodoDto) {
-        // const user = await this.userService.findOne(userId);
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             /* 투두 데이터 저장 */
-            const ret = await this.repository.save({
+            const savedTodo = await queryRunner.manager.save(Todo, {
                 ...todo,
                 user: userId,
             });
 
             /* 서브 투두 데이터 저장 */
             const newSubTodos = todo.subTodos.map((subTodo) => ({
-                todo: ret.id,
+                todo: savedTodo.id,
                 content: subTodo,
             }));
-            const savedSubTodos = await this.subTodoRepository.save(newSubTodos);
+            const savedSubTodos = await queryRunner.manager.save(SubTodo, newSubTodos);
             const retSubTodos = savedSubTodos.map(({ id, content }) => ({ id, content }));
 
             /* 투두에 대한 태그 저장 */
-            const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags })
+            const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags });
             const retTags = savedTags.map(({ id, content }) => ({ id, content }));
 
             /* 투두 알람 저장 */
             const newAlarms = todo.alarms.map((alarm) => ({
-                user : userId,
-                todo: ret.id,
-                time : alarm
-            }))
-            const savedAlarms = await this.alarmRepository.save(newAlarms)
-            const retAlarms = savedAlarms.map(({id, time}) => ({id, time}))
+                user: userId,
+                todo: savedTodo.id,
+                time: alarm,
+            }));
+            const savedAlarms = await queryRunner.manager.save(Alarm, newAlarms);
+            const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
 
             /* 사용자에 대한 태그와 투두의 정보 저장 */
             const tagWithTodos = savedTags.map(({ id: tag }) => ({
-                todo: ret.id,
+                todo: savedTodo.id,
                 tag,
                 user: userId,
-            }))
-            this.tagWithTodoRepository.save(tagWithTodos)
+            }));
+            await queryRunner.manager.save(TagWithTodo, tagWithTodos);
 
-            return { ...ret, subTodos: retSubTodos, tags: retTags, alarms: retAlarms };
+            await queryRunner.commitTransaction();
+
+            return { ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms };
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             throw new HttpException(
                 {
-                    message: 'SQL에러',
+                    message: 'SQL error',
                     error: error.sqlMessage,
                 },
                 HttpStatus.FORBIDDEN,
             );
+        } finally {
+            await queryRunner.release();
         }
     }
 

@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column, OneToMany } from 'typeorm';
 import { Todo } from './todo.entity';
+import { TodoLog } from './todolog.entity';
 
 @Entity()
 export class SubTodo extends BaseEntity {
@@ -30,4 +31,8 @@ export class SubTodo extends BaseEntity {
     @ManyToOne(() => Todo, (todo) => todo.subTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
+
+    /* 투두 : 투두로그 = 1:N */
+    @OneToMany(() => TodoLog, (todolog) => todolog.todo)
+    todoLog: TodoLog[];
 }

@@ -36,7 +36,7 @@ export class Alarm extends BaseEntity {
     user : User | string
 
     /* 알람 : 투두 = N : 1*/
-    @ManyToOne(()=> Todo, (todo)=>todo.alarms)
+    @ManyToOne(()=> Todo, (todo)=>todo.alarms, {onDelete: 'CASCADE'})
     @JoinColumn({name : 'todo_id'})
     todo : Todo | string
 

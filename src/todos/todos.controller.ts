@@ -56,7 +56,7 @@ export class TodosController {
         }
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiParam({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
+    @ApiQuery({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
     async getTodosByTag(@Param('userId') userId, @Query() getByTagDto: GetByTagDto) {
         return await this.todoService.getTodosByTag(userId, getByTagDto);
     }
