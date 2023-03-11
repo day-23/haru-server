@@ -71,7 +71,7 @@ export class TodosController {
             example: swaggerTodoCreateExample
         }
     })
-    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<Todo> {
+    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto){
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
     }

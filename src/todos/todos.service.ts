@@ -27,7 +27,7 @@ export class TodosService {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
 
-    async createTodo(userId: string, todo: CreateTodoDto): Promise<Todo> {
+    async createTodo(userId: string, todo: CreateTodoDto){
         return await this.todoRepository.create(userId, todo);
     }
 
