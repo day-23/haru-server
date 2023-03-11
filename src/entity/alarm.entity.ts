@@ -31,12 +31,12 @@ export class Alarm extends BaseEntity {
     deletedAt?: Date | null;
 
     /* 알람 : 사용자 = N : 1*/
-    @ManyToOne(()=> User, (user)=>user.id)
+    @ManyToOne(()=> User, (user)=>user)
     @JoinColumn({name : 'user_id'})
     user : User | string
 
     /* 알람 : 투두 = N : 1*/
-    @ManyToOne(()=> Todo, (todo)=>todo.id)
+    @ManyToOne(()=> Todo, (todo)=>todo.alarms)
     @JoinColumn({name : 'todo_id'})
     todo : Todo | string
 

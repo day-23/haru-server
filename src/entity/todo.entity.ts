@@ -80,7 +80,7 @@ export class Todo extends BaseEntity {
     subTodos: SubTodo[] | string[];
 
     /* 투두 : 알람 = 1:N */
-    @OneToMany(() => Alarm, (alarm) => alarm.id)
-    alarms: Alarm[];
+    @OneToMany(() => Alarm, (alarm) => alarm.todo)
+    alarms: Alarm[] | string[];
 
 }
