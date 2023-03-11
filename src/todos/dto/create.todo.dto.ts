@@ -55,6 +55,10 @@ export class CreateTodoDto {
     @ApiProperty({ description: 'subTodos의 내용들' })
     @IsString({ each: true })
     subTodos: string[];
+
+    @ApiProperty({ description: 'alarms 시간들' })
+    @IsString({ each: true })
+    alarms: string[];
 }
 
 

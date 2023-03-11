@@ -13,6 +13,7 @@ import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/make
 import { TagsService } from "src/tags/tags.service";
 import { TagWithTodo } from "src/entity/tag-with-todo.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
+import { Alarm } from "src/entity/alarm.entity";
 
 
 export class TodoRepository {
@@ -20,6 +21,7 @@ export class TodoRepository {
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
         @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
         @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
+        @InjectRepository(Alarm) private readonly alarmRepository: Repository<Alarm>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService
     ) { }
@@ -154,6 +156,13 @@ export class TodoRepository {
             const retTags = savedTags.map(({ id, content }) => ({ id, content }));
 
             /* 투두 알람 저장 */
+            const newAlarms = todo.alarms.map((alarm) => ({
+                user : userId,
+                todo: ret.id,
+                time : alarm
+            }))
+            const savedAlarms = await this.alarmRepository.save(newAlarms)
+            const retAlarms = savedAlarms.map(({id, time}) => ({id, time}))
 
             /* 사용자에 대한 태그와 투두의 정보 저장 */
             const tagWithTodos = savedTags.map(({ id: tag }) => ({
@@ -163,7 +172,7 @@ export class TodoRepository {
             }))
             this.tagWithTodoRepository.save(tagWithTodos)
 
-            return { ...ret, subTodos: retSubTodos, tags: retTags };
+            return { ...ret, subTodos: retSubTodos, tags: retTags, alarms: retAlarms };
         } catch (error) {
             throw new HttpException(
                 {
@@ -197,7 +206,7 @@ export class TodoRepository {
                     message: 'SQL error',
                     error: error.sqlMessage,
                 },
-                HttpStatus.FORBIDDEN,
+                HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }
