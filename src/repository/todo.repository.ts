@@ -38,12 +38,14 @@ export class TodoRepository {
         // /* subtodo, tag 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .orderBy('todo.createdAt', 'DESC')
             .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
+            .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
             .getManyAndCount();
@@ -58,7 +60,6 @@ export class TodoRepository {
                 }
             })
         }))
-
 
         return {
             data: result,
