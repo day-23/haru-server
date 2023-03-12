@@ -34,12 +34,12 @@ export class TagWithTodo extends BaseEntity {
     user: User | string;
 
     /* tagwithtodo : tag = N : 1 */
-    @ManyToOne(() => Tag, (tag) => tag.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => Tag, (tag) => tag.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'tag_id' })
     tag: Tag | string;
 
     /* tagwithtodo : 투두 = N : 1 */
-    @ManyToOne(() => Todo, (todo) => todo.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => Todo, (todo) => todo.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
 

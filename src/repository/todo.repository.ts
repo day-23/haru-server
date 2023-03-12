@@ -14,6 +14,7 @@ import { TagsService } from "src/tags/tags.service";
 import { TagWithTodo } from "src/entity/tag-with-todo.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { Alarm } from "src/entity/alarm.entity";
+import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 
 
 export class TodoRepository {
@@ -123,29 +124,47 @@ export class TodoRepository {
 
 
     /* 태그 별로 투두를 조회하는 함수 */
+    /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto) {
         const tagId = getByTagDto.tagId
 
-        const ret = await this.tagRepository.createQueryBuilder('tag')
-            .leftJoinAndSelect('tag.tagWithTodos', 'tagWithTodos')
-            .leftJoinAndSelect('tagWithTodos.todo', 'todo')
-            .leftJoinAndSelect('todo.alarms', 'alarms')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('tag.id = :tagId', { tagId })
-            .andWhere('tag.user = :userId', { userId })
-            .select(['tag.id', 'tag.content'])
-            .addSelect(['tagWithTodos.id'])
-            .addSelect(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
-            .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['subTodos.id', 'subTodos.content'])
-            .take(10)
-            .getMany()
+        const LIMIT = 50
+        const ret = await this.entityManager.query(`
+            WITH dt AS (
+                SELECT todo.id id
+                FROM tag_with_todo twt
+                JOIN todo ON twt.todo_id = todo.id
+                WHERE twt.tag_id = ?
+                AND todo.user_id = ?
+                LIMIT ?
+            )
+            SELECT 
+                todo.id as "todo_id",
+                todo.content as "todo_content",
+                todo.memo as "todo_memo",
+                todo.today_todo as "todo_todayTodo",
+                todo.flag as "todo_flag",
+                todo.repeat_option as "todo_repeatOption",
+                todo.repeat as "todo_repeat",
+                todo.end_date as "todo_endDate",
+                todo.end_date_time as "todo_endDateTime",
+                todo.created_At as "todo_created_At",
+                alarm.id as "alarm_id",
+                alarm.time as "alarm_time",
+                sub_todo.id as "subTodo_id",
+                sub_todo.content as "subTodo_content",
+                tag.id as "tag_id",
+                tag.content as "tag_content"
+            FROM dt
+            JOIN todo ON dt.id = todo.id
+            LEFT JOIN tag_with_todo twt ON dt.id = twt.todo_id
+            LEFT JOIN tag ON twt.tag_id = tag.id
+            LEFT JOIN alarm ON dt.id = alarm.todo_id
+            LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
+        `, [tagId, userId, LIMIT]);
 
-
-        console.log(ret[0].tagWithTodos.length)
-        
         return {
-            data: ret
+            data: formattedTodoDataFromTagRawQuery(ret)
         }
     }
 
