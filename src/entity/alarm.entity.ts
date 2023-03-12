@@ -17,17 +17,17 @@ export class Alarm extends BaseEntity {
     id: string;
 
     /* 알람 시간 */
-    @CreateDateColumn({ name: 'time', comment: '알림시간' })
+    @CreateDateColumn()
     time: Date;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
+    @DeleteDateColumn()
     deletedAt?: Date | null;
 
     /* 알람 : 사용자 = N : 1*/
