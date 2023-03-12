@@ -63,12 +63,12 @@ export class Todo extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 투두 : 사용자 = N:1 */
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.todos)
     @JoinColumn({ name: 'user_id' })
     user: User | string;
 
     /* 투두 : 투두로그 = 1:N */
-    @OneToMany(() => TodoLog, (todolog) => todolog.id)
+    @OneToMany(() => TodoLog, (todolog) => todolog.todo)
     todoLog: TodoLog[];
 
     /* 투두 : 태그투두 = 1:N */

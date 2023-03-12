@@ -51,12 +51,10 @@ export class TodosController {
     @Get('todos/tag')
     @ApiOperation({ summary: '태그 별로 투두 조회 API', description: '태그별로 투두를 조회한다.' })
     @ApiCreatedResponse({
-        description: '태그 별로 투두를 페이지네이션 방식으로 조회한다.', schema: {
-            example: swaggerGetTodosByPagination
-        }
+        description: '태그 별로 투두를 페이지네이션 방식으로 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiParam({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
+    @ApiQuery({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
     async getTodosByTag(@Param('userId') userId, @Query() getByTagDto: GetByTagDto) {
         return await this.todoService.getTodosByTag(userId, getByTagDto);
     }
@@ -79,9 +77,7 @@ export class TodosController {
     @Patch(':todoId')
     @ApiOperation({ summary: '투두 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
-        description: '투두를 수정한다.', schema: {
-            example: swaggerTodoCreateExample
-        }
+        description: '투두를 수정한다.'
     })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
@@ -92,9 +88,7 @@ export class TodosController {
     @Delete(':todoId')
     @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
     @ApiCreatedResponse({
-        description: '투두를 삭제한다.', schema: {
-            example: swaggerTodoCreateExample
-        }
+        description: '투두를 삭제한다.'
     })
     async delete(@Param('userId') userId: string,
         @Param('todoId') todoId: string): Promise<void> {

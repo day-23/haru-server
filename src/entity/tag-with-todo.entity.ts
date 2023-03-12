@@ -17,14 +17,14 @@ export class TagWithTodo extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
+    @DeleteDateColumn()
     deletedAt?: Date | null;
 
     /* 다른 엔터티들간의 관계 */
@@ -34,12 +34,12 @@ export class TagWithTodo extends BaseEntity {
     user: User | string;
 
     /* tagwithtodo : tag = N : 1 */
-    @ManyToOne(() => Tag, (tag) => tag.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => Tag, (tag) => tag.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'tag_id' })
     tag: Tag | string;
 
     /* tagwithtodo : 투두 = N : 1 */
-    @ManyToOne(() => Todo, (todo) => todo.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => Todo, (todo) => todo.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
 

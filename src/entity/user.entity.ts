@@ -20,6 +20,7 @@ import { ProfileImage } from './profile-image.entity';
 import { Category } from './schedule-category.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
+import { TodoLog } from './todolog.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -50,14 +51,14 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
-    @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+    @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+    @UpdateDateColumn()
     updatedAt: Date;
 
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn({ name: 'delete_at', comment: '삭제일' })
+    @DeleteDateColumn()
     deletedAt?: Date | null;
 
     /* 다른 엔터티들간의 관계 */
@@ -83,8 +84,11 @@ export class User extends BaseEntity {
     comment_id: Comment[];
 
     /* 사용자 : 투두  -  1:N  */
-    @OneToMany(() => Todo, (todo) => todo.id)
-    todo_id: Todo[];
+    @OneToMany(() => Todo, (todo) => todo.user)
+    todos: Todo[];
+
+    @OneToMany(()=> TodoLog, (todoLog) => todoLog.user)
+    todoLogs : TodoLog[];
 
     /* 사용자 : 태그 -  1:N  */
     @OneToMany(() => Tag, (tag) => tag.id)
