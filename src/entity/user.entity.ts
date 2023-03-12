@@ -20,6 +20,7 @@ import { ProfileImage } from './profile-image.entity';
 import { Category } from './schedule-category.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
+import { TodoLog } from './todolog.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -83,8 +84,11 @@ export class User extends BaseEntity {
     comment_id: Comment[];
 
     /* 사용자 : 투두  -  1:N  */
-    @OneToMany(() => Todo, (todo) => todo.id)
-    todo_id: Todo[];
+    @OneToMany(() => Todo, (todo) => todo.user)
+    todos: Todo[];
+
+    @OneToMany(()=> TodoLog, (todoLog) => todoLog.user)
+    todoLogs : TodoLog[];
 
     /* 사용자 : 태그 -  1:N  */
     @OneToMany(() => Tag, (tag) => tag.id)

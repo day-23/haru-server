@@ -129,13 +129,21 @@ export class TodoRepository {
         const ret = await this.tagRepository.createQueryBuilder('tag')
             .leftJoinAndSelect('tag.tagWithTodos', 'tagWithTodos')
             .leftJoinAndSelect('tagWithTodos.todo', 'todo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.alarms', 'alarms')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('tag.id = :tagId', { tagId })
             .andWhere('tag.user = :userId', { userId })
-            // .select(['tag.id', 'tag.content'])
-            // .addSelect(['tagWithTodos.id'])
+            .select(['tag.id', 'tag.content'])
+            .addSelect(['tagWithTodos.id'])
+            .addSelect(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .addSelect(['alarms.id', 'alarms.time'])
+            .addSelect(['subTodos.id', 'subTodos.content'])
+            .take(10)
             .getMany()
+
+
+        console.log(ret[0].tagWithTodos.length)
+        
         return {
             data: ret
         }
