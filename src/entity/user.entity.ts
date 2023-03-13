@@ -18,6 +18,7 @@ import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
 import { ProfileImage } from './profile-image.entity';
 import { Category } from './schedule-category.entity';
+import { Schedule } from './schedule.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 import { TodoLog } from './todolog.entity';
@@ -99,12 +100,12 @@ export class User extends BaseEntity {
     tags: Tag[];
 
     /* 사용자 : 스케줄 카테고리 -  1:N  */
-    @OneToMany(() => Category, (category) => category.id)
-    category_id: Tag[];
+    @OneToMany(() => Category, (category) => category.user)
+    categories: Category[];
 
     /* 사용자 : 스케줄 -  1:N  */
-    @OneToMany(() => Tag, (schedule) => schedule.id)
-    schedule: Tag[];
+    @OneToMany(() => Tag, (schedule) => schedule.user)
+    schedules: Schedule[];
 
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => PostLike, (postlike) => postlike.id)

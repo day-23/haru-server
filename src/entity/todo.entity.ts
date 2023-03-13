@@ -43,6 +43,9 @@ export class Todo extends BaseEntity {
     repeat: string;
 
     @Column({ type: 'timestamp', nullable: true })
+    repeatStart: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
 
     @Column({comment: '마감일', nullable:true })

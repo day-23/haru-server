@@ -17,6 +17,12 @@ export class Schedule extends BaseEntity {
     })
     memo: string;
 
+    @Column({comment: '마감일', nullable:true })
+    durationStart: Date;
+
+    @Column({comment: '마감일, 마감 시간', nullable:true })
+    durationEnd: Date;
+
     @Column({ nullable: true })
     repeatOption: string;
 
@@ -24,13 +30,10 @@ export class Schedule extends BaseEntity {
     repeat: string;
 
     @Column({ type: 'timestamp', nullable: true })
+    repeatStart: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
-
-    @Column({comment: '마감일', nullable:true })
-    endDate: Date;
-
-    @Column({comment: '마감일, 마감 시간', nullable:true })
-    endDateTime: Date;
 
     @CreateDateColumn()
     createdAt: Date;
@@ -42,20 +45,19 @@ export class Schedule extends BaseEntity {
     @DeleteDateColumn()
     deletedAt?: Date | null;
 
-
     /* 다른 엔터티들간의 관계 */
     /* 스케줄 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.schedules)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
     /* 스케줄 : 카테고리 = N:1 */
-    @ManyToOne(() => Category, (category) => category.id)
+    @ManyToOne(() => Category, (category) => category.schedules)
     @JoinColumn({ name: 'category_id' })
     category: Category;
 
     /* 스케줄 : 알람 = 1:N */
     @OneToMany(()=> Alarm, (alarm)=>alarm.id)
-    alarm : Alarm[];
+    alarms : Alarm[];
 
 }
