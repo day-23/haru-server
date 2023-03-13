@@ -184,6 +184,7 @@ export class TodoRepository {
             /* 서브 투두 데이터 저장 */
             const newSubTodos = todo.subTodos.map((subTodo) => ({
                 todo: savedTodo.id,
+                user: userId,
                 content: subTodo,
             }));
             const savedSubTodos = await queryRunner.manager.save(SubTodo, newSubTodos);
@@ -277,5 +278,24 @@ export class TodoRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
+    }
+
+    /* 투두에서 서브 투두를 지우는 함수 */
+    async deleteSubTodoOfTodo( userId: string,
+        todoId: string, subTodoId: string): Promise<void> {
+            const result = await this.subTodoRepository.delete({
+                user : {id : userId},
+                id: subTodoId,
+                todo: { id: todoId }
+            })
+
+            console.log(result, userId, todoId, subTodoId)
+    
+            if (result.affected === 0) {
+                throw new HttpException(
+                    `No subTodo with ID ${subTodoId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
+                    HttpStatus.NOT_FOUND,
+                );
+            }
     }
 }

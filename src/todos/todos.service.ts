@@ -43,4 +43,9 @@ export class TodosService {
         todoId: string, tagId: string): Promise<void> {
         return this.todoRepository.deleteTagOfTodo(userId, todoId, tagId);
     }
+
+    async deleteSubTodoOfTodo( userId: string,
+        todoId: string, subTodoId: string): Promise<void> {
+        return this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
+    }
 }

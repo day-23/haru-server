@@ -71,8 +71,39 @@ export class TodosController {
         return await this.todoService.createTodo(userId, createTodoDto)
     }
 
+    @Post(':todoId/alarm')
+    @ApiOperation({ summary: '이미 생성된 투두에 알람을 추가하는 API/ 구현중', description: '투두에 알람을 추가한다.' })
+    @ApiCreatedResponse({
+        description: '이미 생성되어있는 투두에 알람을 추가한다.'
+    })
+    async addAlarmToTodo(){
+
+    }
+
+    @Post(':todoId/tag')
+    @ApiOperation({ summary: '이미 생성된 투두에 태그를 추가하는 API / 구현중', description: '투두에 태그를 추가한다.' })
+    @ApiCreatedResponse({
+        description: '이미 생성되어있는 투두에 태그를 추가한다.'
+    })
+    async addTagToTodo(){
+
+    }
+
+
+    @Post(':todoId/subtodo')
+    @ApiOperation({ summary: '이미 생성된 투두에 하위항목을 추가하는 API / 구현중', description: '투두에 하위항목을 추가한다.' })
+    @ApiCreatedResponse({
+        description: '이미 생성되어있는 투두에 하위항목을 추가한다.'
+    })
+    async addSubTodoToTodo(){
+
+    }
+
+
+
+
     @Patch(':todoId')
-    @ApiOperation({ summary: '투두 수정 API', description: '투두를 수정한다.' })
+    @ApiOperation({ summary: '투두 본체 내용 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
         description: '투두를 수정한다.'
     })
@@ -93,8 +124,7 @@ export class TodosController {
     }
 
     
-
-    @Delete(':todoId/:tagId')
+    @Delete(':todoId/tag/:tagId')
     @ApiOperation({ summary: '투두의 태그를 삭제하는 API', description: '투두의 태그를 삭제한다.' })
     @ApiCreatedResponse({
         description: '투두를 삭제한다.'
@@ -102,6 +132,17 @@ export class TodosController {
     async deleteTagOfTodo(@Param('userId') userId: string,
         @Param('todoId') todoId: string, @Param('tagId') tagId: string): Promise<void> {
         return this.todoService.deleteTagOfTodo(userId, todoId, tagId);
+    }
+
+
+    @Delete(':todoId/subtodo/:subTodoId')
+    @ApiOperation({ summary: '투두의 태그를 삭제하는 API -단일 투두에 대한 서브투두 지우기는 구현함, 반복된 서브투두에 대해 추가구현 필요', description: '투두의 태그를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '투두를 삭제한다.'
+    })
+    async deleteSubTodoOfTodo(@Param('userId') userId: string,
+        @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
+        return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
 
 

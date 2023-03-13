@@ -90,9 +90,13 @@ export class User extends BaseEntity {
     @OneToMany(()=> TodoLog, (todoLog) => todoLog.user)
     todoLogs : TodoLog[];
 
+    /* 사용자 : 서브투두 -  1:N  */
+    @OneToMany(() => Tag, (subtodo) => subtodo.user)
+    subTodos: Tag[];
+
     /* 사용자 : 태그 -  1:N  */
-    @OneToMany(() => Tag, (tag) => tag.id)
-    tag_id: Tag[];
+    @OneToMany(() => Tag, (tag) => tag.user)
+    tags: Tag[];
 
     /* 사용자 : 스케줄 카테고리 -  1:N  */
     @OneToMany(() => Category, (category) => category.id)
