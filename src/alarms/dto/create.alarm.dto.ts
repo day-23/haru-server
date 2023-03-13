@@ -1,6 +1,20 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Validate, ValidateIf, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface, } from 'class-validator';
+import { IsDefined, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min, Validate, ValidateIf, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface, } from 'class-validator';
+
+// /* Custom validator to check if value is a string */
+// @ValidatorConstraint({ name: 'isString', async: false })
+// export class IsStringValidator implements ValidatorConstraintInterface {
+//   validate(value: any, args: ValidationArguments) {
+
+//     console.log('decorator DEBUG',typeof value, value)
+//     return typeof value === 'string';
+//   }
+
+//   defaultMessage(args: ValidationArguments) {
+//     return `${args.property} should be a string`;
+//   }
+// }
 
 /* alarm 단일 생성 DTO */
 export class CreateAlarmDto {
@@ -45,7 +59,16 @@ export class CreateAlarmsDto {
 }
 
 /* alarm 단일 업데이트 DTO */
-export class UpdateAlarmDto extends PartialType(CreateAlarmDto) { }
+export class UpdateAlarmDto { 
+    @ApiProperty({ example: "2023-03-09T18:30:00.123+09:00", description: 'alarm update DTO' })
+    @IsDefined()
+    @IsNotEmpty()
+    // @Validate(IsStringValidator)
+    @Transform(({ value }) => {
+        // console.log( 'transform', value)
+        return new Date(value)})
+    time: Date;
+}
 
 /* alarm delete DTO */
 export class DeleteAlarmsDto {
