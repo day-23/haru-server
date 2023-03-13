@@ -33,4 +33,11 @@ export class AlarmRepository {
             return await this.repository.save(newAlarms)
         }        
     }
+
+    async deleteAlarm(userId: string, alarmId: string): Promise<void> {
+        await this.repository.delete({
+            user: { id: userId },
+            id: alarmId
+        });
+    }
 }

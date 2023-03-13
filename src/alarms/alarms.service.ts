@@ -11,4 +11,9 @@ export class AlarmsService {
         return await this.alarmRepository.createAlarms(userId, createAlarmsDto)
     }
 
+
+    async deleteAlarm(userId: string, alarmId: string): Promise<void> {
+        return await this.alarmRepository.deleteAlarm(userId, alarmId);
+    }
+
 }
