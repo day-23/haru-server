@@ -23,11 +23,11 @@ export class TodosService {
         return await this.todoRepository.findByPagination(userId, paginationDto)
     }
 
-    async getTodosByTag(userId:string, getByTagDto:GetByTagDto){
+    async getTodosByTag(userId: string, getByTagDto: GetByTagDto) {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
 
-    async createTodo(userId: string, todo: CreateTodoDto){
+    async createTodo(userId: string, todo: CreateTodoDto) {
         return await this.todoRepository.create(userId, todo);
     }
 
@@ -37,5 +37,10 @@ export class TodosService {
 
     async deleteTodo(userId: string, todoId: string): Promise<void> {
         return await this.todoRepository.delete(userId, todoId);
+    }
+
+    async deleteTagOfTodo(userId: string,
+        todoId: string, tagId: string): Promise<void> {
+        return this.todoRepository.deleteTagOfTodo(userId, todoId, tagId);
     }
 }

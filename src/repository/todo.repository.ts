@@ -260,4 +260,22 @@ export class TodoRepository {
             id: todoId
         });
     }
+
+
+    /* 투두에서 태그를 지우는 함수 */
+    async deleteTagOfTodo(userId: string,
+        todoId: string, tagId: string): Promise<void> {
+        const result = await this.tagWithTodoRepository.delete({
+            user: { id: userId },
+            tag: { id: tagId },
+            todo: { id: todoId }
+        })
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No tag with ID ${tagId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
+    }
 }

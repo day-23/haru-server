@@ -59,9 +59,6 @@ export class TodosController {
         return await this.todoService.getTodosByTag(userId, getByTagDto);
     }
 
-
-
-
     @Post()
     @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
     @ApiCreatedResponse({
@@ -93,6 +90,18 @@ export class TodosController {
     async delete(@Param('userId') userId: string,
         @Param('todoId') todoId: string): Promise<void> {
         return this.todoService.deleteTodo(userId, todoId);
+    }
+
+    
+
+    @Delete(':todoId/:tagId')
+    @ApiOperation({ summary: '투두의 태그를 삭제하는 API', description: '투두의 태그를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '투두를 삭제한다.'
+    })
+    async deleteTagOfTodo(@Param('userId') userId: string,
+        @Param('todoId') todoId: string, @Param('tagId') tagId: string): Promise<void> {
+        return this.todoService.deleteTagOfTodo(userId, todoId, tagId);
     }
 
 
