@@ -12,16 +12,14 @@ export class Schedule extends BaseEntity {
     content: string;
 
     @Column({
-        length : 500,
-        nullable : true
+        length: 500,
+        nullable: true
     })
     memo: string;
 
-    @Column({comment: '마감일', nullable:true })
-    durationStart: Date;
-
-    @Column({comment: '마감일, 마감 시간', nullable:true })
-    durationEnd: Date;
+    /* 중요한 */
+    @Column()
+    flag: boolean;
 
     @Column({ nullable: true })
     repeatOption: string;
@@ -57,6 +55,6 @@ export class Schedule extends BaseEntity {
     category: Category | string;
 
     /* 스케줄 : 알람 = 1:N */
-    @OneToMany(()=> Alarm, (alarm)=>alarm.schedule)
-    alarms : Alarm[] | string[];
+    @OneToMany(() => Alarm, (alarm) => alarm.schedule)
+    alarms: Alarm[] | string[];
 }

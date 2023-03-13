@@ -41,7 +41,7 @@ export class Alarm extends BaseEntity {
     todo : Todo | string
 
     /* 알람 : 스케줄 = N : 1*/
-    @ManyToOne(()=> Schedule, (schedule)=>schedule.alarms)
+    @ManyToOne(()=> Schedule, (schedule)=>schedule.alarms, {onDelete: 'CASCADE'})
     @JoinColumn({name : 'schedule_id'})
     schedule : Schedule | string
 }

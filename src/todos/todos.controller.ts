@@ -40,8 +40,8 @@ export class TodosController {
         }
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '페이지당 아이템 개수 (기본값: 10)' })
-    @ApiQuery({ name: 'startDate', type: String, required: true, description: '페이지 번호 (기본값: 1)' })
+    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
+    @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
     async getTodosByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
         console.log('hello')
         return await this.todoService.getTodosByDate(userId, datePaginationDto);

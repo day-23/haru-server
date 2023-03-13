@@ -42,17 +42,17 @@ export class Todo extends BaseEntity {
     @Column({ length: 7, nullable: true, })
     repeat: string;
 
-    @Column({ type: 'timestamp', nullable: true })
-    repeatStart: Date;
-
-    @Column({ type: 'timestamp', nullable: true })
-    repeatEnd: Date;
-
     @Column({comment: '마감일', nullable:true })
     endDate: Date;
 
     @Column({comment: '마감일, 마감 시간', nullable:true })
     endDateTime: Date;
+
+    @Column({ type: 'timestamp', nullable: true })
+    repeatEnd: Date;
+
+    @Column({comment: '투두의 순서', nullable:true })
+    order: number;
 
     @CreateDateColumn()
     createdAt: Date;
