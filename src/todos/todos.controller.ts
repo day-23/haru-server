@@ -89,7 +89,6 @@ export class TodosController {
 
     }
 
-
     @Post(':todoId/subtodo')
     @ApiOperation({ summary: '이미 생성된 투두에 하위항목을 추가하는 API / 구현중', description: '투두에 하위항목을 추가한다.' })
     @ApiCreatedResponse({
@@ -98,9 +97,6 @@ export class TodosController {
     async addSubTodoToTodo(){
 
     }
-
-
-
 
     @Patch(':todoId')
     @ApiOperation({ summary: '투두 본체 내용 수정 API', description: '투두를 수정한다.' })
@@ -144,7 +140,4 @@ export class TodosController {
         @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
         return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
-
-
-
 }
