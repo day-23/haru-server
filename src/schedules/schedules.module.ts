@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Alarm } from 'src/entity/alarm.entity';
-import { Category } from 'src/entity/schedule-category.entity';
+import { Category } from 'src/entity/category.entity';
 import { Schedule } from 'src/entity/schedule.entity';
 import { SubTodo } from 'src/entity/sub-todo.entity';
 import { User } from 'src/entity/user.entity';

@@ -175,6 +175,8 @@ export class TodoRepository {
         await queryRunner.startTransaction();
 
         try {
+            console.log(todo)
+
             /* 투두 데이터 저장 */
             const savedTodo = await queryRunner.manager.save(Todo, {
                 ...todo,
@@ -288,8 +290,6 @@ export class TodoRepository {
                 id: subTodoId,
                 todo: { id: todoId }
             })
-
-            console.log(result, userId, todoId, subTodoId)
     
             if (result.affected === 0) {
                 throw new HttpException(

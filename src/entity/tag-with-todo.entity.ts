@@ -13,7 +13,6 @@ export class TagWithTodo extends BaseEntity {
         }
     }
 
-
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -29,7 +28,7 @@ export class TagWithTodo extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
-    @ManyToOne(() => User, (user) => user.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => User, (user) => user.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User | string;
 
@@ -42,5 +41,4 @@ export class TagWithTodo extends BaseEntity {
     @ManyToOne(() => Todo, (todo) => todo.tagWithTodos, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
-
 }

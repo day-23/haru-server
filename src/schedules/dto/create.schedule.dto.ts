@@ -19,9 +19,9 @@ export class CreateScheduleDto {
     // @IsBoolean()
     // todaySchedule: boolean;
 
-    // @ApiProperty({ description: '중요한 할일인지 체크' })
-    // @IsBoolean()
-    // flag: boolean;
+    @ApiProperty({ description: '중요한 할일인지 체크' })
+    @IsBoolean()
+    flag: boolean;
 
     /* 일정 기간 */
     @ApiProperty({ description: '일정 시작 날짜', nullable: true })
@@ -56,6 +56,7 @@ export class CreateScheduleDto {
     repeatEnd : Date;
 
     @ApiProperty({ description: 'category 이름'})
+    @IsOptional()
     @IsString()
     category: string;
 

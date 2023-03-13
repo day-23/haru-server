@@ -31,7 +31,7 @@ export class Alarm extends BaseEntity {
     deletedAt?: Date | null;
 
     /* 알람 : 사용자 = N : 1*/
-    @ManyToOne(()=> User, (user)=>user)
+    @ManyToOne(()=> User, (user)=>user.alarms)
     @JoinColumn({name : 'user_id'})
     user : User | string
 
@@ -41,7 +41,7 @@ export class Alarm extends BaseEntity {
     todo : Todo | string
 
     /* 알람 : 스케줄 = N : 1*/
-    @ManyToOne(()=> Schedule, (schedule)=>schedule.id)
+    @ManyToOne(()=> Schedule, (schedule)=>schedule.alarms)
     @JoinColumn({name : 'schedule_id'})
     schedule : Schedule | string
 }
