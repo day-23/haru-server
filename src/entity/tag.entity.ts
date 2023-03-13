@@ -30,7 +30,7 @@ export class Tag extends BaseEntity {
     @DeleteDateColumn()
     deletedAt?: Date | null;
 
-    @ManyToOne(()=> User, (user)=>user.id)
+    @ManyToOne(()=> User, (user)=>user.tags)
     @JoinColumn({ name: 'user_id' })
     user: User | string;
 
