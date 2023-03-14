@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateScheduleDto } from './dto/create.schedule.dto';
 
 @Injectable()
@@ -15,4 +16,7 @@ export class ScheduleService {
         return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
     }
 
+    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) {
+        return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
+    }
 }

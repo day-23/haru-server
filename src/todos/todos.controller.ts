@@ -5,7 +5,7 @@ import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
-import { AddAlarmToTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { TodosService } from './todos.service';
 
@@ -77,8 +77,8 @@ export class TodosController {
         description: '이미 생성되어있는 투두에 알람을 추가한다.'
     })
     async addAlarmToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,
-            @Body() addAlarmToTodoDto:AddAlarmToTodoDto) {
-        return await this.todoService.createAlarmToTodo(userId, todoId, addAlarmToTodoDto)
+            @Body() createAlarmByTimeDto:CreateAlarmByTimeDto) {
+        return await this.todoService.createAlarmToTodo(userId, todoId, createAlarmByTimeDto)
     }
 
     @Post(':todoId/tag')
