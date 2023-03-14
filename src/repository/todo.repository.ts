@@ -43,19 +43,23 @@ export class TodoRepository {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
-        // /* subtodo, tag 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
-            .orderBy('todo.createdAt', 'DESC')
+            .andWhere('todo.end_date IS NOT NULL')
+            .andWhere('((todo.end_date >= :startDate AND todo.end_date < :endDate) OR (todo.repeat_end > :startDate AND todo.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
             .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
+            .orderBy('todo.end_date', 'ASC')
+            .addOrderBy('todo.repeat_end', 'DESC')
+            .addOrderBy('todo.created_at', 'ASC')
             .getManyAndCount();
 
 
