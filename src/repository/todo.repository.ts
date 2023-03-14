@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
+import { AddAlarmToTodoDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { EntityManager, getRepository, Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
@@ -15,6 +15,8 @@ import { TagWithTodo } from "src/entity/tag-with-todo.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
+import { AlarmsService } from "src/alarms/alarms.service";
+import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
 
 
 export class TodoRepository {
@@ -25,8 +27,8 @@ export class TodoRepository {
         @InjectRepository(Alarm) private readonly alarmRepository: Repository<Alarm>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService,
-        @InjectEntityManager()
-        private readonly entityManager: EntityManager,
+        private readonly alarmsService : AlarmsService,
+        @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
 
     async findAll(): Promise<Todo[]> {
@@ -297,5 +299,16 @@ export class TodoRepository {
                     HttpStatus.NOT_FOUND,
                 );
             }
+    }
+
+    /* 이미 생성된 투두에 데이터 추가 */
+    async createAlarmToTodo(userId: string, todoId: string, addAlarmToTodoDto:AddAlarmToTodoDto) {
+        const createAlarmsDto :CreateAlarmsDto = {
+            todoId,
+            scheduleId: null,
+            times:[addAlarmToTodoDto.time]
+        }
+        const result = await this.alarmsService.createAlarms(userId, createAlarmsDto)
+        return result.map(({id, todo : todoId, time }) => ({id, todoId, time}))
     }
 }

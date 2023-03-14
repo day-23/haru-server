@@ -3,6 +3,13 @@ import { Transform } from "class-transformer";
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
+export class AddAlarmToTodoDto{
+    @ApiProperty({ example: "2023-03-09T18:30:00.123+09:00", description: 'alarm 단일 생성 DTO' })
+    @IsNotEmpty()
+    @Transform(({ value }) => new Date(value))
+    time: Date;
+}
+
 export class CreateTodoDto {
     @ApiProperty({ description: 'todo 내용' })
     @MinLength(1)
