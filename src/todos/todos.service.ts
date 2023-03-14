@@ -64,4 +64,7 @@ export class TodosService {
         return await this.todoRepository.createSubTodoToTodo(userId, todoId, createSubTodoDto)
     }
 
+    async getTodosBySearch(userId:string, content:string){
+        return await this.todoRepository.getTodosBySearch(userId, content)
+    }
 }

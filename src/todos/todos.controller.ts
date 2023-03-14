@@ -133,14 +133,24 @@ export class TodosController {
         return this.todoService.deleteTagOfTodo(userId, todoId, tagId);
     }
 
-
     @Delete(':todoId/subtodo/:subTodoId')
-    @ApiOperation({ summary: '투두의 태그를 삭제하는 API -단일 투두에 대한 서브투두 지우기는 구현함, 반복된 서브투두에 대해 추가구현 필요', description: '투두의 태그를 삭제한다.' })
+    @ApiOperation({ summary: '투두의 서브 투두를 삭제하는 API -단일 투두에 대한 서브투두 지우기는 구현함, 반복된 서브투두에 대해 추가구현 필요', description: '투두의 서브 투두를 삭제한다.' })
     @ApiCreatedResponse({
-        description: '투두를 삭제한다.'
+        description: '투두의 태그를 삭제한다.'
     })
     async deleteSubTodoOfTodo(@Param('userId') userId: string,
         @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
         return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
+
+
+    @Get('search')
+    @ApiOperation({ summary: '투두 검색 API', description: '투두를 검색한다.' })
+    async searchTodos(
+        @Param('userId') userId : string,
+        @Query('content') content : string,
+    ){
+        return this.todoService.getTodosBySearch(userId, content)
+    }
+
 }

@@ -19,4 +19,8 @@ export class ScheduleService {
     async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) {
         return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
     }
+
+    async getSchedulesBySearch(userId:string, content:string){
+        return await this.scheduleRepository.getSchedulesBySearch(userId, content)
+    }
 }

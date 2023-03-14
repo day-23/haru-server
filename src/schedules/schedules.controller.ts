@@ -41,4 +41,14 @@ export class ScheduleController {
         return await this.scheduleService.createAlarmToSchedule(userId, scheduleId, createAlarmByTimeDto)
     }
 
+
+    @Get('search')
+    @ApiOperation({ summary: '일정 검색 API', description: '일정를 검색한다.' })
+    async searchSchedules(
+        @Param('userId') userId : string,
+        @Query('content') content : string,
+    ){
+        return this.scheduleService.getSchedulesBySearch(userId, content)
+    }
+
 }
