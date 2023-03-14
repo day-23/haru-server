@@ -5,7 +5,7 @@ import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
-import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { AddAlarmToTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { TodosService } from './todos.service';
 
@@ -66,18 +66,19 @@ export class TodosController {
             example: swaggerTodoCreateExample
         }
     })
-    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto){
+    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto) {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
     }
 
     @Post(':todoId/alarm')
-    @ApiOperation({ summary: '이미 생성된 투두에 알람을 추가하는 API/ 구현중', description: '투두에 알람을 추가한다.' })
+    @ApiOperation({ summary: '이미 생성된 투두에 알람을 추가하는 API', description: '투두에 알람을 추가한다.' })
     @ApiCreatedResponse({
         description: '이미 생성되어있는 투두에 알람을 추가한다.'
     })
-    async addAlarmToTodo(){
-
+    async addAlarmToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,
+            @Body() addAlarmToTodoDto:AddAlarmToTodoDto) {
+        return await this.todoService.createAlarmToTodo(userId, todoId, addAlarmToTodoDto)
     }
 
     @Post(':todoId/tag')
@@ -85,7 +86,7 @@ export class TodosController {
     @ApiCreatedResponse({
         description: '이미 생성되어있는 투두에 태그를 추가한다.'
     })
-    async addTagToTodo(){
+    async addTagToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,) {
 
     }
 
@@ -94,7 +95,7 @@ export class TodosController {
     @ApiCreatedResponse({
         description: '이미 생성되어있는 투두에 하위항목을 추가한다.'
     })
-    async addSubTodoToTodo(){
+    async addSubTodoToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,) {
 
     }
 
@@ -119,7 +120,7 @@ export class TodosController {
         return this.todoService.deleteTodo(userId, todoId);
     }
 
-    
+
     @Delete(':todoId/tag/:tagId')
     @ApiOperation({ summary: '투두의 태그를 삭제하는 API', description: '투두의 태그를 삭제한다.' })
     @ApiCreatedResponse({

@@ -4,7 +4,7 @@ import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
-import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { AddAlarmToTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 
 @Injectable()
@@ -47,5 +47,10 @@ export class TodosService {
     async deleteSubTodoOfTodo( userId: string,
         todoId: string, subTodoId: string): Promise<void> {
         return this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
+    }
+
+    /* 이미 생성된 투두에 데이터 추가 */
+    async createAlarmToTodo(userId: string, todoId: string, addAlarmToTodoDto:AddAlarmToTodoDto) {
+        return await this.todoRepository.createAlarmToTodo(userId, todoId, addAlarmToTodoDto)
     }
 }

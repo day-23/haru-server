@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AlarmsService } from 'src/alarms/alarms.service';
 import { Alarm } from 'src/entity/alarm.entity';
 import { SubTodo } from 'src/entity/sub-todo.entity';
 import { TagWithTodo } from 'src/entity/tag-with-todo.entity';
 import { Tag } from 'src/entity/tag.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { User } from 'src/entity/user.entity';
+import { AlarmRepository } from 'src/repository/alarm.repository';
 import { TagRepository } from 'src/repository/tag.repository';
 import { TodoRepository } from 'src/repository/todo.repository';
 import { UserRepository } from 'src/repository/user.repository';
@@ -19,6 +21,6 @@ import { TodosService } from './todos.service';
     controllers: [TodosController],
     providers: [TodosService, TodoRepository, 
                 UserService, UserRepository, 
-                TagsService, TagRepository]
+                TagsService, TagRepository, AlarmsService, AlarmRepository]
 })
 export class TodosModule { }
