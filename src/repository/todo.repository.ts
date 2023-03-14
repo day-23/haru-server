@@ -18,6 +18,7 @@ import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { AlarmsService } from "src/alarms/alarms.service";
 import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
 import { CreateTagDto } from "src/tags/dto/create.tag.dto";
+import { CreateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 
 
 export class TodoRepository {
@@ -308,7 +309,16 @@ export class TodoRepository {
         return { id: result.id, todoId: result.todo, time: result.time }
     }
 
+    /* 서브투두 추가 */
+    async createSubTodoToTodo(userId: string, todoId: string, createSubTodoDto: CreateSubTodoDto) {
+        const { content } = createSubTodoDto
+        const newSubTodo = this.subTodoRepository.create({ user: userId, todo: todoId, content })
+        const ret = await this.subTodoRepository.save(newSubTodo)
 
+        return { id: ret.id, content }
+    }
+
+    /* 태그를 추가 */
     async createTagToTodo(userId: string, todoId: string, createTagDto: CreateTagDto) {
         const { content } = createTagDto;
 
