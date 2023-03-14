@@ -362,4 +362,36 @@ export class TodoRepository {
         }
     }
 
+
+    async getTodosBySearch(userId: string, content: string) {
+        const todos =  await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
+            .setParameters({ searchValue: `%${content}%` })
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .addSelect(['subtodo.id', 'subtodo.content'])
+            .addSelect(['alarm.id', 'alarm.time'])
+            .addSelect(['tagwithtodo.id'])
+            .addSelect(['tag.id', 'tag.content'])
+            .orderBy('todo.createdAt', 'DESC')
+            .take(50)
+            .getMany();
+
+         /* tag 내용 파싱 */
+        const result = todos.map(({ tagWithTodos, ...todo }) => ({
+            ...todo,
+            tags: tagWithTodos.map((tagWithTodo) => {
+                return {
+                    id: tagWithTodo.tag.id,
+                    content: tagWithTodo.tag.content
+                }
+            })
+        }))
+
+        return result
+    }
 }
