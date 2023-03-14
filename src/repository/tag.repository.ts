@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
-import { CreateTagsDto, DeleteTagsDto, UpdateTagDto } from "src/tags/dto/create.tag.dto";
+import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from "src/tags/dto/create.tag.dto";
 import { In, Repository } from "typeorm";
 
 
@@ -9,19 +9,34 @@ export class TagRepository {
     constructor(@InjectRepository(Tag) private readonly repository: Repository<Tag>,
     ) { }
 
+    async saveTag(userId : string, createTagDto : CreateTagDto){
+        const { content } = createTagDto;
+        
+        const existingTag = await this.repository.findOne({ where : {user: {id: userId}, content} });
+
+        if (existingTag) {
+            throw new ConflictException(`Tag with this user already exists`);
+        }
+
+        const newAlarm = this.repository.create({ user: userId, content });
+        const ret = await this.repository.save(newAlarm);
+
+        return {id : ret.id, content}
+    }
+
 
     /* 태그를 한번에 여러개 생성하는 코드 */
-    async saveTags(userId: string, createTagDto: CreateTagsDto) {
+    async saveTags(userId: string, createTagsDto: CreateTagsDto) {
         // 필요없을 것 같음 -> const user = await this.userService.findOne(userId);
         const existingTags = await this.repository.find({
             where: {
                 user: { id: userId },
-                content: In(createTagDto.contents)
+                content: In(createTagsDto.contents)
             }
         });
-
-        const newTags = createTagDto.contents
-            .filter(content => !existingTags.some(tag => tag.content === content))
+        
+        const newTags = createTagsDto.contents
+            .filter(content => !existingTags.some(tag => tag.content.toUpperCase() === content.toUpperCase()))
             .map(content => {
                 const newTag = new Tag({
                     user: userId,

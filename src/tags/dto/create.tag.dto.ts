@@ -1,10 +1,12 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsNumber, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 /* tag 단일 생성 DTO */
 export class CreateTagDto {
     @ApiProperty({ example: "study", description: 'tag 단일 생성 DTO' })
+    @IsNotEmpty()
+    @IsString()
     content: string;
 }
 

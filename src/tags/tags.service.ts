@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
 import { TagRepository } from 'src/repository/tag.repository';
-import { CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
+import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
 
 @Injectable()
 export class TagsService {
     constructor(private readonly tagRepository: TagRepository) { }
 
-    async createTags(userId: string, createTagDto: CreateTagsDto): Promise<Tag[]> {
-        return await this.tagRepository.saveTags(userId, createTagDto);
+    async createTag(userId: string, createTagDto: CreateTagDto){
+        return await this.tagRepository.saveTag(userId, createTagDto);
+    }
+
+    async createTags(userId: string, createTagsDto: CreateTagsDto): Promise<Tag[]> {
+        return await this.tagRepository.saveTags(userId, createTagsDto);
     }
 
     async getTagsByUserId(userId: string): Promise<Tag[]> {
