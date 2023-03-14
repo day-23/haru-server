@@ -364,7 +364,7 @@ export class TodoRepository {
 
 
     async getTodosBySearch(userId: string, content: string) {
-        const todos =  await this.repository.createQueryBuilder('todo')
+        const todos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
@@ -381,7 +381,7 @@ export class TodoRepository {
             .take(50)
             .getMany();
 
-         /* tag 내용 파싱 */
+        /* tag 내용 파싱 */
         const result = todos.map(({ tagWithTodos, ...todo }) => ({
             ...todo,
             tags: tagWithTodos.map((tagWithTodo) => {
