@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
@@ -17,6 +17,8 @@ import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { AlarmsService } from "src/alarms/alarms.service";
 import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
+import { CreateTagDto } from "src/tags/dto/create.tag.dto";
+import { CreateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 
 
 export class TodoRepository {
@@ -41,19 +43,23 @@ export class TodoRepository {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
-        // /* subtodo, tag 조인, 페이지네이션 */
         const [todos, count] = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
-            .orderBy('todo.createdAt', 'DESC')
+            .andWhere('todo.end_date IS NOT NULL')
+            .andWhere('((todo.end_date >= :startDate AND todo.end_date < :endDate) OR (todo.repeat_end > :startDate AND todo.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
             .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
+            .orderBy('todo.end_date', 'ASC')
+            .addOrderBy('todo.repeat_end', 'DESC')
+            .addOrderBy('todo.created_at', 'ASC')
             .getManyAndCount();
 
 
@@ -303,8 +309,57 @@ export class TodoRepository {
     /* 이미 생성된 투두에 데이터 추가 */
     /* 알람 추가 */
     async createAlarmToTodo(userId: string, todoId: string, dto: CreateAlarmByTimeDto) {
-        const {time} = dto;
         const result = await this.alarmsService.createAlarm(userId, todoId, null, dto)
-        return {id: result.id, todoId : result.todo, time : result.time}
+        return { id: result.id, todoId: result.todo, time: result.time }
     }
+
+    /* 서브투두 추가 */
+    async createSubTodoToTodo(userId: string, todoId: string, createSubTodoDto: CreateSubTodoDto) {
+        const { content } = createSubTodoDto
+        const newSubTodo = this.subTodoRepository.create({ user: userId, todo: todoId, content })
+        const ret = await this.subTodoRepository.save(newSubTodo)
+
+        return { id: ret.id, content }
+    }
+
+    /* 태그를 추가 */
+    async createTagToTodo(userId: string, todoId: string, createTagDto: CreateTagDto) {
+        const { content } = createTagDto;
+
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const existingTag = await queryRunner.manager.findOne(Tag, { where: { user: { id: userId }, content } });
+
+            if (existingTag) {
+                const existingTagWithTodo = await queryRunner.manager.findOne(TagWithTodo, { where: { user: { id: userId }, todo: { id: todoId }, tag: { id: existingTag.id } } });
+
+                if (existingTagWithTodo) {
+                    throw new ConflictException(`Tag with this todo already exists`);
+                }
+
+                const newTagWithTodo = queryRunner.manager.create(TagWithTodo, { user: userId, todo: todoId, tag: existingTag });
+                const savedNewTagWithTodo = await queryRunner.manager.save(newTagWithTodo);
+                await queryRunner.commitTransaction();
+                return savedNewTagWithTodo;
+            }
+
+            const newTag = queryRunner.manager.create(Tag, { user: userId, content });
+            const ret = await queryRunner.manager.save(newTag);
+
+            const newTagWithTodo = queryRunner.manager.create(TagWithTodo, { user: userId, todo: todoId, tag: ret });
+            const savedNewTagWithTodo = await queryRunner.manager.save(newTagWithTodo);
+
+            await queryRunner.commitTransaction();
+            return savedNewTagWithTodo;
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
 }
