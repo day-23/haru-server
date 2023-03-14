@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
@@ -17,6 +17,7 @@ import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { AlarmsService } from "src/alarms/alarms.service";
 import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
+import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 
 
 export class TodoRepository {
@@ -303,8 +304,48 @@ export class TodoRepository {
     /* 이미 생성된 투두에 데이터 추가 */
     /* 알람 추가 */
     async createAlarmToTodo(userId: string, todoId: string, dto: CreateAlarmByTimeDto) {
-        const {time} = dto;
         const result = await this.alarmsService.createAlarm(userId, todoId, null, dto)
-        return {id: result.id, todoId : result.todo, time : result.time}
+        return { id: result.id, todoId: result.todo, time: result.time }
     }
+
+
+    async createTagToTodo(userId: string, todoId: string, createTagDto: CreateTagDto) {
+        const { content } = createTagDto;
+
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const existingTag = await queryRunner.manager.findOne(Tag, { where: { user: { id: userId }, content } });
+
+            if (existingTag) {
+                const existingTagWithTodo = await queryRunner.manager.findOne(TagWithTodo, { where: { user: { id: userId }, todo: { id: todoId }, tag: { id: existingTag.id } } });
+
+                if (existingTagWithTodo) {
+                    throw new ConflictException(`Tag with this todo already exists`);
+                }
+
+                const newTagWithTodo = queryRunner.manager.create(TagWithTodo, { user: userId, todo: todoId, tag: existingTag });
+                const savedNewTagWithTodo = await queryRunner.manager.save(newTagWithTodo);
+                await queryRunner.commitTransaction();
+                return savedNewTagWithTodo;
+            }
+
+            const newTag = queryRunner.manager.create(Tag, { user: userId, content });
+            const ret = await queryRunner.manager.save(newTag);
+
+            const newTagWithTodo = queryRunner.manager.create(TagWithTodo, { user: userId, todo: todoId, tag: ret });
+            const savedNewTagWithTodo = await queryRunner.manager.save(newTagWithTodo);
+
+            await queryRunner.commitTransaction();
+            return savedNewTagWithTodo;
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
 }

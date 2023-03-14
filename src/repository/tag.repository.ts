@@ -9,19 +9,19 @@ export class TagRepository {
     constructor(@InjectRepository(Tag) private readonly repository: Repository<Tag>,
     ) { }
 
-    async saveTag(userId : string, createTagDto : CreateTagDto){
+    async saveTag(userId: string, createTagDto: CreateTagDto) {
         const { content } = createTagDto;
-        
-        const existingTag = await this.repository.findOne({ where : {user: {id: userId}, content} });
+
+        const existingTag = await this.repository.findOne({ where: { user: { id: userId }, content } });
 
         if (existingTag) {
             throw new ConflictException(`Tag with this user already exists`);
         }
 
-        const newAlarm = this.repository.create({ user: userId, content });
-        const ret = await this.repository.save(newAlarm);
+        const newTag = this.repository.create({ user: userId, content });
+        const ret = await this.repository.save(newTag);
 
-        return {id : ret.id, content}
+        return { id: ret.id, content }
     }
 
 
@@ -34,7 +34,7 @@ export class TagRepository {
                 content: In(createTagsDto.contents)
             }
         });
-        
+
         const newTags = createTagsDto.contents
             .filter(content => !existingTags.some(tag => tag.content.toUpperCase() === content.toUpperCase()))
             .map(content => {

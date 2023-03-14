@@ -5,6 +5,7 @@ import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
+import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { TodosService } from './todos.service';
@@ -82,12 +83,12 @@ export class TodosController {
     }
 
     @Post(':todoId/tag')
-    @ApiOperation({ summary: '이미 생성된 투두에 태그를 추가하는 API / 구현중', description: '투두에 태그를 추가한다.' })
+    @ApiOperation({ summary: '이미 생성된 투두에 태그를 추가하는 API ', description: '투두에 태그를 추가한다.' })
     @ApiCreatedResponse({
         description: '이미 생성되어있는 투두에 태그를 추가한다.'
     })
-    async addTagToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,) {
-
+    async addTagToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string, @Body() createTagDto:CreateTagDto) {
+        return await this.todoService.createTagToTodo(userId, todoId, createTagDto)
     }
 
     @Post(':todoId/subtodo')
