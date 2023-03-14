@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { AlarmsService } from "src/alarms/alarms.service";
 import { CategoriesService } from "src/categories/categories.service";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
@@ -7,11 +8,13 @@ import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleDto } from "src/schedules/dto/create.schedule.dto";
+import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { Repository } from "typeorm";
 
 export class ScheduleRepository {
     constructor(@InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
-        private readonly categoriesService: CategoriesService
+        private readonly categoriesService: CategoriesService,
+        private readonly alarmsService: AlarmsService,
     ) { }
 
     /* 스케줄 데이터 불러오기 */
@@ -91,5 +94,12 @@ export class ScheduleRepository {
         } finally {
             await queryRunner.release();
         }
+    }
+
+    /* 이미 생성된 스케줄에 데이터 추가 */
+    /* 알람 추가 */
+    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) {
+        const result = await this.alarmsService.createAlarm(userId, null, scheduleId, dto)
+        return {id: result.id, scheduleId : result.schedule, time : result.time}
     }
 }

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { AddAlarmToTodoDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
+import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { EntityManager, getRepository, Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
@@ -27,7 +27,7 @@ export class TodoRepository {
         @InjectRepository(Alarm) private readonly alarmRepository: Repository<Alarm>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService,
-        private readonly alarmsService : AlarmsService,
+        private readonly alarmsService: AlarmsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
 
@@ -285,30 +285,26 @@ export class TodoRepository {
     }
 
     /* 투두에서 서브 투두를 지우는 함수 */
-    async deleteSubTodoOfTodo( userId: string,
+    async deleteSubTodoOfTodo(userId: string,
         todoId: string, subTodoId: string): Promise<void> {
-            const result = await this.subTodoRepository.delete({
-                user : {id : userId},
-                id: subTodoId,
-                todo: { id: todoId }
-            })
-    
-            if (result.affected === 0) {
-                throw new HttpException(
-                    `No subTodo with ID ${subTodoId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
-                    HttpStatus.NOT_FOUND,
-                );
-            }
+        const result = await this.subTodoRepository.delete({
+            id: subTodoId,
+            user: { id: userId },
+        })
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No subTodo with ID ${subTodoId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
     }
 
     /* 이미 생성된 투두에 데이터 추가 */
-    async createAlarmToTodo(userId: string, todoId: string, addAlarmToTodoDto:AddAlarmToTodoDto) {
-        const createAlarmsDto :CreateAlarmsDto = {
-            todoId,
-            scheduleId: null,
-            times:[addAlarmToTodoDto.time]
-        }
-        const result = await this.alarmsService.createAlarms(userId, createAlarmsDto)
-        return result.map(({id, todo : todoId, time }) => ({id, todoId, time}))
+    /* 알람 추가 */
+    async createAlarmToTodo(userId: string, todoId: string, dto: CreateAlarmByTimeDto) {
+        const {time} = dto;
+        const result = await this.alarmsService.createAlarm(userId, todoId, null, dto)
+        return {id: result.id, todoId : result.todo, time : result.time}
     }
 }

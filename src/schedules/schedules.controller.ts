@@ -3,6 +3,7 @@ import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Schedule } from 'src/entity/schedule.entity';
+import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleService } from './schedules.service';
 
@@ -28,6 +29,16 @@ export class ScheduleController {
     @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })
     async create(@Param('userId') userId: string, @Body() createTodoDto: CreateScheduleDto){
         return await this.scheduleService.createSchedule(userId, createTodoDto)
+    }
+
+    @Post(':scheduleId/alarm')
+    @ApiOperation({ summary: '이미 생성된 스케줄러에 알람을 추가하는 API', description: '스케줄러에 알람을 추가한다.' })
+    @ApiCreatedResponse({
+        description: '이미 생성되어있는 스케줄러에 알람을 추가한다.'
+    })
+    async addAlarmToTodo(@Param('userId') userId: string, @Param('scheduleId') scheduleId: string,
+            @Body() createAlarmByTimeDto:CreateAlarmByTimeDto) {
+        return await this.scheduleService.createAlarmToSchedule(userId, scheduleId, createAlarmByTimeDto)
     }
 
 }
