@@ -13,6 +13,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TodosModule } from './todos/todos.module';
 import { TagsModule } from './tags/tags.module';
 import { AlarmsModule } from './alarms/alarms.module';
+import { SchedulesModule } from './schedules/schedules.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
     imports: [
@@ -34,6 +36,8 @@ import { AlarmsModule } from './alarms/alarms.module';
         TodosModule,
         TagsModule,
         AlarmsModule,
+        SchedulesModule,
+        CategoriesModule,
     ],
     controllers: [AppController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],

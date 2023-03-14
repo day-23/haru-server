@@ -4,6 +4,13 @@ import { User } from './user.entity';
 
 @Entity()
 export class Category extends BaseEntity{
+    constructor(data?: Partial<Category>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -22,12 +29,12 @@ export class Category extends BaseEntity{
 
     /* 다른 엔터티들간의 관계 */
     /* 카테고리 : 사용자 = N : 1 */
-    @ManyToOne(()=>User, (user)=>user.id)
+    @ManyToOne(()=>User, (user)=>user.categories)
     @JoinColumn({name: 'user_id'})
-    user: User;
+    user: User | string;
 
     /* 카테고리 : 스케줄 = 1:N */
-    @OneToMany(()=> Schedule, (schedule) => schedule.id)
-    scheduleId: Schedule[];
+    @OneToMany(()=> Schedule, (schedule) => schedule.category)
+    schedules: Schedule[];
 
 }

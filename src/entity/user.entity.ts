@@ -1,3 +1,4 @@
+import { Alarms } from 'aws-sdk/clients/applicationautoscaling';
 import {
     Entity,
     Column,
@@ -11,13 +12,16 @@ import {
     JoinColumn,
     OneToMany,
 } from 'typeorm';
+import { Alarm } from './alarm.entity';
 import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
 import { Following } from './following.entity';
 import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
 import { ProfileImage } from './profile-image.entity';
-import { Category } from './schedule-category.entity';
+import { Category } from './category.entity';
+import { Schedule } from './schedule.entity';
+import { TagWithTodo } from './tag-with-todo.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 import { TodoLog } from './todolog.entity';
@@ -99,12 +103,19 @@ export class User extends BaseEntity {
     tags: Tag[];
 
     /* 사용자 : 스케줄 카테고리 -  1:N  */
-    @OneToMany(() => Category, (category) => category.id)
-    category_id: Tag[];
+    @OneToMany(() => Category, (category) => category.user)
+    categories: Category[];
 
     /* 사용자 : 스케줄 -  1:N  */
-    @OneToMany(() => Tag, (schedule) => schedule.id)
-    schedule: Tag[];
+    @OneToMany(() => Tag, (schedule) => schedule.user)
+    schedules: Schedule[];
+
+    @OneToMany(()=> TagWithTodo, (tagwithtodo)=> tagwithtodo.user)
+    tagWithTodos: TagWithTodo[]
+
+    /* 사용자 : 알람 - 1:N */
+    @OneToMany(() => Alarm, (alarm) => alarm.user)
+    alarms: Alarms[];
 
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => PostLike, (postlike) => postlike.id)

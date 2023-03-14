@@ -1,0 +1,18 @@
+import { Injectable } from '@nestjs/common';
+import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
+import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { CreateScheduleDto } from './dto/create.schedule.dto';
+
+@Injectable()
+export class ScheduleService {
+    constructor(private readonly scheduleRepository: ScheduleRepository) { }
+    
+    async createSchedule(userId: string, createScheduleDto: CreateScheduleDto){
+        return await this.scheduleRepository.createSchedule(userId, createScheduleDto)
+    }
+
+    async getSchedulesByDate(userId : string, datePaginationDto: DatePaginationDto){
+        return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
+    }
+
+}
