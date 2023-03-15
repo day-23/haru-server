@@ -9,6 +9,7 @@ import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { CreateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
+import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { TodosService } from './todos.service';
 
 
@@ -151,6 +152,34 @@ export class TodosController {
         @Query('content') content : string,
     ){
         return this.todoService.getTodosBySearch(userId, content)
+    }
+
+
+    @Patch('order/todos')
+    @ApiOperation({summary: '투두 메인화면 정렬 API', description : '메인 화면에서 드래그앤드랍시 투두를 정렬한다.'})
+    async orderTodos(
+        @Param('userId') userId : string,
+        @Body() updateTodosOrderDto : UpdateTodosOrderDto
+    ){
+        return this.todoService.updateTodosOrder(userId, updateTodosOrderDto)
+    }
+
+    @Patch('order/todos/tag')
+    @ApiOperation({summary: '투두 태그화면 정렬 API / 구현중', description : '태그 화면에서 드래그앤드랍시 투두를 정렬한다.'})
+    async orderTodosInTag(
+        @Param('userId') userId : string,
+        @Body() updateTodosOrderDto : UpdateTodosInTagOrderDto
+    ){
+        return this.todoService.updateTodosOrderInTag(userId, updateTodosOrderDto)
+    }
+
+    @Patch('order/subtodos')
+    @ApiOperation({summary: '하위항목 정렬 API / 구현중', description : '드래그앤드랍시 하위항목을 정렬한다.'})
+    async orderSubTodos(
+        @Param('userId') userId : string,
+        @Body() updateTodosOrderDto : UpdateSubTodosOrderDto
+    ){
+        return this.todoService.updateSubTodosOrder(userId, updateTodosOrderDto)
     }
 
 }

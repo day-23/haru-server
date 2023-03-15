@@ -4,7 +4,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
-import { EntityManager, getRepository, Repository } from "typeorm";
+import { EntityManager, getRepository, In, Repository } from "typeorm";
 // import { makeDateStringToUtcDate } from "src/common/makeDate";
 import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
@@ -20,6 +20,7 @@ import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
 import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 import { CreateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { User } from "src/entity/user.entity";
+import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 
 
 export class TodoRepository {
@@ -196,7 +197,7 @@ export class TodoRepository {
             const savedTodo = await queryRunner.manager.save(Todo, {
                 ...todo,
                 user: userId,
-                todoOrder : nextTodoOrder + 1
+                todoOrder: nextTodoOrder + 1
             });
 
             const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
@@ -360,7 +361,7 @@ export class TodoRepository {
                 content,
                 subTodoOrder,
             });
-            
+
             const [savedSubTodo, updatedTodo] = await Promise.all([
                 queryRunner.manager.save(SubTodo, newSubTodo),
                 queryRunner.manager.save(Todo, savedTodo),
@@ -455,4 +456,32 @@ export class TodoRepository {
 
         return result
     }
+
+
+
+    /* 드래그앤드랍 오더링 */
+    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+        const { todoIds } = updateTodosOrderDto
+
+        const promises = todoIds.map((id, todoOrder)=> {
+            this.repository.update({id}, {todoOrder})
+        })
+        
+        const ret = await Promise.all(promises)
+
+        // return ret;
+    }
+
+    async updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto) {
+        const { todoIds, tagId } = updateTodosInTagOrderDto
+
+
+    }
+
+    async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
+        const { subTodoIds } = updateSubTodosOrderDto
+
+    }
+
+
 }

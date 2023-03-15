@@ -8,6 +8,7 @@ import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { CreateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
+import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 
 @Injectable()
 export class TodosService {
@@ -46,25 +47,39 @@ export class TodosService {
         return this.todoRepository.deleteTagOfTodo(userId, todoId, tagId);
     }
 
-    async deleteSubTodoOfTodo( userId: string,
+    async deleteSubTodoOfTodo(userId: string,
         todoId: string, subTodoId: string): Promise<void> {
         return this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
 
     /* 이미 생성된 투두에 데이터 추가 */
-    async createAlarmToTodo(userId: string, todoId: string, addAlarmToTodoDto:CreateAlarmByTimeDto) {
+    async createAlarmToTodo(userId: string, todoId: string, addAlarmToTodoDto: CreateAlarmByTimeDto) {
         return await this.todoRepository.createAlarmToTodo(userId, todoId, addAlarmToTodoDto)
     }
 
-    async createTagToTodo(userId: string, todoId: string, createTagDto:CreateTagDto) {
+    async createTagToTodo(userId: string, todoId: string, createTagDto: CreateTagDto) {
         return await this.todoRepository.createTagToTodo(userId, todoId, createTagDto)
     }
 
-    async createSubTodoToTodo(userId: string, todoId: string, createSubTodoDto : CreateSubTodoDto) {
+    async createSubTodoToTodo(userId: string, todoId: string, createSubTodoDto: CreateSubTodoDto) {
         return await this.todoRepository.createSubTodoToTodo(userId, todoId, createSubTodoDto)
     }
 
-    async getTodosBySearch(userId:string, content:string){
+    /* 검색 */
+    async getTodosBySearch(userId: string, content: string) {
         return await this.todoRepository.getTodosBySearch(userId, content)
+    }
+
+    /* 드래그앤드랍 오더링 */
+    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+        return this.todoRepository.updateTodosOrder(userId, updateTodosOrderDto)
+    }
+
+    async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto){
+        return this.todoRepository.updateTodosOrderInTag(userId, updateTodosOrderDto)
+    }
+
+    async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto) {
+        return this.todoRepository.updateSubTodosOrder(userId, updateTodosOrderDto)
     }
 }
