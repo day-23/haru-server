@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Schedule } from 'src/entity/schedule.entity';
 import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
-import { CreateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleService } from './schedules.service';
 
 @Controller('schedule/:userId')
@@ -50,5 +50,28 @@ export class ScheduleController {
     ){
         return this.scheduleService.getSchedulesBySearch(userId, content)
     }
+
+
+    @Patch(':scheduleId')
+    @ApiOperation({ summary: '스케줄 본체 내용 수정 API', description: '스케줄를 수정한다.' })
+    @ApiCreatedResponse({
+        description: '스케줄를 수정한다.'
+    })
+    async updateSchedule(@Param('userId') userId: string,
+        @Param('scheduleId') scheduleId: string,
+        @Body() schedule: UpdateScheduleDto): Promise<Schedule> {
+        return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
+    }
+
+    @Delete(':scheduleId')
+    @ApiOperation({ summary: '스케줄 삭제 API', description: '스케줄를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '스케줄를 삭제한다.'
+    })
+    async deleteSchedule(@Param('userId') userId: string,
+        @Param('scheduleId') scheduleId: string): Promise<void> {
+        return this.scheduleService.deleteSchedule(userId, scheduleId);
+    }
+
 
 }

@@ -15,24 +15,9 @@ export class CreateScheduleDto {
     @IsString()
     memo: string;
 
-    // @ApiProperty({ description: '오늘 할일인지 체크' })
-    // @IsBoolean()
-    // todaySchedule: boolean;
-
     @ApiProperty({ description: '중요한 할일인지 체크' })
     @IsBoolean()
     flag: boolean;
-
-    /* 일정 기간 */
-    @ApiProperty({ description: '일정 시작 날짜', nullable: true })
-    @IsOptional() /* nullable */
-    @Transform(({ value }) => value ? new Date(value) : null)
-    durationStart : Date;
-
-    @ApiProperty({ description: '일정 끝 날짜', nullable: true })
-    @IsOptional() /* nullable */
-    @Transform(({ value }) => value ? new Date(value) : null)
-    durationEnd : Date;
 
     /* 반복 설정 */
     @ApiProperty({ description: 'schedule 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -66,5 +51,4 @@ export class CreateScheduleDto {
 }
 
 
-export class UpdateScheduleDto extends PartialType(CreateScheduleDto){
-}
+export class UpdateScheduleDto extends PartialType(CreateScheduleDto){}

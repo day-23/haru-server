@@ -75,5 +75,4 @@ export class CreateTodoDto {
 }
 
 
-export class UpdateTodoDto extends PartialType(CreateTodoDto){
-}
+export class UpdateTodoDto extends PartialType(CreateTodoDto){}
