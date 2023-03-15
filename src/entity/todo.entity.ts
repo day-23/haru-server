@@ -57,7 +57,7 @@ export class Todo extends BaseEntity {
     @Column({ default: 0 })
     nextSubTodoOrder: number;
 
-    @Column()
+    @Column({ default: false })
     completed: boolean;
 
     @CreateDateColumn()

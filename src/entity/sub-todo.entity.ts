@@ -21,7 +21,7 @@ export class SubTodo extends BaseEntity {
     @Column({ default: 0 })
     order: number;
 
-    @Column()
+    @Column({default : false})
     completed: boolean;
 
     @CreateDateColumn()
