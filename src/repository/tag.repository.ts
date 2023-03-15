@@ -45,7 +45,6 @@ export class TagRepository {
                 return newTag;
             });
 
-
         const createdTags = await this.repository.save(newTags);
         return [...createdTags, ...existingTags];
     }

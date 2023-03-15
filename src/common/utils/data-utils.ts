@@ -19,6 +19,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
                 existingItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
+                    subTodoOrder : item.subTodo_order
                 });
             }
 
@@ -43,6 +44,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
                 createdAt: item.todo_created_At,
+                todoOrder : item.todo_order,
                 alarms: [],
                 subTodos: [],
                 tags : []
@@ -59,6 +61,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
                 newItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
+                    subTodoOrder : item.subTodo_order
                 });
             }
 

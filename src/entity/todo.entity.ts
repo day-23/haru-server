@@ -51,13 +51,13 @@ export class Todo extends BaseEntity {
     @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
 
-    @Column() // 전체에서의 순서
-    order: number;
+    @Column({ default: 0 }) // 전체에서의 순서
+    todoOrder: number;
 
-    @Column({ default: 0 })
+    @Column({ default: -1 })
     nextSubTodoOrder: number;
 
-    @Column()
+    @Column({ default: false })
     completed: boolean;
 
     @CreateDateColumn()

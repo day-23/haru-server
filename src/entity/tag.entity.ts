@@ -20,7 +20,7 @@ export class Tag extends BaseEntity {
     @Column()
     content: string;
 
-    @Column({ default: 0 })
+    @Column({ default: -1 })
     nextTagWithTodoOrder: number;
 
     @CreateDateColumn()

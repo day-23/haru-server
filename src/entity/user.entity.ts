@@ -55,7 +55,7 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
-    @Column({ default: 0 })
+    @Column({ default: -1 })
     nextTodoOrder: number
 
     @CreateDateColumn()
