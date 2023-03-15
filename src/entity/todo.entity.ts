@@ -42,17 +42,23 @@ export class Todo extends BaseEntity {
     @Column({ length: 7, nullable: true, })
     repeat: string;
 
-    @Column({comment: '마감일', nullable:true })
+    @Column({ comment: '마감일', nullable: true })
     endDate: Date;
 
-    @Column({comment: '마감일, 마감 시간', nullable:true })
+    @Column({ comment: '마감일, 마감 시간', nullable: true })
     endDateTime: Date;
 
     @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
 
-    @Column({comment: '투두의 순서', nullable:true })
+    @Column() // 전체에서의 순서
     order: number;
+
+    @Column({ default: 0 })
+    nextSubTodoOrder: number;
+
+    @Column()
+    completed: boolean;
 
     @CreateDateColumn()
     createdAt: Date;

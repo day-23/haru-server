@@ -18,6 +18,12 @@ export class SubTodo extends BaseEntity {
     @Column()
     content: string;
 
+    @Column({ default: 0 })
+    order: number;
+
+    @Column()
+    completed: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 
@@ -29,12 +35,12 @@ export class SubTodo extends BaseEntity {
     deletedAt?: Date | null;
 
     /* 다른 엔터티들간의 관계 */
-    @ManyToOne(()=> User, (user)=>user.subTodos)
+    @ManyToOne(() => User, (user) => user.subTodos)
     @JoinColumn({ name: 'user_id' })
     user: User | string;
 
 
-    @ManyToOne(() => Todo, (todo) => todo.subTodos, { onDelete:'CASCADE' })
+    @ManyToOne(() => Todo, (todo) => todo.subTodos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;
 

@@ -18,7 +18,7 @@ export class TagRepository {
             throw new ConflictException(`Tag with this user already exists`);
         }
 
-        const newTag = this.repository.create({ user: userId, content });
+        const newTag = this.repository.create({ user: userId, content});
         const ret = await this.repository.save(newTag);
 
         return { id: ret.id, content }
@@ -40,13 +40,13 @@ export class TagRepository {
             .map(content => {
                 const newTag = new Tag({
                     user: userId,
-                    content
+                    content,
                 });
                 return newTag;
             });
 
-        const createdTags = await this.repository.save(newTags);
 
+        const createdTags = await this.repository.save(newTags);
         return [...createdTags, ...existingTags];
     }
 

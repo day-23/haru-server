@@ -189,35 +189,75 @@ export class TodoRepository {
             const savedTodo = await queryRunner.manager.save(Todo, {
                 ...todo,
                 user: userId,
+                order: 0,
+                completed: false,
             });
 
-            /* 서브 투두 데이터 저장 */
-            const newSubTodos = todo.subTodos.map((subTodo) => ({
+            // // get all todos
+            // const todos = await queryRunner.manager.find(Todo);
+
+            // // create an array of promises to update the order field for each todo
+            // const promises = todos.map((todo) => {
+            //     todo.order = todo.order ? todo.order + 1 : 1;
+            //     return queryRunner.manager.save(todo);
+            // });
+
+            const newSubTodos = todo.subTodos.map((subTodo, order) => ({
                 todo: savedTodo.id,
                 user: userId,
                 content: subTodo,
+                order,
+                completed: false,
             }));
-            const savedSubTodos = await queryRunner.manager.save(SubTodo, newSubTodos);
-            const retSubTodos = savedSubTodos.map(({ id, content }) => ({ id, content }));
 
-            /* 투두에 대한 태그 저장 */
-            const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags });
-            const retTags = savedTags.map(({ id, content }) => ({ id, content }));
-
-            /* 투두 알람 저장 */
             const newAlarms = todo.alarms.map((alarm) => ({
                 user: userId,
                 todo: savedTodo.id,
                 time: alarm,
             }));
-            const savedAlarms = await queryRunner.manager.save(Alarm, newAlarms);
+
+
+            const [savedSubTodos, savedTags, savedAlarms] = await Promise.all([
+                queryRunner.manager.save(SubTodo, newSubTodos),
+                this.tagsService.createTags(userId, { contents: todo.tags }),
+                queryRunner.manager.save(Alarm, newAlarms),
+                // promises
+            ]);
+
+            const retSubTodos = savedSubTodos.map(({ id, content }) => ({ id, content }));
+            const retTags = savedTags.map(({ id, content }) => ({ id, content }));
             const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
+
+
+            // /* 서브 투두 데이터 저장 */
+            // const newSubTodos = todo.subTodos.map((subTodo, order) => ({
+            //     todo: savedTodo.id,
+            //     user: userId,
+            //     content: subTodo,
+            //     order,
+            // }));
+            // const savedSubTodos = await queryRunner.manager.save(SubTodo, newSubTodos);
+            // const retSubTodos = savedSubTodos.map(({ id, content }) => ({ id, content }));
+
+            // /* 투두에 대한 태그 저장 */
+            // const savedTags = await this.tagsService.createTags(userId, { contents: todo.tags });
+            // const retTags = savedTags.map(({ id, content }) => ({ id, content }));
+
+            // /* 투두 알람 저장 */
+            // const newAlarms = todo.alarms.map((alarm) => ({
+            //     user: userId,
+            //     todo: savedTodo.id,
+            //     time: alarm,
+            // }));
+            // const savedAlarms = await queryRunner.manager.save(Alarm, newAlarms);
+            // const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
 
             /* 사용자에 대한 태그와 투두의 정보 저장 */
             const tagWithTodos = savedTags.map(({ id: tag }) => ({
                 todo: savedTodo.id,
                 tag,
                 user: userId,
+                order : 0
             }));
             await queryRunner.manager.save(TagWithTodo, tagWithTodos);
 
