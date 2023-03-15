@@ -159,10 +159,12 @@ export class TodoRepository {
                 todo.end_date as "todo_endDate",
                 todo.end_date_time as "todo_endDateTime",
                 todo.created_At as "todo_created_At",
+                twt.todo_order as "todo_order",
                 alarm.id as "alarm_id",
                 alarm.time as "alarm_time",
                 sub_todo.id as "subTodo_id",
                 sub_todo.content as "subTodo_content",
+                sub_todo.sub_todo_order as "subTodo_order",
                 tag.id as "tag_id",
                 tag.content as "tag_content"
             FROM dt
@@ -171,7 +173,10 @@ export class TodoRepository {
             LEFT JOIN tag ON twt.tag_id = tag.id
             LEFT JOIN alarm ON dt.id = alarm.todo_id
             LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
+            ORDER BY twt.todo_order ASC, subTodo_order ASC
         `, [tagId, userId, LIMIT]);
+
+        console.log(ret)
 
         return {
             data: formattedTodoDataFromTagRawQuery(ret)
