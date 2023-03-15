@@ -55,6 +55,9 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
+    @Column({ default: 0 })
+    nextTodoOrder: number
+
     @CreateDateColumn()
     createdAt: Date;
 
@@ -91,8 +94,8 @@ export class User extends BaseEntity {
     @OneToMany(() => Todo, (todo) => todo.user)
     todos: Todo[];
 
-    @OneToMany(()=> TodoLog, (todoLog) => todoLog.user)
-    todoLogs : TodoLog[];
+    @OneToMany(() => TodoLog, (todoLog) => todoLog.user)
+    todoLogs: TodoLog[];
 
     /* 사용자 : 서브투두 -  1:N  */
     @OneToMany(() => Tag, (subtodo) => subtodo.user)
@@ -110,7 +113,7 @@ export class User extends BaseEntity {
     @OneToMany(() => Tag, (schedule) => schedule.user)
     schedules: Schedule[];
 
-    @OneToMany(()=> TagWithTodo, (tagwithtodo)=> tagwithtodo.user)
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.user)
     tagWithTodos: TagWithTodo[]
 
     /* 사용자 : 알람 - 1:N */
