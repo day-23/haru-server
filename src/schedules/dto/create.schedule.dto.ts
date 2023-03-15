@@ -1,6 +1,7 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
 export class CreateScheduleDto {
@@ -51,4 +52,21 @@ export class CreateScheduleDto {
 }
 
 
-export class UpdateScheduleDto extends PartialType(CreateScheduleDto){}
+export class UpdateScheduleDto extends PartialType(CreateScheduleDto){
+    @IsDefined()
+    @IsOptional()
+    @IsString()
+    category?: string;
+
+    @IsDefined()
+    @IsOptional()
+    @IsString({ each: true })
+    alarms?: string[];
+
+    // validation function to check if category or alarms are not undefined
+    validateFields() {
+        if (this.category !== undefined || (this.alarms && this.alarms.length > 0)) {
+            throw new BadRequestException('Category and alarms fields cannot be updated in this API');
+        }
+    }
+}

@@ -105,7 +105,11 @@ export class ScheduleRepository {
 
     /* 스케줄 내용 업데이트 */
     async updateSchedule(userId: string, scheduleId: string, dto: UpdateScheduleDto): Promise<Schedule> {
-        const existingSchedule = await this.repository.findOne({ where: { id: scheduleId, user: {id : userId} } });
+        dto.validateFields(); // validate category and alarms fields
+
+        const existingSchedule = await this.repository.createQueryBuilder('schedule')
+            .where('schedule.id = :scheduleId AND schedule.user_id = :userId', { scheduleId, userId})
+            .getOne()
 
         if (!existingSchedule) {
             throw new HttpException(
@@ -115,9 +119,20 @@ export class ScheduleRepository {
         }
 
         try {
-            const updatedSchedule = this.repository.create({...existingSchedule, ...dto});
+            const updatedSchedule = this.repository.create({ ...existingSchedule, ...dto });
             const savedSchedule = await this.repository.save(updatedSchedule);
-            return savedSchedule;
+
+            const joinedSchedule = await this.repository.createQueryBuilder('schedule')
+                .leftJoinAndSelect('schedule.alarms', 'alarms')
+                .leftJoinAndSelect('schedule.category', 'category')
+                .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
+                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeat', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+                .addSelect(['alarms.id', 'alarms.time'])
+                .addSelect(['category.id', 'category.content'])
+                .getOne();
+
+            // return savedSchedule
+            return joinedSchedule
         } catch (error) {
             throw new HttpException(
                 {
