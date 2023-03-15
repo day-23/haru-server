@@ -7,7 +7,7 @@ import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/make
 import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
 import { Schedule } from "src/entity/schedule.entity";
-import { CreateScheduleDto } from "src/schedules/dto/create.schedule.dto";
+import { CreateScheduleDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
 import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { Repository } from "typeorm";
 
@@ -103,10 +103,65 @@ export class ScheduleRepository {
         return { id: result.id, scheduleId: result.schedule, time: result.time }
     }
 
+    /* 스케줄 내용 업데이트 */
+    async updateSchedule(userId: string, scheduleId: string, dto: UpdateScheduleDto): Promise<Schedule> {
+        dto.validateFields(); // validate category and alarms fields
+
+        const existingSchedule = await this.repository.createQueryBuilder('schedule')
+            .where('schedule.id = :scheduleId AND schedule.user_id = :userId', { scheduleId, userId})
+            .getOne()
+
+        if (!existingSchedule) {
+            throw new HttpException(
+                'Schedule not found',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        try {
+            const updatedSchedule = this.repository.create({ ...existingSchedule, ...dto });
+            const savedSchedule = await this.repository.save(updatedSchedule);
+
+            const joinedSchedule = await this.repository.createQueryBuilder('schedule')
+                .leftJoinAndSelect('schedule.alarms', 'alarms')
+                .leftJoinAndSelect('schedule.category', 'category')
+                .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
+                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeat', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+                .addSelect(['alarms.id', 'alarms.time'])
+                .addSelect(['category.id', 'category.content'])
+                .getOne();
+
+            // return savedSchedule
+            return joinedSchedule
+        } catch (error) {
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+
+    /* 스케줄 삭제 */
+    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
+        const result = await this.repository.delete({
+            user: { id: userId },
+            id: scheduleId
+        });
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No scheduleId with ID ${scheduleId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
+    }
 
 
     /* 스케줄 검색 */
-
     async getSchedulesBySearch(userId: string, content: string) {
         return this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')

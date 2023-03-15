@@ -1,6 +1,7 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
 export class CreateScheduleDto {
@@ -15,24 +16,9 @@ export class CreateScheduleDto {
     @IsString()
     memo: string;
 
-    // @ApiProperty({ description: '오늘 할일인지 체크' })
-    // @IsBoolean()
-    // todaySchedule: boolean;
-
     @ApiProperty({ description: '중요한 할일인지 체크' })
     @IsBoolean()
     flag: boolean;
-
-    /* 일정 기간 */
-    @ApiProperty({ description: '일정 시작 날짜', nullable: true })
-    @IsOptional() /* nullable */
-    @Transform(({ value }) => value ? new Date(value) : null)
-    durationStart : Date;
-
-    @ApiProperty({ description: '일정 끝 날짜', nullable: true })
-    @IsOptional() /* nullable */
-    @Transform(({ value }) => value ? new Date(value) : null)
-    durationEnd : Date;
 
     /* 반복 설정 */
     @ApiProperty({ description: 'schedule 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -67,4 +53,20 @@ export class CreateScheduleDto {
 
 
 export class UpdateScheduleDto extends PartialType(CreateScheduleDto){
+    @IsDefined()
+    @IsOptional()
+    @IsString()
+    category?: string;
+
+    @IsDefined()
+    @IsOptional()
+    @IsString({ each: true })
+    alarms?: string[];
+
+    // validation function to check if category or alarms are not undefined
+    validateFields() {
+        if (this.category !== undefined || (this.alarms && this.alarms.length > 0)) {
+            throw new BadRequestException('Category and alarms fields cannot be updated in this API');
+        }
+    }
 }

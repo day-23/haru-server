@@ -266,10 +266,18 @@ export class TodoRepository {
     }
 
     async delete(userId: string, todoId: string): Promise<void> {
-        await this.repository.delete({
+        const result = await this.repository.delete({
             user: { id: userId },
             id: todoId
         });
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No todo with ID ${todoId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
     }
 
 
