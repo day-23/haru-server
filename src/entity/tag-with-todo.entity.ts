@@ -17,7 +17,7 @@ export class TagWithTodo extends BaseEntity {
     id: string;
 
     @Column({default : 0}) /* 해당 태그에서 투두의 order */
-    order: number;
+    todoOrder: number;
 
     @CreateDateColumn()
     createdAt: Date;

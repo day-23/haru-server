@@ -97,11 +97,12 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
-            .orderBy('todo.createdAt', 'DESC')
+            .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .skip(skip)
             .take(limit)
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
-            .addSelect(['subtodo.id', 'subtodo.content'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
+            .addSelect(['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
             .addSelect(['tag.id', 'tag.content'])
@@ -190,14 +191,14 @@ export class TodoRepository {
             const savedTodo = await queryRunner.manager.save(Todo, {
                 ...todo,
                 user: userId,
-                order: nextTodoOrder,
+                todoOrder : nextTodoOrder + 1
             });
 
-            const newSubTodos = todo.subTodos.map((subTodo, order) => ({
+            const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
                 todo: savedTodo.id,
                 user: userId,
                 content: subTodo,
-                order,
+                subTodoOrder,
             }));
 
             const newAlarms = todo.alarms.map((alarm) => ({
@@ -212,7 +213,7 @@ export class TodoRepository {
                 queryRunner.manager.save(Alarm, newAlarms),
             ]);
 
-            const retSubTodos = savedSubTodos.map(({ id, content, order }) => ({ id, content, order }));
+            const retSubTodos = savedSubTodos.map(({ id, content, subTodoOrder }) => ({ id, content, subTodoOrder }));
             const retTags = savedTags.map(({ id, content }) => ({ id, content }));
             const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
 
@@ -221,19 +222,19 @@ export class TodoRepository {
                 todo: savedTodo.id,
                 tag,
                 user: userId,
-                order: nextTagWithTodoOrder
+                todoOrder: nextTagWithTodoOrder
             }));
 
             await Promise.all([
                 ...savedTags.map((tag) =>
-                  queryRunner.manager.update(
-                    Tag,
-                    { id: tag.id },
-                    { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
-                  ),
+                    queryRunner.manager.update(
+                        Tag,
+                        { id: tag.id },
+                        { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
+                    ),
                 ),
                 queryRunner.manager.save(TagWithTodo, tagWithTodos),
-              ]);
+            ]);
 
             await queryRunner.commitTransaction();
 
@@ -338,10 +339,43 @@ export class TodoRepository {
     /* 서브투두 추가 */
     async createSubTodoToTodo(userId: string, todoId: string, createSubTodoDto: CreateSubTodoDto) {
         const { content } = createSubTodoDto
-        const newSubTodo = this.subTodoRepository.create({ user: userId, todo: todoId, content })
-        const ret = await this.subTodoRepository.save(newSubTodo)
 
-        return { id: ret.id, content }
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const savedTodo = await queryRunner.manager.findOne(Todo, { where: { id: todoId } });
+            const subTodoOrder = savedTodo.nextSubTodoOrder
+            savedTodo.nextSubTodoOrder -= 1;
+
+            const newSubTodo = this.subTodoRepository.create({
+                user: userId,
+                todo: todoId,
+                content,
+                subTodoOrder,
+            });
+            
+            const [savedSubTodo, updatedTodo] = await Promise.all([
+                queryRunner.manager.save(SubTodo, newSubTodo),
+                queryRunner.manager.save(Todo, savedTodo),
+            ]);
+
+            await queryRunner.commitTransaction();
+            return { id: savedSubTodo.id, content, subTodoOrder };
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+
+        } finally {
+            await queryRunner.release()
+        }
     }
 
     /* 태그를 추가 */
