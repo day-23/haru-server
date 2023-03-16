@@ -26,6 +26,10 @@ export class CreateScheduleDto {
     @IsOptional() /* nullable */
     repeatOption: string;
 
+    @ApiProperty({ description: '일정이 시간까지 포함인지 여부' })
+    @IsBoolean()
+    timeOption: boolean;
+
     @ApiProperty({ description: 'schedule 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(7)
     @IsOptional() /* nullable */
@@ -47,6 +51,7 @@ export class CreateScheduleDto {
     repeatEnd : Date;
 
     @ApiProperty({ description: 'category id'})
+    @IsOptional()
     @IsString()
     categoryId: string;
 

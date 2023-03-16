@@ -24,6 +24,9 @@ export class Schedule extends BaseEntity {
     @Column({ nullable: true })
     repeatOption: string;
 
+    @Column()
+    timeOption : boolean;
+
     @Column({ length: 7, nullable: true, })
     repeatWeek: string;
 
