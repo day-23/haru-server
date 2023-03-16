@@ -19,7 +19,7 @@ export class CategoriesService {
         return await this.categoryRepository.saveCategories(userId, createTagDto)
     }
     
-    async getCategoriesByUserId(userId: string) {
+    async getCategoriesByUserId(userId: string): Promise<Category[]>  {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)
     }
 

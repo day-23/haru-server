@@ -32,7 +32,7 @@ export class CategoriesController {
     
     @Get('categories')
     @ApiOperation({ summary: '사용자의 모든 카테고리 조회 API' })
-    async getTagsByUserId(@Param('userId') userId: string) {
+    async getTagsByUserId(@Param('userId') userId: string): Promise<Category[]>  {
         return await this.categoriesService.getCategoriesByUserId(userId)
     }
 

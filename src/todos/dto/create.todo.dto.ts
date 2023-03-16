@@ -56,6 +56,11 @@ export class CreateTodoDto {
     @IsOptional() /* nullable */
     repeatMonth: string;
 
+    @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000....01 12 자리로 표기', nullable: true })
+    @MaxLength(12)
+    @IsOptional() /* nullable */
+    repeatYear : string;
+
     @ApiProperty({description:'반복 시작', nullable : true})
     @IsOptional()
     @Transform(({ value }) => value ? new Date(value) : null)
