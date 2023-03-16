@@ -9,7 +9,7 @@ import { CreateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodoResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -23,13 +23,19 @@ export class TodosService {
         return await this.todoRepository.findByDate(userId, datePaginationDto)
     }
 
-    async getTodosByPagination(userId: string, paginationDto: PaginationDto) {
+    async getTodosByPagination(userId: string, paginationDto: PaginationDto ) : Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findByPagination(userId, paginationDto)
     }
 
-    async getTodosByTag(userId: string, getByTagDto: GetByTagDto) {
+    async getTodosByTag(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
+
+    /* 검색 */
+    async getTodosBySearch(userId: string, content: string): Promise<GetTodoResponse[]> {
+        return await this.todoRepository.findTodosBySearch(userId, content)
+    }
+
 
     async createTodo(userId: string, todo: CreateTodoDto): Promise<GetTodoResponse> {
         return await this.todoRepository.create(userId, todo);
@@ -66,10 +72,6 @@ export class TodosService {
         return await this.todoRepository.createSubTodoToTodo(userId, todoId, createSubTodoDto)
     }
 
-    /* 검색 */
-    async getTodosBySearch(userId: string, content: string) {
-        return await this.todoRepository.getTodosBySearch(userId, content)
-    }
 
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
