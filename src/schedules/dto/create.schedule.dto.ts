@@ -47,7 +47,6 @@ export class CreateScheduleDto {
     repeatEnd : Date;
 
     @ApiProperty({ description: 'category id'})
-    @IsOptional()
     @IsString()
     categoryId: string;
 

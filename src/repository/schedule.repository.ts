@@ -30,9 +30,9 @@ export class ScheduleRepository {
             .where('schedule.user = :userId', { userId })
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
-            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt', 'schedule.updatedAt'])
             .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['category.id', 'category.content'])
+            .addSelect(['category.id', 'category.content', 'category.color'])
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
             .addOrderBy('schedule.created_at', 'ASC')
@@ -52,6 +52,7 @@ export class ScheduleRepository {
     /* 스케줄 데이터 저장 */
     async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
         const { alarms, categoryId, ...scheduleData } = createScheduleDto;
+        const savedCategory = await this.categoriesService.getCategoryById(userId, categoryId)
 
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
@@ -59,10 +60,10 @@ export class ScheduleRepository {
 
         try {
             /* 스케줄 저장 */
-            const savedSchedule = await queryRunner.manager.save(Schedule, {
+            const { user, deletedAt, ...savedSchedule } = await queryRunner.manager.save(Schedule, {
                 ...scheduleData,
                 user: userId,
-                categoryId
+                category: categoryId
             });
 
             /* 스케줄 알람 저장 */
@@ -75,8 +76,11 @@ export class ScheduleRepository {
             const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
 
             await queryRunner.commitTransaction();
+            const { id, content, color } = savedCategory;
+            const category = { id, content, color };
 
-            return { ...savedSchedule, alarms: retAlarms };
+            return { id: savedSchedule.id, ...savedSchedule, alarms: retAlarms, category };
+
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -95,7 +99,7 @@ export class ScheduleRepository {
     /* 알람 추가 */
     async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse> {
         const result = await this.alarmsService.createAlarm(userId, null, scheduleId, dto)
-        return { id: result.id, schedule: result.schedule, time: result.time }
+        return { id: result.id, scheduleId: result.schedule, time: result.time }
     }
 
     /* 스케줄 내용 업데이트 */
@@ -121,9 +125,9 @@ export class ScheduleRepository {
                 .leftJoinAndSelect('schedule.alarms', 'alarms')
                 .leftJoinAndSelect('schedule.category', 'category')
                 .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
-                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt', 'schedule.updatedAt'])
                 .addSelect(['alarms.id', 'alarms.time'])
-                .addSelect(['category.id', 'category.content'])
+                .addSelect(['category.id', 'category.content', 'category.color'])
                 .getOne();
 
             // return savedSchedule
@@ -166,7 +170,7 @@ export class ScheduleRepository {
             .setParameters({ searchValue: `%${content}%` })
             .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
             .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['category.id', 'category.content'])
+            .addSelect(['category.id', 'category.content', 'category.color'])
             .orderBy('schedule.repeatStart', 'ASC')
             .addOrderBy('schedule.repeatEnd', 'DESC')
             .addOrderBy('schedule.createdAt', 'ASC')

@@ -11,7 +11,7 @@ export class CategoryRepository {
 
     //Category
     /* 카테고리를 하나만 생성하는 코드 */
-    async createCategory(userId: string, createCategoryDto: CreateCategoryDto){
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) {
         const { content, color } = createCategoryDto
 
         const existingCategory = await this.repository.findOne({
@@ -30,7 +30,7 @@ export class CategoryRepository {
         const newCategory = this.repository.create({ user: userId, content, color })
         const savedCategory = await this.repository.save(newCategory)
 
-        return { id : savedCategory.id , content : savedCategory.content, color:savedCategory.color }
+        return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color }
     }
 
     //Category
@@ -56,13 +56,22 @@ export class CategoryRepository {
 
     async findAllCategoriesByUserId(userId: string): Promise<Category[]> {
         return await this.repository.createQueryBuilder('category')
-            .select(['category.id', 'category.content', 'category.user'])
+            .select(['category.id', 'category.content', 'category.user', 'category.color'])
             .where('category.user.id = :userId', { userId })
             .getMany()
     }
 
     async findCategoryByUserAndCategoryId(userId: string, categoryId: string): Promise<Category> {
-        return this.repository.findOne({ where: { id: categoryId, user: { id: userId } } });
+        const existingCategory = await this.repository.findOne({ where: { id: categoryId } });
+        
+        if (!existingCategory) {
+            throw new HttpException(
+                'Category not found',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        return existingCategory
     }
 
     async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {

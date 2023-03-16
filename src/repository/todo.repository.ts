@@ -42,7 +42,7 @@ export class TodoRepository {
 
 
     /* 투두 데이트 페이지네이션 함수 */
-    async findByDate(userId: string, datePaginationDto: DatePaginationDto) : Promise<GetTodosResponseByDate> {
+    async findByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetTodosResponseByDate> {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
@@ -55,7 +55,7 @@ export class TodoRepository {
             .andWhere('todo.end_date IS NOT NULL')
             .andWhere('((todo.end_date >= :startDate AND todo.end_date < :endDate) OR (todo.repeat_end > :startDate AND todo.repeat_end <= :endDate))')
             .setParameters({ startDate, endDate })
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -88,7 +88,7 @@ export class TodoRepository {
     }
 
     /* 투두 페이지네이션 함수 */
-    async findByPagination(userId: string, paginationDto: PaginationDto) : Promise<GetTodosPaginationResponse> {
+    async findByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
@@ -103,7 +103,7 @@ export class TodoRepository {
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .skip(skip)
             .take(limit)
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -115,7 +115,7 @@ export class TodoRepository {
         console.log(todos)
 
         /* tag 내용 파싱 */
-        const result = todos.map(({ tagWithTodos , ...todo }) => ({
+        const result = todos.map(({ tagWithTodos, ...todo }) => ({
             ...todo,
             tags: tagWithTodos.map((tagWithTodo) => {
                 return {
@@ -139,7 +139,7 @@ export class TodoRepository {
 
     /* 태그 별로 투두를 조회하는 함수 */
     /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
-    async findByTagId(userId: string, getByTagDto: GetByTagDto) : Promise<GetTodosResponseByTag> {
+    async findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         const tagId = getByTagDto.tagId
 
         const LIMIT = 50
@@ -164,6 +164,7 @@ export class TodoRepository {
                 todo.end_date as "todo_endDate",
                 todo.end_date_time as "todo_endDateTime",
                 todo.created_At as "todo_created_At",
+                todo.updated_At as "todo_updated_At",
                 twt.todo_order as "todo_order",
                 alarm.id as "alarm_id",
                 alarm.time as "alarm_time",
@@ -186,7 +187,7 @@ export class TodoRepository {
         }
     }
 
-    async findTodosBySearch(userId: string, content: string) : Promise<GetTodoResponse[]> {
+    async findTodosBySearch(userId: string, content: string): Promise<GetTodoResponse[]> {
         const todos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -196,7 +197,7 @@ export class TodoRepository {
             .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
             // .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -230,7 +231,7 @@ export class TodoRepository {
             const { nextTodoOrder } = await this.userService.updateNextTodoOrder(userId)
 
             /* 투두 데이터 저장 */
-            const savedTodo = await queryRunner.manager.save(Todo, {
+            const { user, deletedAt, ...savedTodo } = await queryRunner.manager.save(Todo, {
                 ...todo,
                 user: userId,
                 todoOrder: nextTodoOrder + 1
@@ -280,7 +281,7 @@ export class TodoRepository {
 
             await queryRunner.commitTransaction();
 
-            return { ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms };
+            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(

@@ -51,6 +51,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
                 createdAt: item.todo_created_At,
+                updatedAt: item.todo_updated_At,
                 todoOrder: null,
                 alarms: [],
                 subTodos: [],
