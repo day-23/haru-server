@@ -47,6 +47,9 @@ export class Todo extends BaseEntity {
     @Column({ length: 31, nullable: true, })
     repeatMonth: string;
 
+    @Column({length : 12, nullable : true})
+    repeatYear : string;
+
     @Column({ comment: '마감일', nullable: true })
     endDate: Date;
 

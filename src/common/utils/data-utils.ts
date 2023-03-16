@@ -48,6 +48,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 repeatOption: item.todo_repeatOption,
                 repeatWeek: item.todo_repeatWeek,
                 repeatMonth: item.todo_repeatMonth,
+                repeatYear: item.todo_repeatYear,
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
                 createdAt: item.todo_created_At,

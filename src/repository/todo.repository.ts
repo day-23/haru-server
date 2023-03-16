@@ -55,7 +55,7 @@ export class TodoRepository {
             .andWhere('todo.end_date IS NOT NULL')
             .andWhere('((todo.end_date >= :startDate AND todo.end_date < :endDate) OR (todo.repeat_end > :startDate AND todo.repeat_end <= :endDate))')
             .setParameters({ startDate, endDate })
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatYear' , 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -103,7 +103,7 @@ export class TodoRepository {
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .skip(skip)
             .take(limit)
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatYear', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -161,6 +161,7 @@ export class TodoRepository {
                 todo.repeat_option as "todo_repeatOption",
                 todo.repeat_week as "todo_repeatWeek",
                 todo.repeat_month as "todo_repeatMonth",
+                todo.repeat_year as "todo_repeatYear",
                 todo.end_date as "todo_endDate",
                 todo.end_date_time as "todo_endDateTime",
                 todo.created_At as "todo_created_At",
@@ -197,7 +198,7 @@ export class TodoRepository {
             .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
             // .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatYear' ,'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.updatedAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
