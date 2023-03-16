@@ -1,6 +1,6 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateCategoriesDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
+import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
 import { Category } from "src/entity/category.entity";
 import { In, Repository } from "typeorm";
 
@@ -8,8 +8,33 @@ export class CategoryRepository {
     constructor(@InjectRepository(Category) private readonly repository: Repository<Category>,
     ) { }
 
+
     //Category
-    /* 태그를 한번에 여러개 생성하는 코드 */
+    /* 카테고리를 하나만 생성하는 코드 */
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto){
+        const { content, color } = createCategoryDto
+
+        const existingCategory = await this.repository.findOne({
+            where: {
+                user: { id: userId },
+                content
+            }
+        })
+
+        console.log(existingCategory)
+
+        if (existingCategory) {
+            throw new ConflictException(`Category with this user already exists`);
+        }
+
+        const newCategory = this.repository.create({ user: userId, content, color })
+        const savedCategory = await this.repository.save(newCategory)
+
+        return { id : savedCategory.id , content : savedCategory.content, color:savedCategory.color }
+    }
+
+    //Category
+    /* 카테고리를 한번에 여러개 생성하는 코드 */
     async saveCategories(userId: string, createCategoriesDto: CreateCategoriesDto) {
         const existingCategories = await this.repository.find({
             where: {

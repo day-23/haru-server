@@ -40,7 +40,10 @@ export class Todo extends BaseEntity {
     repeatOption: string;
 
     @Column({ length: 7, nullable: true, })
-    repeat: string;
+    repeatWeek: string;
+
+    @Column({ length: 31, nullable: true, })
+    repeatMonth: string;
 
     @Column({ comment: '마감일', nullable: true })
     endDate: Date;

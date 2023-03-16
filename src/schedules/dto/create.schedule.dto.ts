@@ -29,7 +29,12 @@ export class CreateScheduleDto {
     @ApiProperty({ description: 'schedule 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(7)
     @IsOptional() /* nullable */
-    repeat: string;
+    repeatWeek: string;
+
+    @ApiProperty({ description: 'schedule 반복 방식, 월화수 반복의 경우 1110000....01 31 자리로 표기', nullable: true })
+    @MaxLength(31)
+    @IsOptional() /* nullable */
+    repeatMonth: string;
 
     @ApiProperty({description:'반복 시작', nullable : true})
     @IsOptional()
@@ -41,10 +46,10 @@ export class CreateScheduleDto {
     @Transform(({ value }) => value ? new Date(value) : null)
     repeatEnd : Date;
 
-    @ApiProperty({ description: 'category 이름'})
+    @ApiProperty({ description: 'category id'})
     @IsOptional()
     @IsString()
-    category: string;
+    categoryId: string;
 
     @ApiProperty({ description: 'alarms 시간들' })
     @IsString({ each: true })

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CreateAlarmToScheduleResponse } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Schedule } from 'src/entity/schedule.entity';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
@@ -17,7 +18,7 @@ export class ScheduleService {
         return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
     }
 
-    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) {
+    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse>  {
         return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
     }
 

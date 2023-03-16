@@ -1,6 +1,6 @@
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
-export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
+export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): any => {
     const result: any[] = [];
 
     data.forEach((item) => {
@@ -29,6 +29,11 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
                     content: item.tag_content,
                 });
             }
+
+
+            if(item.tag_id == tagId){
+                existingItem.todoOrder = item.todo_order
+            }
         } else {
             // If the item doesn't exist in the result array, create a new object and add the alarm and sub-todo data
             const newItem = {
@@ -40,15 +45,20 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
                 todayTodo: item.todo_todayTodo ? true : false,
                 flag: item.todo_flag ?  true : false ,
                 repeatOption: item.todo_repeatOption,
-                repeat: item.todo_repeat,
+                repeatWeek: item.todo_repeatWeek,
+                repeatMonth: item.todo_repeatMonth,
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
                 createdAt: item.todo_created_At,
-                todoOrder : item.todo_order,
+                todoOrder : null,
                 alarms: [],
                 subTodos: [],
                 tags : []
             };
+
+            if(item.tag_id == tagId){
+                newItem.todoOrder = item.todo_order
+            }
 
             if (item.alarm_id) {
                 newItem.alarms.push({
@@ -75,6 +85,8 @@ export const formattedTodoDataFromTagRawQuery = (data: any[]): any => {
             result.push(newItem);
         }
     });
+
+    result.sort((a,b) => a.todoOrder - b.todoOrder)
 
     return result;
 }

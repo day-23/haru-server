@@ -20,6 +20,9 @@ export class Tag extends BaseEntity {
     @Column()
     content: string;
 
+    @Column({ nullable: true })
+    tagOrder: number;
+
     @Column({ default: -1 })
     nextTagWithTodoOrder: number;
 

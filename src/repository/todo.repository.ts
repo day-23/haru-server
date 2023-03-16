@@ -54,7 +54,7 @@ export class TodoRepository {
             .andWhere('todo.end_date IS NOT NULL')
             .andWhere('((todo.end_date >= :startDate AND todo.end_date < :endDate) OR (todo.repeat_end > :startDate AND todo.repeat_end <= :endDate))')
             .setParameters({ startDate, endDate })
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -102,7 +102,7 @@ export class TodoRepository {
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .skip(skip)
             .take(limit)
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -156,7 +156,8 @@ export class TodoRepository {
                 todo.today_todo as "todo_todayTodo",
                 todo.flag as "todo_flag",
                 todo.repeat_option as "todo_repeatOption",
-                todo.repeat as "todo_repeat",
+                todo.repeat_week as "todo_repeatWeek",
+                todo.repeat_month as "todo_repeatMonth",
                 todo.end_date as "todo_endDate",
                 todo.end_date_time as "todo_endDateTime",
                 todo.created_At as "todo_created_At",
@@ -177,10 +178,8 @@ export class TodoRepository {
             ORDER BY twt.todo_order ASC, subTodo_order ASC
         `, [tagId, userId, LIMIT]);
 
-        console.log(ret)
-
         return {
-            data: formattedTodoDataFromTagRawQuery(ret)
+            data: formattedTodoDataFromTagRawQuery(ret, tagId)
         }
     }
 
@@ -434,7 +433,8 @@ export class TodoRepository {
             .where('todo.user = :userId', { userId })
             .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            // .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeat', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt'])
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.createdAt', 'todo.todoOrder'])
             .addSelect(['subtodo.id', 'subtodo.content'])
             .addSelect(['alarm.id', 'alarm.time'])
             .addSelect(['tagwithtodo.id'])
@@ -462,26 +462,96 @@ export class TodoRepository {
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         const { todoIds } = updateTodosOrderDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        const promises = todoIds.map((id, todoOrder)=> {
-            this.repository.update({id}, {todoOrder})
-        })
-        
-        const ret = await Promise.all(promises)
+        try {
+            const promises = todoIds.map((id, todoOrder) =>
+                queryRunner.manager.update(Todo, { id }, { todoOrder })
+            );
+            await Promise.all(promises);
 
-        // return ret;
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
     }
 
+    /* 태그별 투두 오더링 */
     async updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto) {
         const { todoIds, tagId } = updateTodosInTagOrderDto
 
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
+        try {
+            const promises = todoIds.map((todoId, todoOrder) =>
+                queryRunner.manager.update(TagWithTodo, { todo: todoId, tag: tagId }, { todoOrder })
+            );
+            await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
     }
+
 
     async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
         const { subTodoIds } = updateSubTodosOrderDto
 
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = subTodoIds.map((id, subTodoOrder) => {
+                queryRunner.manager.update(SubTodo, { id }, { subTodoOrder })
+            })
+            await Promise.all(promises);
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
     }
 
+    //     /* transaction */
+    //     async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
 
+    //         const queryRunner = this.repository.manager.connection.createQueryRunner();
+    //         await queryRunner.connect();
+    //         await queryRunner.startTransaction();
+
+    //         try {
+    //             const promises = todoIds.map((todoId, todoOrder) =>
+    //                 queryRunner.manager.update(TagWithTodo, { todo: todoId, tag: tagId }, { todoOrder })
+    //             );
+    //             await Promise.all(promises);
+    //             // Commit transaction
+    //             await queryRunner.commitTransaction();
+    //         } catch (err) {
+    //             // Rollback transaction on error
+    //             await queryRunner.rollbackTransaction();
+    //             throw err;
+    //         } finally {
+    //             // Release query runner
+    //             await queryRunner.release();
+    //         }
+    //     }
 }
