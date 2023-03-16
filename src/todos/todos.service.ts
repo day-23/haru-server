@@ -9,6 +9,7 @@ import { CreateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
+import { GetTodoResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -30,7 +31,7 @@ export class TodosService {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
 
-    async createTodo(userId: string, todo: CreateTodoDto) {
+    async createTodo(userId: string, todo: CreateTodoDto): Promise<GetTodoResponse> {
         return await this.todoRepository.create(userId, todo);
     }
 
@@ -75,7 +76,7 @@ export class TodosService {
         return this.todoRepository.updateTodosOrder(userId, updateTodosOrderDto)
     }
 
-    async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto){
+    async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto) {
         return this.todoRepository.updateTodosOrderInTag(userId, updateTodosOrderDto)
     }
 

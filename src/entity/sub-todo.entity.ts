@@ -39,7 +39,6 @@ export class SubTodo extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User | string;
 
-
     @ManyToOne(() => Todo, (todo) => todo.subTodos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
     todo: Todo | string;

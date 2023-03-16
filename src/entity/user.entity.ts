@@ -29,6 +29,13 @@ import { TodoLog } from './todolog.entity';
 @Entity({ name: 'user' })
 @Unique(['email'])
 export class User extends BaseEntity {
+    constructor(data?: Partial<User>) {
+        super();
+        if (data) {
+            Object.assign(this, data);
+        }
+    }
+
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
