@@ -21,6 +21,7 @@ import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 import { CreateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { User } from "src/entity/user.entity";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
+import { GetTodoPaginationResponse, GetTodoResponse } from "src/todos/interface/todo.interface";
 
 
 export class TodoRepository {
@@ -111,6 +112,8 @@ export class TodoRepository {
 
         const totalPages = Math.ceil(count / limit);
 
+        console.log(todos)
+
         /* tag 내용 파싱 */
         const result = todos.map(({ tagWithTodos, ...todo }) => ({
             ...todo,
@@ -184,7 +187,7 @@ export class TodoRepository {
     }
 
     /* 투두 생성 함수 */
-    async create(userId: string, todo: CreateTodoDto) {
+    async create(userId: string, todo: CreateTodoDto): Promise<GetTodoResponse> {
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -355,7 +358,7 @@ export class TodoRepository {
             savedTodo.nextSubTodoOrder -= 1;
 
             const newSubTodo = this.subTodoRepository.create({
-                user: userId,
+                user: new User({ id: userId }),
                 todo: todoId,
                 content,
                 subTodoOrder,

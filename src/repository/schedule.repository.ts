@@ -30,7 +30,7 @@ export class ScheduleRepository {
             .where('schedule.user = :userId', { userId })
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
-            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeat', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
             .addSelect(['alarms.id', 'alarms.time'])
             .addSelect(['category.id', 'category.content'])
             .orderBy('schedule.repeat_start', 'ASC')
@@ -51,7 +51,7 @@ export class ScheduleRepository {
 
     /* 스케줄 데이터 저장 */
     async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
-        const { alarms, categoryId , ...scheduleData } = createScheduleDto;
+        const { alarms, categoryId, ...scheduleData } = createScheduleDto;
 
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
@@ -93,7 +93,7 @@ export class ScheduleRepository {
 
     /* 이미 생성된 스케줄에 데이터 추가 */
     /* 알람 추가 */
-    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) : Promise<CreateAlarmToScheduleResponse> {
+    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse> {
         const result = await this.alarmsService.createAlarm(userId, null, scheduleId, dto)
         return { id: result.id, schedule: result.schedule, time: result.time }
     }
@@ -103,7 +103,7 @@ export class ScheduleRepository {
         dto.validateFields(); // validate category and alarms fields
 
         const existingSchedule = await this.repository.createQueryBuilder('schedule')
-            .where('schedule.id = :scheduleId AND schedule.user_id = :userId', { scheduleId, userId})
+            .where('schedule.id = :scheduleId AND schedule.user_id = :userId', { scheduleId, userId })
             .getOne()
 
         if (!existingSchedule) {
@@ -121,7 +121,7 @@ export class ScheduleRepository {
                 .leftJoinAndSelect('schedule.alarms', 'alarms')
                 .leftJoinAndSelect('schedule.category', 'category')
                 .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
-                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeat', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+                .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
                 .addSelect(['alarms.id', 'alarms.time'])
                 .addSelect(['category.id', 'category.content'])
                 .getOne();
@@ -164,7 +164,7 @@ export class ScheduleRepository {
             .where('schedule.user = :userId', { userId })
             .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
-            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeat', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
+            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
             .addSelect(['alarms.id', 'alarms.time'])
             .addSelect(['category.id', 'category.content'])
             .orderBy('schedule.repeatStart', 'ASC')

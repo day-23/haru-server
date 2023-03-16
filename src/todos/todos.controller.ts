@@ -10,6 +10,7 @@ import { CreateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
+import { GetTodoResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -69,7 +70,7 @@ export class TodosController {
             example: swaggerTodoCreateExample
         }
     })
-    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto) {
+    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto) : Promise<GetTodoResponse>  {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
     }
