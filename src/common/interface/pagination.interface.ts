@@ -7,6 +7,6 @@ export interface Pagination {
 
 export interface PaginationByDate {
     totalItems: number,
-    startDate: string,
-    endDate: string
+    startDate: string | Date,
+    endDate: string | Date
 }

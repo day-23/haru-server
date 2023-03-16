@@ -1,6 +1,7 @@
+import { GetTodoResponse } from "src/todos/interface/todo.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
-export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): any => {
+export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): GetTodoResponse[] => {
     const result: any[] = [];
 
     data.forEach((item) => {
@@ -19,7 +20,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): an
                 existingItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
-                    subTodoOrder : item.subTodo_order
+                    subTodoOrder: item.subTodo_order
                 });
             }
 
@@ -31,7 +32,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): an
             }
 
 
-            if(item.tag_id == tagId){
+            if (item.tag_id == tagId) {
                 existingItem.todoOrder = item.todo_order
             }
         } else {
@@ -43,20 +44,20 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): an
                 content: item.todo_content,
                 memo: item.todo_memo,
                 todayTodo: item.todo_todayTodo ? true : false,
-                flag: item.todo_flag ?  true : false ,
+                flag: item.todo_flag ? true : false,
                 repeatOption: item.todo_repeatOption,
                 repeatWeek: item.todo_repeatWeek,
                 repeatMonth: item.todo_repeatMonth,
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
                 createdAt: item.todo_created_At,
-                todoOrder : null,
+                todoOrder: null,
                 alarms: [],
                 subTodos: [],
-                tags : []
+                tags: []
             };
 
-            if(item.tag_id == tagId){
+            if (item.tag_id == tagId) {
                 newItem.todoOrder = item.todo_order
             }
 
@@ -71,7 +72,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): an
                 newItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
-                    subTodoOrder : item.subTodo_order
+                    subTodoOrder: item.subTodo_order
                 });
             }
 
@@ -86,7 +87,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): an
         }
     });
 
-    result.sort((a,b) => a.todoOrder - b.todoOrder)
+    result.sort((a, b) => a.todoOrder - b.todoOrder)
 
     return result;
 }

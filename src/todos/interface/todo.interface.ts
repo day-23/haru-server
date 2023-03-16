@@ -1,5 +1,6 @@
 import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
-import { Pagination } from "src/common/interface/pagination.interface";
+import { Pagination, PaginationByDate } from "src/common/interface/pagination.interface";
+import { Alarm } from "src/entity/alarm.entity";
 import { BaseTag } from "src/tags/interface/tag.interface";
 import { BaseSubTodo } from "./subtodo.interface";
 
@@ -18,12 +19,22 @@ export interface GetTodoResponse {
     repeatEnd: string | Date,
     todoOrder: number,
     createdAt: string | Date,
-    subTodos: BaseSubTodo[],
-    alarms: BaseAlarm[],
-    tags: BaseTag[]
+    subTodos: BaseSubTodo[] | string[],
+    alarms: BaseAlarm[] | string[],
+    tags: BaseTag[] | string[]
 }
 
-export interface GetTodoPaginationResponse{
+export interface GetTodosPaginationResponse{
     data : GetTodoResponse[],
     pagination : Pagination
+}
+
+
+export interface GetTodosResponseByTag {
+    data : GetTodoResponse[],
+}
+
+export interface GetTodosResponseByDate {
+    data : GetTodoResponse[],
+    pagination : PaginationByDate
 }
