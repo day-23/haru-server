@@ -177,10 +177,8 @@ export class TodoRepository {
             ORDER BY twt.todo_order ASC, subTodo_order ASC
         `, [tagId, userId, LIMIT]);
 
-        console.log(ret)
-
         return {
-            data: formattedTodoDataFromTagRawQuery(ret)
+            data: formattedTodoDataFromTagRawQuery(ret, tagId)
         }
     }
 
@@ -462,26 +460,96 @@ export class TodoRepository {
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         const { todoIds } = updateTodosOrderDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        const promises = todoIds.map((id, todoOrder)=> {
-            this.repository.update({id}, {todoOrder})
-        })
-        
-        const ret = await Promise.all(promises)
+        try {
+            const promises = todoIds.map((id, todoOrder) =>
+                queryRunner.manager.update(Todo, { id }, { todoOrder })
+            );
+            await Promise.all(promises);
 
-        // return ret;
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
     }
 
+    /* 태그별 투두 오더링 */
     async updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto) {
         const { todoIds, tagId } = updateTodosInTagOrderDto
 
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
+        try {
+            const promises = todoIds.map((todoId, todoOrder) =>
+                queryRunner.manager.update(TagWithTodo, { todo: todoId, tag: tagId }, { todoOrder })
+            );
+            await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
     }
+
 
     async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
         const { subTodoIds } = updateSubTodosOrderDto
 
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = subTodoIds.map((id, subTodoOrder) => {
+                queryRunner.manager.update(SubTodo, { id }, { subTodoOrder })
+            })
+            await Promise.all(promises);
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
     }
 
+//     /* transaction */
+//     async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
+        
+//         const queryRunner = this.repository.manager.connection.createQueryRunner();
+//         await queryRunner.connect();
+//         await queryRunner.startTransaction();
 
+//         try {
+//             const promises = todoIds.map((todoId, todoOrder) =>
+//                 queryRunner.manager.update(TagWithTodo, { todo: todoId, tag: tagId }, { todoOrder })
+//             );
+//             await Promise.all(promises);
+//             // Commit transaction
+//             await queryRunner.commitTransaction();
+//         } catch (err) {
+//             // Rollback transaction on error
+//             await queryRunner.rollbackTransaction();
+//             throw err;
+//         } finally {
+//             // Release query runner
+//             await queryRunner.release();
+//         }
+//     }
 }

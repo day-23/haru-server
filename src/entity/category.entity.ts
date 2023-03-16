@@ -16,6 +16,9 @@ export class Category extends BaseEntity{
 
     @Column()
     content: string;
+
+    @Column({nullable : true})
+    color: string;
   
     @CreateDateColumn()
     createdAt: Date;
