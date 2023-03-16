@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AlarmsService } from "src/alarms/alarms.service";
+import { CreateAlarmToScheduleResponse } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
 import { CategoriesService } from "src/categories/categories.service";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
@@ -48,26 +49,20 @@ export class ScheduleRepository {
     }
 
 
-
     /* 스케줄 데이터 저장 */
     async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
+        const { alarms, categoryId , ...scheduleData } = createScheduleDto;
+
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            /* 카테고리 저장 */
-            const [category] = await this.categoriesService.createCategories(userId, { contents: [createScheduleDto.category] })
-
             /* 스케줄 저장 */
-            const { alarms, ...scheduleData } = createScheduleDto;
             const savedSchedule = await queryRunner.manager.save(Schedule, {
                 ...scheduleData,
                 user: userId,
-                category: {
-                    id: category.id,
-                    content: category.content
-                }
+                categoryId
             });
 
             /* 스케줄 알람 저장 */
@@ -98,9 +93,9 @@ export class ScheduleRepository {
 
     /* 이미 생성된 스케줄에 데이터 추가 */
     /* 알람 추가 */
-    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) {
+    async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto) : Promise<CreateAlarmToScheduleResponse> {
         const result = await this.alarmsService.createAlarm(userId, null, scheduleId, dto)
-        return { id: result.id, scheduleId: result.schedule, time: result.time }
+        return { id: result.id, schedule: result.schedule, time: result.time }
     }
 
     /* 스케줄 내용 업데이트 */

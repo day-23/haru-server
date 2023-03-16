@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Category } from 'aws-sdk/clients/cloudformation';
+import { Category } from 'src/entity/category.entity';
 import { CategoryRepository } from 'src/repository/category.repository';
-import { CreateCategoriesDto, DeleteCategoriesDto, UpdateCategoryDto } from './dto/create.category.dto';
+import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from './dto/create.category.dto';
 
 @Injectable()
 export class CategoriesService {
     constructor(private readonly categoryRepository: CategoryRepository) { }
 
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto){
+        return await this.categoryRepository.createCategory(userId, createCategoryDto)
+    }
+    
     async createCategories(userId: string, createTagDto: CreateCategoriesDto) {
         return await this.categoryRepository.saveCategories(userId, createTagDto)
     }
-
     
     async getCategoriesByUserId(userId: string) {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)
@@ -21,12 +24,9 @@ export class CategoriesService {
         return [category.id];
     }
       
-
     async deleteCategories(
         userId: string, deleteTagsDto: DeleteCategoriesDto,
     ): Promise<void> {
         return await this.categoryRepository.deleteCategories(userId, deleteTagsDto);
     }
-
-
 }
