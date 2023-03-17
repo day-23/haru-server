@@ -4,8 +4,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
-import { EntityManager, getRepository, In, Repository } from "typeorm";
-// import { makeDateStringToUtcDate } from "src/common/makeDate";
+import { EntityManager, In, Repository } from "typeorm";
 import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
@@ -16,7 +15,6 @@ import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { AlarmsService } from "src/alarms/alarms.service";
-import { CreateAlarmsDto } from "src/alarms/dto/create.alarm.dto";
 import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 import { CreateSubTodoDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { User } from "src/entity/user.entity";
@@ -580,7 +578,7 @@ export class TodoRepository {
         try {
             await Promise.all([
                 queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
-                queryRunner.manager.update(SubTodo, { id: todoId }, { completed: true }),
+                queryRunner.manager.update(SubTodo, {todo : todoId}, { completed: true }),
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();
