@@ -3,3 +3,7 @@ export interface BaseSubTodo {
     content: string,
     subTodoOrder: number,
 }
+
+export interface GetSubTodoResponse extends BaseSubTodo {
+    completed : boolean
+}

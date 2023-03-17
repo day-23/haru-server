@@ -6,11 +6,12 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
-import { CreateSubTodoDto } from './dto/create.subtodo.dto';
+import { completeRepeatTodoDto } from './dto/complete.todo.dto';
+import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, GetTodosResponseByDate } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, GetTodosResponseByDate, CreateTodoResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -75,7 +76,7 @@ export class TodosController {
             example: swaggerTodoCreateExample
         }
     })
-    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<GetTodoResponse> {
+    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<CreateTodoResponse> {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
     }
@@ -161,7 +162,7 @@ export class TodosController {
     }
 
     @Patch('order/todos/tag')
-    @ApiOperation({ summary: '투두 태그화면 정렬 API / 구현중', description: '태그 화면에서 드래그앤드랍시 투두를 정렬한다.' })
+    @ApiOperation({ summary: '투두 태그화면 정렬 API', description: '태그 화면에서 드래그앤드랍시 투두를 정렬한다.' })
     async orderTodosInTag(
         @Param('userId') userId: string,
         @Body() updateTodosOrderDto: UpdateTodosInTagOrderDto
@@ -170,7 +171,7 @@ export class TodosController {
     }
 
     @Patch('order/subtodos')
-    @ApiOperation({ summary: '하위항목 정렬 API / 구현중', description: '드래그앤드랍시 하위항목을 정렬한다.' })
+    @ApiOperation({ summary: '하위항목 정렬 API', description: '드래그앤드랍시 하위항목을 정렬한다.' })
     async orderSubTodos(
         @Param('userId') userId: string,
         @Body() updateTodosOrderDto: UpdateSubTodosOrderDto
@@ -179,6 +180,35 @@ export class TodosController {
     }
 
 
-    // @Patch
+    @Patch('subTodo/:subTodoId')
+    @ApiOperation({ summary: '하위항목 정렬 API', description: '드래그앤드랍시 하위항목을 정렬한다.' })
+    async updateSubTodo(
+        @Param('userId') userId: string,
+        @Param('subTodoId') subTodoId: string,
+        @Body() updateSubTodoDto: UpdateSubTodoDto
+    ) {
+        return this.todoService.updateSubTodo(userId, subTodoId ,updateSubTodoDto)
+    }
+
+
+
+    @Patch('complete/todo/:todoId')
+    @ApiOperation({summary: '미반복 투두 완료 API', description: '투두를 완료한다, 하위항목도 모두 완료처리'})
+    async completeTodo(@Param('userId') userId : string, @Param('todoId') todoId : string) : Promise<void>{
+        return this.todoService.updateTodoToComplete(userId, todoId)
+    }
+
+    @Patch('complete/todo/:subTodoId')
+    @ApiOperation({summary: '서브 투두 완료 API - 구현중', description: '투두를 완료한다'})
+    async completeSubTodo(@Param('userId') userId : string, @Param('subTodoId') subTodoId : string){
+        
+    }
+
+    @Patch('complete/todo/:todoId/repeat')
+    @ApiOperation({summary: '반복 투두 완료 API - 구현중', description: '투두를 완료한다'})
+    async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
+        
+    }
+
 
 }

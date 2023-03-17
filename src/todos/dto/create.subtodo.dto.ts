@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
 
 
@@ -9,3 +9,5 @@ export class CreateSubTodoDto {
     @IsString()
     content: string;
 }
+
+export class UpdateSubTodoDto extends PartialType(CreateSubTodoDto){}

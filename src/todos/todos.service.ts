@@ -5,11 +5,11 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
-import { CreateSubTodoDto } from './dto/create.subtodo.dto';
+import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, CreateTodoResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -37,12 +37,20 @@ export class TodosService {
     }
 
 
-    async createTodo(userId: string, todo: CreateTodoDto): Promise<GetTodoResponse> {
+    async createTodo(userId: string, todo: CreateTodoDto): Promise<CreateTodoResponse> {
         return await this.todoRepository.create(userId, todo);
     }
 
     async updateTodo(userId: string, todoId: string, todo: UpdateTodoDto): Promise<Todo> {
         return await this.todoRepository.update(userId, todoId, todo);
+    }
+
+    async updateTodoToComplete(userId: string, todoId: string) : Promise<void> {
+        return this.todoRepository.updateTodoToComplete(userId, todoId)
+    }
+
+    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto) {
+        return this.todoRepository.updateSubTodo(userId, subTodoId, updateSubTodoDto)
     }
 
     async deleteTodo(userId: string, todoId: string): Promise<void> {
