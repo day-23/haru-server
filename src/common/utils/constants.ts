@@ -1,0 +1,1 @@
+export const LIMIT_DATA_LENGTH = 50

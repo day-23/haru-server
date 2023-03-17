@@ -10,11 +10,31 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, CreateTodoResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, CreateTodoResponse, GetTodosForMain, GetTodosResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
     constructor(private readonly todoRepository: TodoRepository) { }
+    
+    async getTodosForMain(userId : string): Promise<GetTodosForMain> {
+        return await this.todoRepository.findTodosForMain(userId);
+    }
+
+    async getFlaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+        return await this.todoRepository.getFlaggedTodosForMain(userId);
+    }
+
+    async getTaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+        return await this.todoRepository.getTaggedTodosForMain(userId);
+    }
+
+    async getUnTaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+        return await this.todoRepository.getUnTaggedTodosForMain(userId);
+    }
+
+    async getCompletedTodosForMain(userId : string): Promise<GetTodosResponse> {
+        return await this.todoRepository.getCompletedTodosForMain(userId);
+    }
 
     async getAllTodos(): Promise<Todo[]> {
         return await this.todoRepository.findAll()

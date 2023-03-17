@@ -47,11 +47,23 @@ export interface GetTodoResponse {
     tags: (BaseTag | string)[]
 }
 
+export interface GetTodosForMain{
+    data : {
+        flaggedTodos : GetTodoResponse[],
+        taggedTodos: GetTodoResponse[],
+        untaggedTodos : GetTodoResponse[],
+        completedTodos : GetTodoResponse[],
+    }
+}
+
+export interface GetTodosResponse {
+    data: GetTodoResponse[],
+}
+
 export interface GetTodosPaginationResponse {
     data: GetTodoResponse[],
     pagination: Pagination
 }
-
 
 export interface GetTodosResponseByTag {
     data: {
