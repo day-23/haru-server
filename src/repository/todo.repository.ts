@@ -140,6 +140,55 @@ export class TodoRepository {
     }
 
 
+
+    /* 완료된 투두 페이지네이션 함수 */
+    async findCompletedTodoByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
+        const { page, limit } = paginationDto
+        const skip = (page - 1) * limit;
+
+        // /* subtodo, tag 조인, 페이지네이션 */
+        const [todos, count] = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .andWhere('todo.completed = 1')
+            .skip(skip)
+            .take(limit)
+            .select(this.todoPropertyArray)
+            .addSelect(this.subTodoPropertyArray)
+            .addSelect(this.alarmPropertyArray)
+            .addSelect(this.tagWithTodoPropertyArray)
+            .addSelect(this.tagPropertyArray)
+            .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .getManyAndCount();
+
+        const totalPages = Math.ceil(count / limit);
+
+        /* tag 내용 파싱 */
+        const result = todos.map(({ tagWithTodos, ...todo }) => ({
+            ...todo,
+            tags: tagWithTodos.map((tagWithTodo) => {
+                return {
+                    id: tagWithTodo.tag.id,
+                    content: tagWithTodo.tag.content
+                }
+            })
+        }))
+
+        return {
+            data: result,
+            pagination: {
+                totalItems: count,
+                itemsPerPage: limit,
+                currentPage: page,
+                totalPages: totalPages,
+            },
+        };
+    }
+
     /* 태그 별로 투두를 조회하는 함수 */
     /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
@@ -251,6 +300,7 @@ export class TodoRepository {
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
+            .andWhere('todo.completed = 0')
             .setParameters({ searchValue: `%${content}%` })
             .select(this.todoPropertyArray)
             .addSelect(this.subTodoPropertyArray)

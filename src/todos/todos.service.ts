@@ -28,6 +28,10 @@ export class TodosService {
         return await this.todoRepository.findByPagination(userId, paginationDto)
     }
 
+    async getCompletedTodosByPagination(userId: string, paginationDto: PaginationDto ) : Promise<GetTodosPaginationResponse> {
+        return await this.todoRepository.findCompletedTodoByPagination(userId, paginationDto)
+    }
+
     async getTodosByTag(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
