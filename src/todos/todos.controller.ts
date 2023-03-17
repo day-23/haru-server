@@ -173,7 +173,7 @@ export class TodosController {
     }
 
     @Post(':todoId/subtodo')
-    @ApiOperation({ summary: '이미 생성된 투두에 하위항목을 추가하는 API / 구현중', description: '투두에 하위항목을 추가한다.' })
+    @ApiOperation({ summary: '이미 생성된 투두에 하위항목을 추가하는 API', description: '투두에 하위항목을 추가한다.' })
     @ApiCreatedResponse({
         description: '이미 생성되어있는 투두에 하위항목을 추가한다.'
     })

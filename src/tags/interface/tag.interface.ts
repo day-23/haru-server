@@ -4,7 +4,7 @@ export interface BaseTag {
 }
 
 
-export interface TagWithTodoInterface {
+export interface BaseTagWithTodo {
     id: number;
     tag: {
       id: number;
