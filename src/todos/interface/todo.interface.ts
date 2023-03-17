@@ -54,7 +54,10 @@ export interface GetTodosPaginationResponse {
 
 
 export interface GetTodosResponseByTag {
-    data: GetTodoResponse[],
+    data: {
+        todos: GetTodoResponse[]
+        completedTodos: GetTodoResponse[]
+    },
 }
 
 export interface GetTodosResponseByDate {

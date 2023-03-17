@@ -35,7 +35,7 @@ export class TodoRepository {
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
 
-    private todoPropertyArray = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatYear', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime','todo.todoOrder' , 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
+    private todoPropertyArray = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatOption', 'todo.repeatWeek', 'todo.repeatMonth', 'todo.repeatYear', 'todo.repeatEnd', 'todo.endDate', 'todo.endDateTime', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
     private subTodoPropertyArray = ['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder', 'subtodo.completed']
     private alarmPropertyArray = ['alarm.id', 'alarm.time']
     private tagWithTodoPropertyArray = ['tagwithtodo.id']
@@ -143,10 +143,11 @@ export class TodoRepository {
     /* 태그 별로 투두를 조회하는 함수 */
     /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
-        const tagId = getByTagDto.tagId
+        const { tagId } = getByTagDto
 
         const LIMIT = 50
-        const ret = await this.entityManager.query(`
+        const [ret, retCompleted] = await Promise.all([
+            this.entityManager.query(`
             WITH dt AS (
                 SELECT todo.id id
                 FROM tag_with_todo twt
@@ -186,11 +187,59 @@ export class TodoRepository {
             LEFT JOIN tag ON twt.tag_id = tag.id
             LEFT JOIN alarm ON dt.id = alarm.todo_id
             LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
+            WHERE todo.completed = 1
             ORDER BY twt.todo_order ASC, subTodo_order ASC
-        `, [tagId, userId, LIMIT]);
+        `, [tagId, userId, LIMIT]),
+            this.entityManager.query(`
+            WITH dt AS (
+                SELECT todo.id id
+                FROM tag_with_todo twt
+                JOIN todo ON twt.todo_id = todo.id
+                WHERE twt.tag_id = ?
+                AND todo.user_id = ?
+                LIMIT ?
+            )
+            SELECT 
+                todo.id as "todo_id",
+                todo.content as "todo_content",
+                todo.memo as "todo_memo",
+                todo.today_todo as "todo_todayTodo",
+                todo.flag as "todo_flag",
+                todo.repeat_option as "todo_repeatOption",
+                todo.repeat_week as "todo_repeatWeek",
+                todo.repeat_month as "todo_repeatMonth",
+                todo.repeat_year as "todo_repeatYear",
+                todo.repeat_end as "todo_repeatEnd",
+                todo.end_date as "todo_endDate",
+                todo.end_date_time as "todo_endDateTime",
+                todo.completed as "todo_completed",
+                todo.created_At as "todo_created_At",
+                todo.updated_At as "todo_updated_At",
+                twt.todo_order as "todo_order",
+                alarm.id as "alarm_id",
+                alarm.time as "alarm_time",
+                sub_todo.id as "subTodo_id",
+                sub_todo.content as "subTodo_content",
+                sub_todo.completed as "subTodo_completed",
+                sub_todo.sub_todo_order as "subTodo_order",
+                tag.id as "tag_id",
+                tag.content as "tag_content"
+            FROM dt
+            JOIN todo ON dt.id = todo.id
+            LEFT JOIN tag_with_todo twt ON dt.id = twt.todo_id
+            LEFT JOIN tag ON twt.tag_id = tag.id
+            LEFT JOIN alarm ON dt.id = alarm.todo_id
+            LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
+            WHERE todo.completed = 0
+            ORDER BY twt.todo_order ASC, subTodo_order ASC
+        `, [tagId, userId, LIMIT])
+        ])
 
         return {
-            data: formattedTodoDataFromTagRawQuery(ret, tagId)
+            data: {
+                todos: formattedTodoDataFromTagRawQuery(ret, tagId),
+                completedTodos: formattedTodoDataFromTagRawQuery(retCompleted, tagId)
+            }
         }
     }
 
@@ -330,7 +379,7 @@ export class TodoRepository {
         }
     }
 
-    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto) : Promise<SubTodo> {
+    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<SubTodo> {
         const existingSubTodo = await this.subTodoRepository.findOne({ where: { id: subTodoId } });
 
         if (!existingSubTodo) {
@@ -579,7 +628,7 @@ export class TodoRepository {
         try {
             await Promise.all([
                 queryRunner.manager.update(Todo, { id: todoId }, notRepeatTodoCompleteDto),
-                queryRunner.manager.update(SubTodo, {todo : todoId}, notRepeatTodoCompleteDto),
+                queryRunner.manager.update(SubTodo, { todo: todoId }, notRepeatTodoCompleteDto),
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();

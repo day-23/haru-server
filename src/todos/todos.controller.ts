@@ -204,6 +204,7 @@ export class TodosController {
         return this.todoService.updateSubTodo(userId, subTodoId, notRepeatTodoCompleteDto)
     }
 
+    
     @Patch('complete/todo/:todoId/repeat')
     @ApiOperation({summary: '반복 투두 완료 API - 구현중', description: '투두를 완료한다'})
     async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
