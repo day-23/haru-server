@@ -20,6 +20,7 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo
 import { User } from "src/entity/user.entity";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, GetTodosResponseByDate, CreateTodoResponse } from "src/todos/interface/todo.interface";
+import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 
 
 export class TodoRepository {
@@ -570,15 +571,15 @@ export class TodoRepository {
 
 
     /* 투두 완료처리 */
-    async updateTodoToComplete(userId: string, todoId: string): Promise<void> {
+    async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto): Promise<void> {
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
             await Promise.all([
-                queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
-                queryRunner.manager.update(SubTodo, {todo : todoId}, { completed: true }),
+                queryRunner.manager.update(Todo, { id: todoId }, notRepeatTodoCompleteDto),
+                queryRunner.manager.update(SubTodo, {todo : todoId}, notRepeatTodoCompleteDto),
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();
