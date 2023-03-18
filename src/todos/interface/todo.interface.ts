@@ -2,10 +2,10 @@ import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.in
 import { Pagination, PaginationByDate } from "src/common/interface/pagination.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { BaseTag } from "src/tags/interface/tag.interface";
-import { BaseSubTodo } from "./subtodo.interface";
+import { BaseSubTodo, GetSubTodoResponse } from "./subtodo.interface";
 
 
-export interface GetTodoResponse {
+export interface CreateTodoResponse {
     id: string,
     content: string,
     memo: string,
@@ -24,17 +24,55 @@ export interface GetTodoResponse {
     tags: BaseTag[] | string[]
 }
 
-export interface GetTodosPaginationResponse{
-    data : GetTodoResponse[],
-    pagination : Pagination
+
+export interface GetTodoResponse {
+    id: string,
+    content: string,
+    memo: string,
+    todayTodo: boolean,
+    flag: boolean,
+    repeatOption: string,
+    repeatWeek: string,
+    repeatMonth: string,
+    repeatYear: string,
+    endDate: string | Date,
+    endDateTime: string | Date,
+    repeatEnd: string | Date,
+    todoOrder: number,
+    completed: boolean,
+    createdAt: string | Date,
+    updatedAt: string | Date,
+    subTodos: (GetSubTodoResponse | string)[],
+    alarms: (BaseAlarm | string)[],
+    tags: (BaseTag | string)[]
 }
 
+export interface GetTodosForMain{
+    data : {
+        flaggedTodos : GetTodoResponse[],
+        taggedTodos: GetTodoResponse[],
+        untaggedTodos : GetTodoResponse[],
+        completedTodos : GetTodoResponse[],
+    }
+}
+
+export interface GetTodosResponse {
+    data: GetTodoResponse[],
+}
+
+export interface GetTodosPaginationResponse {
+    data: GetTodoResponse[],
+    pagination: Pagination
+}
 
 export interface GetTodosResponseByTag {
-    data : GetTodoResponse[],
+    data: {
+        todos: GetTodoResponse[]
+        completedTodos: GetTodoResponse[]
+    },
 }
 
 export interface GetTodosResponseByDate {
-    data : GetTodoResponse[],
-    pagination : PaginationByDate
+    data: GetTodoResponse[],
+    pagination: PaginationByDate
 }

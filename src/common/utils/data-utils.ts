@@ -1,3 +1,4 @@
+import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
 import { GetTodoResponse } from "src/todos/interface/todo.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
@@ -20,7 +21,8 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 existingItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
-                    subTodoOrder: item.subTodo_order
+                    subTodoOrder: item.subTodo_order,
+                    completed: item.subTodo_completed ? true : false,
                 });
             }
 
@@ -37,7 +39,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
             }
         } else {
             // If the item doesn't exist in the result array, create a new object and add the alarm and sub-todo data
-            const newItem = {
+            const newItem : GetTodoResponse = {
                 // tag_id: item.tag_id,
                 // tag_content: item.tag_content,
                 id: item.todo_id,
@@ -51,6 +53,8 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 repeatYear: item.todo_repeatYear,
                 endDate: item.todo_endDate,
                 endDateTime: item.todo_endDateTime,
+                repeatEnd : item.todo_repeatEnd,
+                completed : item.todo_completed ? true : false,
                 createdAt: item.todo_created_At,
                 updatedAt: item.todo_updated_At,
                 todoOrder: null,
@@ -74,7 +78,8 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 newItem.subTodos.push({
                     id: item.subTodo_id,
                     content: item.subTodo_content,
-                    subTodoOrder: item.subTodo_order
+                    subTodoOrder: item.subTodo_order,
+                    completed: item.subTodo_completed ? true : false,
                 });
             }
 
@@ -93,3 +98,24 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
 
     return result;
 }
+
+
+
+
+export function mapTagWithTodos(tagWithTodos) {
+    return tagWithTodos.map((tagWithTodo) => {
+      return {
+        id: tagWithTodo.tag.id,
+        content: tagWithTodo.tag.content,
+      };
+    });
+  }
+  
+// Use the mapTagWithTodos function in the main function to transform the todos array
+export function transformTodosAddTags(todos) {
+    return todos.map(({ tagWithTodos, ...todo }) => ({
+      ...todo,
+      tags: mapTagWithTodos(tagWithTodos),
+    }));
+}
+  

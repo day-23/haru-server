@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 
 /* subtodo 단일 생성 DTO */
@@ -8,4 +8,11 @@ export class CreateSubTodoDto {
     @IsNotEmpty()
     @IsString()
     content: string;
+}
+
+export class UpdateSubTodoDto extends PartialType(CreateSubTodoDto){
+    @ApiProperty({ description: '완료인지 여부' })
+    @IsOptional()
+    @IsBoolean()
+    completed: boolean;
 }

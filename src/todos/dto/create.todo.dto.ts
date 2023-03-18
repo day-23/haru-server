@@ -85,4 +85,9 @@ export class CreateTodoDto {
 }
 
 
-export class UpdateTodoDto extends PartialType(CreateTodoDto){}
+export class UpdateTodoDto extends PartialType(CreateTodoDto){
+    @ApiProperty({ description: '완료인지 여부' })
+    @IsOptional()
+    @IsBoolean()
+    completed: boolean;
+}

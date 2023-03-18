@@ -1,6 +1,6 @@
 import { MinLength } from 'class-validator';
 import { BaseAlarm } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
-import { BaseSubTodo } from 'src/todos/interface/subtodo.interface';
+import { BaseSubTodo, GetSubTodoResponse } from 'src/todos/interface/subtodo.interface';
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
@@ -94,7 +94,7 @@ export class Todo extends BaseEntity {
 
     /* 투두 : 하위항목 = 1:N */
     @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)
-    subTodos: BaseSubTodo[] | string[];
+    subTodos: GetSubTodoResponse[] | string[];
 
     /* 투두 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.todo)
