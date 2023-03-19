@@ -247,6 +247,15 @@ export class TodosController {
         return this.todoService.updateTodosOrder(userId, updateTodosOrderDto)
     }
 
+    @Patch('order/todos/today')
+    @ApiOperation({ summary: '투두 메인화면 정렬 API', description: '메인 화면에서 드래그앤드랍시 투두를 정렬한다.' })
+    async orderTodayTodos(
+        @Param('userId') userId: string,
+        @Body() updateTodosOrderDto: UpdateTodosOrderDto
+    ) {
+        return this.todoService.updateTodayTodosOrder(userId, updateTodosOrderDto)
+    }
+
     @Patch('order/todos/tag')
     @ApiOperation({ summary: '투두 태그화면 정렬 API', description: '태그 화면에서 드래그앤드랍시 투두를 정렬한다.' })
     async orderTodosInTag(

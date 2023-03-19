@@ -37,7 +37,8 @@ export class TodoRepository {
         private readonly alarmsService: AlarmsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
-    private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.todayTodoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
+    private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
+    private todayTodoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todayTodoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
     private subTodoProperties = ['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder', 'subtodo.completed']
     private alarmProperties = ['alarm.id', 'alarm.time']
     private tagWithTodoProperties = ['tagwithtodo.id']
@@ -167,9 +168,10 @@ export class TodoRepository {
         }
     }
 
-
+    /* 오늘의 할일 */
     async getTodayTodos(userId: string, date : TodayTodoDto): Promise<GetTodayTodosResponse> {
         const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
+
         const todayTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -180,7 +182,7 @@ export class TodoRepository {
             .andWhere('todo.todayTodo = 1')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
-            .select(this.todoProperties)
+            .select(this.todayTodoProperties)
             .addSelect(this.subTodoProperties)
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
@@ -198,7 +200,7 @@ export class TodoRepository {
             .where('todo.user = :userId', { userId })
             .andWhere('todo.todayTodo = 0')
             .andWhere('todo.completed = 0')
-            .andWhere('todo.endDate <= :endDate', {endDate})
+            .andWhere('todo.endDate <= :endDate', { endDate: endDate.toISOString()})
             .take(LIMIT_DATA_LENGTH)
             .select(this.todoProperties)
             .addSelect(this.subTodoProperties)
@@ -755,6 +757,33 @@ export class TodoRepository {
         try {
             const promises = todoIds.map((id, todoOrder) =>
                 queryRunner.manager.update(Todo, { id }, { todoOrder })
+            );
+            await Promise.all(promises);
+
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
+    }
+
+
+
+    /* 드래그앤드랍 투데이 투두 오더링 */
+    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+        const { todoIds } = updateTodosOrderDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = todoIds.map((id, todayTodoOrder) =>
+                queryRunner.manager.update(Todo, { id }, { todayTodoOrder })
             );
             await Promise.all(promises);
 

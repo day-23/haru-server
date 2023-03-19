@@ -114,11 +114,12 @@ export function mapTagWithTodos(tagWithTodos) {
 // Use the mapTagWithTodos function in the main function to transform the todos array
 export function transformTodosAddTags(todos) {
     /* todoRepeat Parsing */
-    const ret = todos.map(({ todoRepeat, ...todo }) => {
+    const ret = todos.map(({ todoRepeat, todayTodoOrder, ...todo }) => {
         return {
             ...todo,
             repeatOption: todoRepeat?.repeatOption ?? null,
-            repeatValue: todoRepeat?.repeatValue ?? null
+            repeatValue: todoRepeat?.repeatValue ?? null,
+            todoOrder : todo?.todoOrder ?? todayTodoOrder
         }
     })
 

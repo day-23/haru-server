@@ -60,8 +60,6 @@ export class TodosService {
         return await this.todoRepository.getTodayTodos(userId, todayTodoDto);
     }
 
-
-
     /* 검색 */
     async getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findTodosBySearch(userId, content)
@@ -115,6 +113,10 @@ export class TodosService {
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         return this.todoRepository.updateTodosOrder(userId, updateTodosOrderDto)
+    }
+
+    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+        return this.todoRepository.updateTodayTodosOrder(userId, updateTodosOrderDto)
     }
 
     async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto) {
