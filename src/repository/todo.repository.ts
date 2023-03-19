@@ -7,7 +7,7 @@ import { UserService } from "src/users/users.service";
 import { EntityManager, In, Repository } from "typeorm";
 import { SubTodo } from "src/entity/sub-todo.entity";
 import { Tag } from "src/entity/tag.entity";
-import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
+import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { TagsService } from "src/tags/tags.service";
 import { TagWithTodo } from "src/entity/tag-with-todo.entity";
@@ -19,7 +19,7 @@ import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 import { CreateSubTodoDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { User } from "src/entity/user.entity";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodosResponse } from "src/todos/interface/todo.interface";
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodosResponse, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { TodoRepeat } from "src/entity/todo-repeat.entity";
@@ -37,7 +37,7 @@ export class TodoRepository {
         private readonly alarmsService: AlarmsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
-    private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
+    private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.todayTodoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
     private subTodoProperties = ['subtodo.id', 'subtodo.content', 'subtodo.subTodoOrder', 'subtodo.completed']
     private alarmProperties = ['alarm.id', 'alarm.time']
     private tagWithTodoProperties = ['tagwithtodo.id']
@@ -168,6 +168,53 @@ export class TodoRepository {
     }
 
 
+    async getTodayTodos(userId: string, date : TodayTodoDto): Promise<GetTodayTodosResponse> {
+        const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
+        const todayTodos = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .andWhere('todo.todayTodo = 1')
+            .andWhere('todo.completed = 0')
+            .take(LIMIT_DATA_LENGTH)
+            .select(this.todoProperties)
+            .addSelect(this.subTodoProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.tagWithTodoProperties)
+            .addSelect(this.tagProperties)
+            .orderBy('todo.todayTodoOrder', 'ASC')
+            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .getMany()
+
+        const endDatedTodos = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .andWhere('todo.todayTodo = 0')
+            .andWhere('todo.completed = 0')
+            .andWhere('todo.endDate <= :endDate', {endDate})
+            .take(LIMIT_DATA_LENGTH)
+            .select(this.todoProperties)
+            .addSelect(this.subTodoProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.tagWithTodoProperties)
+            .addSelect(this.tagProperties)
+            .orderBy('todo.endDate', 'DESC')
+            .getMany()
+
+        return {
+            data: {
+                todayTodos : transformTodosAddTags(todayTodos),
+                endDatedTodos : transformTodosAddTags(endDatedTodos)
+            }
+        }
+    }
 
     /* 투두 데이트 페이지네이션 함수 */
     async findByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetTodosResponseByDate> {

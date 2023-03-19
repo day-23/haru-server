@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
@@ -10,7 +10,7 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, GetTodosResponse, TodoResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, GetTodosResponse, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -55,6 +55,12 @@ export class TodosService {
     async getTodosByTag(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
+
+    async getTodayTodos(userId : string, todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
+        return await this.todoRepository.getTodayTodos(userId, todayTodoDto);
+    }
+
+
 
     /* 검색 */
     async getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {

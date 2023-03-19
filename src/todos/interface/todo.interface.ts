@@ -41,6 +41,13 @@ export interface GetTodosPaginationResponse {
     pagination: Pagination
 }
 
+export interface GetTodayTodosResponse {
+    data: {
+        todayTodos: TodoResponse[]
+        endDatedTodos: TodoResponse[]
+    },
+}
+
 export interface GetTodosResponseByTag {
     data: {
         todos: TodoResponse[]

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
@@ -11,7 +11,7 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, GetTodosResponse, TodoResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, GetTodosResponse, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -30,6 +30,20 @@ export class TodosController {
     async getTodosForMain(@Param('userId') userId : string): Promise<GetTodosForMain> {
         return await this.todoService.getTodosForMain(userId);
     }
+
+
+    @PaginatedResponse()
+    @Get('todos/today')
+    @ApiOperation({ summary: '오늘의 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
+    @ApiCreatedResponse({
+        description: '투두 페이지네이션 방식으로 조회한다.'
+    })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
+    async getTodayTodos(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
+        return await this.todoService.getTodayTodos(userId, todayTodoDto);
+    }
+
 
     @PaginatedResponse()
     @Get('todos/main/flag')
