@@ -11,7 +11,7 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, GetTodosResponseByDate, CreateTodoResponse, GetTodosForMain, GetTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, GetTodosResponse, TodoResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -136,7 +136,7 @@ export class TodosController {
 
     @Get('search')
     @ApiOperation({ summary: '투두 검색 API', description: '투두를 검색한다.' })
-    async searchTodos(@Param('userId') userId: string, @Query('content') content: string): Promise<GetTodoResponse[]> {
+    async searchTodos(@Param('userId') userId: string, @Query('content') content: string): Promise<TodoResponse[]> {
         return this.todoService.getTodosBySearch(userId, content)
     }
 
@@ -148,7 +148,7 @@ export class TodosController {
             example: swaggerTodoCreateExample
         }
     })
-    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<CreateTodoResponse> {
+    async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<TodoResponse> {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
     }

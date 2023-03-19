@@ -1,8 +1,8 @@
 import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
-import { GetTodoResponse } from "src/todos/interface/todo.interface";
+import { TodoResponse } from "src/todos/interface/todo.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
-export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): GetTodoResponse[] => {
+export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): TodoResponse[] => {
     const result: any[] = [];
 
     data.forEach((item) => {
@@ -39,7 +39,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
             }
         } else {
             // If the item doesn't exist in the result array, create a new object and add the alarm and sub-todo data
-            const newItem : GetTodoResponse = {
+            const newItem : TodoResponse = {
                 // tag_id: item.tag_id,
                 // tag_content: item.tag_content,
                 id: item.todo_id,
@@ -48,11 +48,9 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): Ge
                 todayTodo: item.todo_todayTodo ? true : false,
                 flag: item.todo_flag ? true : false,
                 repeatOption: item.todo_repeatOption,
-                repeatWeek: item.todo_repeatWeek,
-                repeatMonth: item.todo_repeatMonth,
-                repeatYear: item.todo_repeatYear,
+                repeatValue: item.todo_repeatValue,
+                isSelectedEndDateTime: item.todo_isSelectedEndDateTime,
                 endDate: item.todo_endDate,
-                endDateTime: item.todo_endDateTime,
                 repeatEnd : item.todo_repeatEnd,
                 completed : item.todo_completed ? true : false,
                 createdAt: item.todo_created_At,

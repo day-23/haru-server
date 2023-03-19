@@ -10,7 +10,7 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodoResponse, GetTodosResponseByTag, CreateTodoResponse, GetTodosForMain, GetTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, GetTodosResponse, TodoResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -57,12 +57,12 @@ export class TodosService {
     }
 
     /* 검색 */
-    async getTodosBySearch(userId: string, content: string): Promise<GetTodoResponse[]> {
+    async getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findTodosBySearch(userId, content)
     }
 
 
-    async createTodo(userId: string, todo: CreateTodoDto): Promise<CreateTodoResponse> {
+    async createTodo(userId: string, todo: CreateTodoDto): Promise<TodoResponse> {
         return await this.todoRepository.create(userId, todo);
     }
 
