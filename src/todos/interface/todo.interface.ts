@@ -2,41 +2,17 @@ import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.in
 import { Pagination, PaginationByDate } from "src/common/interface/pagination.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { BaseTag } from "src/tags/interface/tag.interface";
-import { BaseSubTodo, GetSubTodoResponse } from "./subtodo.interface";
 
-
-export interface CreateTodoResponse {
+export interface TodoResponse {
     id: string,
     content: string,
     memo: string,
     todayTodo: boolean,
     flag: boolean,
-    repeatOption: string,
-    repeatWeek: string,
-    repeatMonth: string,
+    isSelectedEndDateTime: boolean,
     endDate: string | Date,
-    endDateTime: string | Date,
-    repeatEnd: string | Date,
-    todoOrder: number,
-    createdAt: string | Date,
-    subTodos: BaseSubTodo[] | string[],
-    alarms: BaseAlarm[] | string[],
-    tags: BaseTag[] | string[]
-}
-
-
-export interface GetTodoResponse {
-    id: string,
-    content: string,
-    memo: string,
-    todayTodo: boolean,
-    flag: boolean,
-    repeatOption: string,
-    repeatWeek: string,
-    repeatMonth: string,
-    repeatYear: string,
-    endDate: string | Date,
-    endDateTime: string | Date,
+    repeatOption : string,
+    repeatValue : string,
     repeatEnd: string | Date,
     todoOrder: number,
     completed: boolean,
@@ -49,30 +25,49 @@ export interface GetTodoResponse {
 
 export interface GetTodosForMain{
     data : {
-        flaggedTodos : GetTodoResponse[],
-        taggedTodos: GetTodoResponse[],
-        untaggedTodos : GetTodoResponse[],
-        completedTodos : GetTodoResponse[],
+        flaggedTodos : TodoResponse[],
+        taggedTodos: TodoResponse[],
+        untaggedTodos : TodoResponse[],
+        completedTodos : TodoResponse[],
     }
 }
 
 export interface GetTodosResponse {
-    data: GetTodoResponse[],
+    data: TodoResponse[],
 }
 
 export interface GetTodosPaginationResponse {
-    data: GetTodoResponse[],
+    data: TodoResponse[],
     pagination: Pagination
+}
+
+export interface GetTodayTodosResponse {
+    data: {
+        todayTodos: TodoResponse[]
+        endDatedTodos: TodoResponse[]
+    },
 }
 
 export interface GetTodosResponseByTag {
     data: {
-        todos: GetTodoResponse[]
-        completedTodos: GetTodoResponse[]
+        todos: TodoResponse[]
+        completedTodos: TodoResponse[]
     },
 }
 
 export interface GetTodosResponseByDate {
-    data: GetTodoResponse[],
+    data: TodoResponse[],
     pagination: PaginationByDate
+}
+
+
+
+export interface BaseSubTodo {
+    id: string,
+    content: string,
+    subTodoOrder: number,
+}
+
+export interface GetSubTodoResponse extends BaseSubTodo {
+    completed : boolean
 }

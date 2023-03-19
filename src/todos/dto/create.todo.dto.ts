@@ -30,15 +30,14 @@ export class CreateTodoDto {
     @IsBoolean()
     flag: boolean;
 
+    @ApiProperty({ description: 'endDate에서 time 까지 사용하는지 여부'})
+    @IsBoolean()
+    isSelectedEndDateTime : boolean;
+
     @ApiProperty({ description: '마감날짜', nullable: true })
     @IsOptional() /* nullable */
     @Transform(({ value }) => value ? new Date(value) : null)
     endDate : Date;
-
-    @ApiProperty({ description: '마감날짜+시간', nullable: true })
-    @IsOptional() /* nullable */
-    @Transform(({ value }) => value ? new Date(value) : null)
-    endDateTime : Date;
 
     /* 반복 설정 관련 */
     @ApiProperty({ description: 'todo 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -46,20 +45,10 @@ export class CreateTodoDto {
     @IsOptional() /* nullable */
     repeatOption: string;
 
-    @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
-    @MaxLength(7)
-    @IsOptional() /* nullable */
-    repeatWeek: string;
-
-    @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000....01 31 자리로 표기', nullable: true })
+    @ApiProperty({ description: 'todo 반복 방식, repeatOption에 따라 다른 값', nullable: true })
     @MaxLength(31)
     @IsOptional() /* nullable */
-    repeatMonth: string;
-
-    @ApiProperty({ description: 'todo 반복 방식, 월화수 반복의 경우 1110000....01 12 자리로 표기', nullable: true })
-    @MaxLength(12)
-    @IsOptional() /* nullable */
-    repeatYear : string;
+    repeatValue: string;
 
     @ApiProperty({description:'반복 시작', nullable : true})
     @IsOptional()

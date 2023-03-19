@@ -5,6 +5,7 @@ import { Alarm } from 'src/entity/alarm.entity';
 import { SubTodo } from 'src/entity/sub-todo.entity';
 import { TagWithTodo } from 'src/entity/tag-with-todo.entity';
 import { Tag } from 'src/entity/tag.entity';
+import { TodoRepeat } from 'src/entity/todo-repeat.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { User } from 'src/entity/user.entity';
 import { AlarmRepository } from 'src/repository/alarm.repository';
@@ -17,7 +18,7 @@ import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo, User, SubTodo, Tag, TagWithTodo, Alarm])],
+    imports: [TypeOrmModule.forFeature([Todo, User, SubTodo, Tag, TagWithTodo, Alarm, TodoRepeat])],
     controllers: [TodosController],
     providers: [TodosService, TodoRepository, 
                 UserService, UserRepository, 

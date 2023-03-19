@@ -1,10 +1,11 @@
 import { MinLength } from 'class-validator';
 import { BaseAlarm } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
-import { BaseSubTodo, GetSubTodoResponse } from 'src/todos/interface/subtodo.interface';
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { GetSubTodoResponse } from 'src/todos/interface/todo.interface';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
+import { TodoRepeat } from './todo-repeat.entity';
 import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
 
@@ -38,29 +39,20 @@ export class Todo extends BaseEntity {
     @Column()
     flag: boolean;
 
-    @Column({ nullable: true })
-    repeatOption: string;
-
-    @Column({ length: 7, nullable: true, })
-    repeatWeek: string;
-
-    @Column({ length: 31, nullable: true, })
-    repeatMonth: string;
-
-    @Column({length : 12, nullable : true})
-    repeatYear : string;
+    @Column({ comment: '마감 시간, 선택 여부'})
+    isSelectedEndDateTime: boolean;
 
     @Column({ comment: '마감일', nullable: true })
     endDate: Date;
-
-    @Column({ comment: '마감일, 마감 시간', nullable: true })
-    endDateTime: Date;
 
     @Column({ type: 'timestamp', nullable: true })
     repeatEnd: Date;
 
     @Column({ default: 0 }) // 전체에서의 순서
     todoOrder: number;
+
+    @Column({ default: 0 }) // 전체에서의 순서
+    todayTodoOrder: number;
 
     @Column({ default: -1 })
     nextSubTodoOrder: number;
@@ -100,4 +92,6 @@ export class Todo extends BaseEntity {
     @OneToMany(() => Alarm, (alarm) => alarm.todo)
     alarms: BaseAlarm[] | string[];
 
+    @OneToOne( () => TodoRepeat, (todorepeat) => todorepeat.todo)
+    todoRepeat : TodoRepeat
 }
