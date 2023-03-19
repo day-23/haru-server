@@ -73,6 +73,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 1')
@@ -98,6 +99,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('tagwithtodo.id is not null')
@@ -121,6 +123,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('tagwithtodo.id is null')
@@ -145,6 +148,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.completed = 1')
@@ -174,6 +178,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.end_date IS NOT NULL')
@@ -191,7 +196,6 @@ export class TodoRepository {
 
         /* tag 내용 파싱 */
         const result = transformTodosAddTags(todos)
-
         return {
             data: result,
             pagination: {
@@ -212,7 +216,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepat', 'todorepeat')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .skip(skip)
@@ -251,6 +255,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.completed = 1')
@@ -300,13 +305,10 @@ export class TodoRepository {
                 todo.memo as "todo_memo",
                 todo.today_todo as "todo_todayTodo",
                 todo.flag as "todo_flag",
-                todo.repeat_option as "todo_repeatOption",
-                todo.repeat_week as "todo_repeatWeek",
-                todo.repeat_month as "todo_repeatMonth",
-                todo.repeat_year as "todo_repeatYear",
-                todo.repeat_end as "todo_repeatEnd",
+                todo_repeat.repeat_option as "todo_repeatOption",
+                todo_repeat.repeat_value as "todo_repeatValue",
+                todo.is_selected_end_date_time as "todo_isSelectedEndDateTime",
                 todo.end_date as "todo_endDate",
-                todo.end_date_time as "todo_endDateTime",
                 todo.completed as "todo_completed",
                 todo.created_At as "todo_created_At",
                 todo.updated_At as "todo_updated_At",
@@ -325,7 +327,8 @@ export class TodoRepository {
             LEFT JOIN tag ON twt.tag_id = tag.id
             LEFT JOIN alarm ON dt.id = alarm.todo_id
             LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
-            WHERE todo.completed = 1
+            LEFT JOIN todo_repeat ON dt.id = todo_repeat.todo_id
+            WHERE todo.completed = 0
             ORDER BY twt.todo_order ASC, subTodo_order ASC
         `, [tagId, userId, LIMIT]),
             this.entityManager.query(`
@@ -343,13 +346,10 @@ export class TodoRepository {
                 todo.memo as "todo_memo",
                 todo.today_todo as "todo_todayTodo",
                 todo.flag as "todo_flag",
-                todo.repeat_option as "todo_repeatOption",
-                todo.repeat_week as "todo_repeatWeek",
-                todo.repeat_month as "todo_repeatMonth",
-                todo.repeat_year as "todo_repeatYear",
-                todo.repeat_end as "todo_repeatEnd",
+                todo_repeat.repeat_option as "todo_repeatOption",
+                todo_repeat.repeat_value as "todo_repeatValue",
+                todo.is_selected_end_date_time as "todo_isSelectedEndDateTime",
                 todo.end_date as "todo_endDate",
-                todo.end_date_time as "todo_endDateTime",
                 todo.completed as "todo_completed",
                 todo.created_At as "todo_created_At",
                 todo.updated_At as "todo_updated_At",
@@ -368,7 +368,8 @@ export class TodoRepository {
             LEFT JOIN tag ON twt.tag_id = tag.id
             LEFT JOIN alarm ON dt.id = alarm.todo_id
             LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
-            WHERE todo.completed = 0
+            LEFT JOIN todo_repeat ON dt.id = todo_repeat.todo_id
+            WHERE todo.completed = 1
             ORDER BY twt.todo_order ASC, subTodo_order ASC
         `, [tagId, userId, LIMIT])
         ])
@@ -387,8 +388,8 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
-            .leftJoinAndSelect('todo.todoRepat', 'todorepeat')
             .where('todo.user = :userId', { userId })
             .andWhere('(LOWER(todo.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .andWhere('todo.completed = 0')

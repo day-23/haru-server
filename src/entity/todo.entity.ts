@@ -93,5 +93,5 @@ export class Todo extends BaseEntity {
     alarms: BaseAlarm[] | string[];
 
     @OneToOne( () => TodoRepeat, (todorepeat) => todorepeat.todo)
-    todoRepat : TodoRepeat | string
+    todoRepeat : TodoRepeat
 }
