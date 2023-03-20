@@ -167,34 +167,6 @@ export class TodosController {
         return await this.todoService.createTodo(userId, createTodoDto)
     }
 
-    @Post(':todoId/alarm')
-    @ApiOperation({ summary: '이미 생성된 투두에 알람을 추가하는 API', description: '투두에 알람을 추가한다.' })
-    @ApiCreatedResponse({
-        description: '이미 생성되어있는 투두에 알람을 추가한다.'
-    })
-    async addAlarmToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string,
-        @Body() createAlarmByTimeDto: CreateAlarmByTimeDto) {
-        return await this.todoService.createAlarmToTodo(userId, todoId, createAlarmByTimeDto)
-    }
-
-    @Post(':todoId/tag')
-    @ApiOperation({ summary: '이미 생성된 투두에 태그를 추가하는 API ', description: '투두에 태그를 추가한다.' })
-    @ApiCreatedResponse({
-        description: '이미 생성되어있는 투두에 태그를 추가한다.'
-    })
-    async addTagToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string, @Body() createTagDto: CreateTagDto) {
-        return await this.todoService.createTagToTodo(userId, todoId, createTagDto)
-    }
-
-    @Post(':todoId/subtodo')
-    @ApiOperation({ summary: '이미 생성된 투두에 하위항목을 추가하는 API', description: '투두에 하위항목을 추가한다.' })
-    @ApiCreatedResponse({
-        description: '이미 생성되어있는 투두에 하위항목을 추가한다.'
-    })
-    async addSubTodoToTodo(@Param('userId') userId: string, @Param('todoId') todoId: string, @Body() createSubTodoDto: CreateSubTodoDto) {
-        return await this.todoService.createSubTodoToTodo(userId, todoId, createSubTodoDto)
-    }
-
     @Put(':todoId')
     @ApiOperation({ summary: '투두 본체 내용 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
@@ -205,38 +177,6 @@ export class TodosController {
         @Body() todo: CreateTodoDto): Promise<TodoResponse> {
         return this.todoService.updateTodo(userId, todoId, todo);
     }
-
-    @Delete(':todoId')
-    @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
-    @ApiCreatedResponse({
-        description: '투두를 삭제한다.'
-    })
-    async delete(@Param('userId') userId: string,
-        @Param('todoId') todoId: string): Promise<void> {
-        return this.todoService.deleteTodo(userId, todoId);
-    }
-
-
-    @Delete(':todoId/tag/:tagId')
-    @ApiOperation({ summary: '투두의 태그를 삭제하는 API', description: '투두의 태그를 삭제한다.' })
-    @ApiCreatedResponse({
-        description: '투두를 삭제한다.'
-    })
-    async deleteTagOfTodo(@Param('userId') userId: string,
-        @Param('todoId') todoId: string, @Param('tagId') tagId: string): Promise<void> {
-        return this.todoService.deleteTagOfTodo(userId, todoId, tagId);
-    }
-
-    @Delete(':todoId/subtodo/:subTodoId')
-    @ApiOperation({ summary: '투두의 서브 투두를 삭제하는 API -단일 투두에 대한 서브투두 지우기는 구현함, 반복된 서브투두에 대해 추가구현 필요', description: '투두의 서브 투두를 삭제한다.' })
-    @ApiCreatedResponse({
-        description: '투두의 태그를 삭제한다.'
-    })
-    async deleteSubTodoOfTodo(@Param('userId') userId: string,
-        @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
-        return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);
-    }
-
 
     @Patch('order/todos')
     @ApiOperation({ summary: '투두 메인화면 정렬 API', description: '메인 화면에서 드래그앤드랍시 투두를 정렬한다.' })
@@ -293,23 +233,24 @@ export class TodosController {
     }
 
     @Patch('complete/subtodo/:subTodoId')
-    @ApiOperation({ summary: '미반복 서브 투두 완료 API', description: '서브 투두를 완료한다' })
+    @ApiOperation({ summary: '서브 투두 완료 API', description: '서브 투두를 완료한다' })
     async completeSubTodo(@Param('userId') userId: string, @Param('subTodoId') subTodoId: string, @Body() notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) {
         return this.todoService.updateSubTodo(userId, subTodoId, notRepeatTodoCompleteDto)
     }
 
-    
     @Patch('complete/todo/:todoId/repeat')
     @ApiOperation({summary: '반복 투두 완료 API - 구현중', description: '투두를 완료한다'})
     async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
         
     }
 
-    @Patch('complete/todo/:todoId/repeat')
-    @ApiOperation({summary: '반복 서브 투두 완료 API - 구현중', description: '투두를 완료한다'})
-    async completeRepeatSubTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
-        
+    @Delete(':todoId')
+    @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '투두를 삭제한다.'
+    })
+    async delete(@Param('userId') userId: string,
+        @Param('todoId') todoId: string): Promise<void> {
+        return this.todoService.deleteTodo(userId, todoId);
     }
-
-
 }
