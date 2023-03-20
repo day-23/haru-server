@@ -10,4 +10,4 @@ RUN npm run build
 ENV HOST 0.0.0.0
 EXPOSE 8080
 
-CMD ["pm2", "dist/main.js"]
+CMD ["node", "dist/main.js"]
