@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -91,7 +91,18 @@ export class TodosService {
 
     async deleteSubTodoOfTodo(userId: string,
         todoId: string, subTodoId: string): Promise<void> {
-        return this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
+        return await this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
+    }
+
+    async updateTodoFlag(userId: string,todoId: string, updateTodoDto: UpdateTodoDto) {
+        const { flag } = updateTodoDto
+        if(flag === null){
+            throw new HttpException(
+                'flag must be a boolean value',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+        return await this.todoRepository.updateTodo(userId, todoId, {flag})
     }
 
     /* 드래그앤드랍 오더링 */

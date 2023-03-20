@@ -178,6 +178,18 @@ export class TodosController {
         return this.todoService.updateTodo(userId, todoId, todo);
     }
 
+
+    @Patch('flag/:todoId')
+    @ApiOperation({ summary: '투두 flag 업데이트', description: '투두의 flag만 변경한다.' })
+    async updateTodoFlag(
+        @Param('userId') userId: string,
+        @Param('todoId') todoId: string,
+        @Body() updateTodoDto: UpdateTodoDto
+    ) {
+        return this.todoService.updateTodoFlag(userId, todoId, updateTodoDto)
+    }
+
+
     @Patch('order/todos')
     @ApiOperation({ summary: '투두 메인화면 정렬 API', description: '메인 화면에서 드래그앤드랍시 투두를 정렬한다.' })
     async orderTodos(

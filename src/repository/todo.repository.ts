@@ -759,6 +759,36 @@ export class TodoRepository {
 
     }
 
+    /* todo 컬럼에 속한 내용만 변경하는 함수 */
+    async updateTodo(userId: string,todoId: string, updateTodoDto: UpdateTodoDto) {
+        const existingTodo = await this.repository.findOne({ where: { id: todoId } });
+
+        if (!existingTodo) {
+            throw new HttpException(
+                'Todo not found',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+
+        try {
+            const updatedTodo = new Todo({
+                ...existingTodo,
+                ...updateTodoDto,
+            });
+            await this.repository.save(updatedTodo);
+        } catch (error) {
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
+
+
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         const { todoIds } = updateTodosOrderDto
