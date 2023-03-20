@@ -225,7 +225,7 @@ export class TodosController {
         return this.todoService.updateSubTodo(userId, subTodoId ,updateSubTodoDto)
     }
 
-
+    /* 투두 완료 */
     @Patch('complete/todo/:todoId')
     @ApiOperation({summary: '미반복 투두 완료 API', description: '투두를 완료한다, 하위항목도 모두 완료/취소 처리'})
     async completeTodo(@Param('userId') userId : string, @Param('todoId') todoId : string, @Body() notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void>{
@@ -233,7 +233,7 @@ export class TodosController {
     }
 
     @Patch('complete/subtodo/:subTodoId')
-    @ApiOperation({ summary: '서브 투두 완료 API', description: '서브 투두를 완료한다' })
+    @ApiOperation({ summary: '서브 투두 완료 API(서브투두는 반복 구분 안해도됨)', description: '서브 투두를 완료한다' })
     async completeSubTodo(@Param('userId') userId: string, @Param('subTodoId') subTodoId: string, @Body() notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) {
         return this.todoService.updateSubTodo(userId, subTodoId, notRepeatTodoCompleteDto)
     }
@@ -241,7 +241,7 @@ export class TodosController {
     @Patch('complete/todo/:todoId/repeat')
     @ApiOperation({summary: '반복 투두 완료 API - 구현중', description: '투두를 완료한다'})
     async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
-        
+        return this.todoService.updateRepeatTodoToComplete(userId, todoId, completeRepeatTodoDto)
     }
 
     @Delete(':todoId')
