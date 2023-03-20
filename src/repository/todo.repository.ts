@@ -882,6 +882,22 @@ export class TodoRepository {
         }
     }
 
+    /* 투두에서 서브 투두를 지우는 함수 */
+    async deleteSubTodoOfTodo(userId: string,
+        todoId: string, subTodoId: string): Promise<void> {
+        const result = await this.subTodoRepository.delete({
+            id: subTodoId,
+            user: { id: userId },
+        })
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No subTodo with ID ${subTodoId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
+    }
+
     /* 반복된 투두 완료 처리 */
     async updateRepeatTodoToComplete(userId : string, todoId : string, createTodoDto : CreateTodoDto){
         
