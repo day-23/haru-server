@@ -253,4 +253,15 @@ export class TodosController {
         @Param('todoId') todoId: string): Promise<void> {
         return this.todoService.deleteTodo(userId, todoId);
     }
+
+    @Delete(':todoId/subtodo/:subTodoId')
+    @ApiOperation({ summary: '투두의 서브 투두를 삭제하는 API', description: '투두의 서브 투두를 삭제한다.' })
+    @ApiCreatedResponse({
+        description: '투두의 서브 투두를 삭제한다.'
+    })
+    async deleteSubTodoOfTodo(@Param('userId') userId: string,
+        @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
+        return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);
+    }
+
 }
