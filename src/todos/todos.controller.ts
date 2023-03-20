@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
@@ -195,14 +195,14 @@ export class TodosController {
         return await this.todoService.createSubTodoToTodo(userId, todoId, createSubTodoDto)
     }
 
-    @Patch(':todoId')
+    @Put(':todoId')
     @ApiOperation({ summary: '투두 본체 내용 수정 API', description: '투두를 수정한다.' })
     @ApiCreatedResponse({
         description: '투두를 수정한다.'
     })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() todo: UpdateTodoDto): Promise<Todo> {
+        @Body() todo: CreateTodoDto): Promise<TodoResponse> {
         return this.todoService.updateTodo(userId, todoId, todo);
     }
 

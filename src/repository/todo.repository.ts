@@ -85,6 +85,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
@@ -111,6 +112,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
@@ -135,6 +137,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
@@ -159,6 +162,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
@@ -169,7 +173,7 @@ export class TodoRepository {
     }
 
     /* 오늘의 할일 */
-    async getTodayTodos(userId: string, date : TodayTodoDto): Promise<GetTodayTodosResponse> {
+    async getTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse> {
         const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
 
         const todayTodos = await this.repository.createQueryBuilder('todo')
@@ -187,6 +191,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todayTodoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
@@ -200,20 +205,21 @@ export class TodoRepository {
             .where('todo.user = :userId', { userId })
             .andWhere('todo.todayTodo = 0')
             .andWhere('todo.completed = 0')
-            .andWhere('todo.endDate <= :endDate', { endDate: endDate.toISOString()})
+            .andWhere('todo.endDate <= :endDate', { endDate: endDate.toISOString() })
             .take(LIMIT_DATA_LENGTH)
             .select(this.todoProperties)
             .addSelect(this.subTodoProperties)
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.endDate', 'DESC')
             .getMany()
 
         return {
             data: {
-                todayTodos : transformTodosAddTags(todayTodos),
-                endDatedTodos : transformTodosAddTags(endDatedTodos)
+                todayTodos: transformTodosAddTags(todayTodos),
+                endDatedTodos: transformTodosAddTags(endDatedTodos)
             }
         }
     }
@@ -238,6 +244,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.end_date', 'ASC')
             .addOrderBy('todo.repeat_end', 'DESC')
             .addOrderBy('todo.created_at', 'ASC')
@@ -315,6 +322,7 @@ export class TodoRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.tagWithTodoProperties)
             .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getManyAndCount();
@@ -473,7 +481,7 @@ export class TodoRepository {
                 ...todo,
                 user: userId,
                 todoOrder: nextTodoOrder + 1,
-                todayTodoOrder : nextTodoOrder + 1
+                todayTodoOrder: nextTodoOrder + 1
             });
 
             const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
@@ -497,7 +505,7 @@ export class TodoRepository {
 
             if (todo.repeatOption) {
                 const newTodoRepeat = {
-                    todo : savedTodo.id,
+                    todo: savedTodo.id,
                     repeatOption: todo.repeatOption,
                     repeatValue: todo.repeatValue
                 };
@@ -512,7 +520,7 @@ export class TodoRepository {
 
             let repeatOption = null
             let repeatValue = null
-            if(savedTodoRepeat){
+            if (savedTodoRepeat) {
                 repeatOption = savedTodoRepeat.repeatOption
                 repeatValue = savedTodoRepeat.repeatValue
             }
@@ -538,7 +546,7 @@ export class TodoRepository {
 
             await queryRunner.commitTransaction();
 
-            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms, repeatOption, repeatValue};
+            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms, repeatOption, repeatValue };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -553,8 +561,11 @@ export class TodoRepository {
         }
     }
 
-    async update(userId: string, todoId: string, todo: UpdateTodoDto): Promise<Todo> {
-        const existingTodo = await this.repository.findOne({ where: { id: todoId } });
+    async update(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
+        const existingTodo = await this.repository.findOne({
+            where: { id: todoId },
+            relations: ["user", "tagWithTodos", "subTodos", "alarms", "todoRepeat"]
+        });
 
         if (!existingTodo) {
             throw new HttpException(
@@ -563,20 +574,117 @@ export class TodoRepository {
             );
         }
 
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
-            const updatedTodo = new Todo({
-                ...existingTodo,
-                ...todo,
+
+            /* 투두 데이터 저장 */
+            const { user, deletedAt, ...savedTodo } = await queryRunner.manager.save(Todo, {
+                id: existingTodo.id,
+                user: existingTodo.user,
+                content: todo.content,
+                memo: todo.memo,
+                flag: todo.flag,
+                todayTodo: todo.todayTodo,
+                repeatEnd: todo.repeatEnd,
+                endDate: todo.repeatEnd,
+                isSelectedEndDateTime: todo.isSelectedEndDateTime,
+                todoOrder: existingTodo.todoOrder,
+                nextSubTodoOrder: existingTodo.nextSubTodoOrder,
+                completed: existingTodo.completed,
+                todayTodoOrder: existingTodo.todayTodoOrder
             });
-            return this.repository.save(updatedTodo);
+
+            const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
+                todo: savedTodo.id,
+                user: userId,
+                content: subTodo,
+                subTodoOrder,
+            }));
+
+            const newAlarms = todo.alarms.map((alarm) => ({
+                user: userId,
+                todo: savedTodo.id,
+                time: alarm,
+            }));
+
+            // Filter out the deleted subTodos
+            const deletedSubTodoIds = existingTodo.subTodos.map(subTodo => subTodo.id)
+            const deletedAlarmsIds = existingTodo.alarms.map(alarm => alarm.id)
+            const deletedTagWithTodoIds = existingTodo.tagWithTodos.map(tagWithTodo => tagWithTodo.id)
+
+            const promises: Promise<any>[] = [
+                queryRunner.manager.save(SubTodo, newSubTodos),
+                this.tagsService.createTags(userId, { contents: todo.tags }),
+                queryRunner.manager.save(Alarm, newAlarms),
+            ];
+
+            if (todo.repeatOption) {
+                const newTodoRepeat = {
+                    id: null,
+                    todo: savedTodo.id,
+                    repeatOption: todo.repeatOption,
+                    repeatValue: todo.repeatValue
+                };
+                if (existingTodo.todoRepeat) {
+                    newTodoRepeat.id = existingTodo.todoRepeat.id
+                }
+                promises.push(queryRunner.manager.save(TodoRepeat, newTodoRepeat))
+            } else {
+                promises.push(queryRunner.manager.delete(TodoRepeat, { todo: existingTodo.id }))
+            }
+
+            promises.push(queryRunner.manager.delete(SubTodo, { id: In(deletedSubTodoIds) }),
+                queryRunner.manager.delete(Alarm, { id: In(deletedAlarmsIds) }),
+                queryRunner.manager.delete(TagWithTodo, { id: In(deletedTagWithTodoIds) }))
+
+            const [savedSubTodos, savedTags, savedAlarms, savedTodoRepeat] = await Promise.all(promises);
+            const retSubTodos = savedSubTodos.map(({ id, content, subTodoOrder }) => ({ id, content, subTodoOrder, completed: false }));
+            const retTags = savedTags.map(({ id, content }) => ({ id, content }));
+            const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
+
+            let repeatOption = null
+            let repeatValue = null
+            if (savedTodoRepeat) {
+                repeatOption = savedTodoRepeat.repeatOption
+                repeatValue = savedTodoRepeat.repeatValue
+            }
+
+            /* 사용자에 대한 태그와 투두의 정보 저장 */
+            const tagWithTodos = savedTags.map(({ id: tag, nextTagWithTodoOrder }) => ({
+                todo: savedTodo.id,
+                tag,
+                user: userId,
+                todoOrder: nextTagWithTodoOrder
+            }));
+
+            await Promise.all([
+                ...savedTags.map((tag) =>
+                    queryRunner.manager.update(
+                        Tag,
+                        { id: tag.id },
+                        { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
+                    ),
+                ),
+                queryRunner.manager.save(TagWithTodo, tagWithTodos),
+            ]);
+
+            await queryRunner.commitTransaction();
+
+            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms, repeatOption, repeatValue };
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             throw new HttpException(
                 {
                     message: 'SQL error',
                     error: error.sqlMessage,
                 },
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                HttpStatus.FORBIDDEN,
             );
+        } finally {
+            await queryRunner.release();
         }
     }
 

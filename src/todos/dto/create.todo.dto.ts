@@ -50,11 +50,6 @@ export class CreateTodoDto {
     @IsOptional() /* nullable */
     repeatValue: string;
 
-    @ApiProperty({description:'반복 시작', nullable : true})
-    @IsOptional()
-    @Transform(({ value }) => value ? new Date(value) : null)
-    repeatStart : Date;
-
     @ApiProperty({description:'반복 끝', nullable : true})
     @IsOptional()
     @Transform(({ value }) => value ? new Date(value) : null)

@@ -70,7 +70,7 @@ export class TodosService {
         return await this.todoRepository.create(userId, todo);
     }
 
-    async updateTodo(userId: string, todoId: string, todo: UpdateTodoDto): Promise<Todo> {
+    async updateTodo(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
         return await this.todoRepository.update(userId, todoId, todo);
     }
 
