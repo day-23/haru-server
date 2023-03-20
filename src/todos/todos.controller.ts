@@ -286,7 +286,6 @@ export class TodosController {
     }
 
 
-
     @Patch('complete/todo/:todoId')
     @ApiOperation({summary: '미반복 투두 완료 API', description: '투두를 완료한다, 하위항목도 모두 완료/취소 처리'})
     async completeTodo(@Param('userId') userId : string, @Param('todoId') todoId : string, @Body() notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void>{

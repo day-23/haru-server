@@ -104,6 +104,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
+            .andWhere('todo.flag = 0')
             .andWhere('tagwithtodo.id is not null')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
@@ -129,6 +130,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
+            .andWhere('todo.flag = 0')
             .andWhere('tagwithtodo.id is null')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
@@ -176,6 +178,28 @@ export class TodoRepository {
     async getTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse> {
         const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
 
+        const flaggedTodos = await this.repository.createQueryBuilder('todo')
+            .leftJoinAndSelect('todo.subTodos', 'subtodo')
+            .leftJoinAndSelect('todo.alarms', 'alarm')
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where('todo.user = :userId', { userId })
+            .andWhere('todo.flag = 1')
+            .andWhere('(todo.todayTodo = 1 OR todo.endDate <= :endDate)', { endDate: endDate.toISOString() })
+            .andWhere('todo.completed = 0')
+            .take(LIMIT_DATA_LENGTH)
+            .select(this.todayTodoProperties)
+            .addSelect(this.subTodoProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.tagWithTodoProperties)
+            .addSelect(this.tagProperties)
+            .addSelect(this.todoRepeatProperties)
+            .orderBy('todo.todayTodoOrder', 'ASC')
+            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .getMany()
+
+
         const todayTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -183,6 +207,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
+            .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 1')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
@@ -203,6 +228,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
+            .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 0')
             .andWhere('todo.completed = 0')
             .andWhere('todo.endDate <= :endDate', { endDate: endDate.toISOString() })
@@ -218,6 +244,7 @@ export class TodoRepository {
 
         return {
             data: {
+                flaggedTodos : transformTodosAddTags(flaggedTodos),
                 todayTodos: transformTodosAddTags(todayTodos),
                 endDatedTodos: transformTodosAddTags(endDatedTodos)
             }
@@ -561,6 +588,7 @@ export class TodoRepository {
         }
     }
 
+    
     async update(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
         const existingTodo = await this.repository.findOne({
             where: { id: todoId },
