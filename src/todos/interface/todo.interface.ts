@@ -43,6 +43,7 @@ export interface GetTodosPaginationResponse {
 
 export interface GetTodayTodosResponse {
     data: {
+        flaggedTodos : TodoResponse[]
         todayTodos: TodoResponse[]
         endDatedTodos: TodoResponse[]
     },
