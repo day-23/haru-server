@@ -131,7 +131,7 @@ export class TodoRepository {
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
-            .andWhere('tagwithtodo.id is null')
+            .andWhere('(todo.id NOT IN (select distinct(todo_id) from tag_with_todo where tag_with_todo.user_id = :userId))', { userId })
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
             .select(this.todoProperties)
@@ -244,7 +244,7 @@ export class TodoRepository {
 
         return {
             data: {
-                flaggedTodos : transformTodosAddTags(flaggedTodos),
+                flaggedTodos: transformTodosAddTags(flaggedTodos),
                 todayTodos: transformTodosAddTags(todayTodos),
                 endDatedTodos: transformTodosAddTags(endDatedTodos)
             }
@@ -588,7 +588,7 @@ export class TodoRepository {
         }
     }
 
-    
+
     async update(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
         const existingTodo = await this.repository.findOne({
             where: { id: todoId },
@@ -899,9 +899,9 @@ export class TodoRepository {
     }
 
     /* 반복된 투두 완료 처리 */
-    async updateRepeatTodoToComplete(userId : string, todoId : string, createTodoDto : CreateTodoDto){
-        
-        const {endDate} = createTodoDto
+    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto) {
+
+        const { endDate } = createTodoDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();

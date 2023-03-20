@@ -94,7 +94,6 @@ export class TodosService {
         return this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
 
-
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         return this.todoRepository.updateTodosOrder(userId, updateTodosOrderDto)
