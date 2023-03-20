@@ -6,7 +6,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Todo } from 'src/entity/todo.entity';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
-import { completeRepeatTodoDto, NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
+import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -227,7 +227,7 @@ export class TodosController {
 
     /* 투두 완료 */
     @Patch('complete/todo/:todoId')
-    @ApiOperation({summary: '미반복 투두 완료 API', description: '투두를 완료한다, 하위항목도 모두 완료/취소 처리'})
+    @ApiOperation({summary: '미반복 투두 완료/완료 취소 API', description: '투두를 완료한다, 하위항목도 모두 완료/취소 처리'})
     async completeTodo(@Param('userId') userId : string, @Param('todoId') todoId : string, @Body() notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void>{
         return this.todoService.updateTodoToComplete(userId, todoId, notRepeatTodoCompleteDto)
     }
@@ -239,9 +239,9 @@ export class TodosController {
     }
 
     @Patch('complete/todo/:todoId/repeat')
-    @ApiOperation({summary: '반복 투두 완료 API - 구현중', description: '투두를 완료한다'})
-    async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() completeRepeatTodoDto : completeRepeatTodoDto){
-        return this.todoService.updateRepeatTodoToComplete(userId, todoId, completeRepeatTodoDto)
+    @ApiOperation({summary: '반복 투두 완료 API', description: '투두를 완료한다'})
+    async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId, @Body() createTodoDto : CreateTodoDto){
+        return this.todoService.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
     }
 
     @Delete(':todoId')

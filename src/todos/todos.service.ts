@@ -5,7 +5,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/repository/todo.repository';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
-import { completeRepeatTodoDto, NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
+import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -77,8 +77,8 @@ export class TodosService {
         return this.todoRepository.updateTodoToComplete(userId, todoId, notRepeatTodoCompleteDto)
     }
 
-    async updateRepeatTodoToComplete(userId : string, todoId : string, completeRepeatTodoDto : completeRepeatTodoDto){
-        return this.todoRepository.updateRepeatTodoToComplete(userId, todoId, completeRepeatTodoDto)
+    async updateRepeatTodoToComplete(userId : string, todoId : string, createTodoDto : CreateTodoDto){
+        return this.todoRepository.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
     }
 
     async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto) {

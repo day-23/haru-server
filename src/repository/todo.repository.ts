@@ -758,7 +758,7 @@ export class TodoRepository {
         }
 
     }
-    
+
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
         const { todoIds } = updateTodosOrderDto
@@ -872,6 +872,34 @@ export class TodoRepository {
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
+    }
+
+    /* 반복된 투두 완료 처리 */
+    async updateRepeatTodoToComplete(userId : string, todoId : string, createTodoDto : CreateTodoDto){
+        
+        const {endDate} = createTodoDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises: Promise<any>[] = [queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
+            queryRunner.manager.update(SubTodo, { todo: todoId }, { completed: true })]
+            if (endDate) {
+                promises.push(this.create(userId, createTodoDto))
+            }
+            const [updateTodo, updateSubTodo, createNewTodo] = await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+            return createNewTodo
         } catch (err) {
             // Rollback transaction on error
             await queryRunner.rollbackTransaction();
