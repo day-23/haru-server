@@ -23,6 +23,9 @@ export class Category extends BaseEntity {
     @Column({ nullable: true })
     categoryOrder: number;
 
+    @Column({ default : true})
+    isSelected : boolean
+
     @CreateDateColumn()
     createdAt: Date;
 

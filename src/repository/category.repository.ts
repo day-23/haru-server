@@ -1,6 +1,7 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
+import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
 import { In, Repository } from "typeorm";
 
@@ -52,9 +53,9 @@ export class CategoryRepository {
         return [...createdCategories, ...existingCategories];
     }
 
-    async findAllCategoriesByUserId(userId: string): Promise<Category[]> {
+    async findAllCategoriesByUserId(userId: string): Promise<BaseCategory[]> {
         return await this.repository.createQueryBuilder('category')
-            .select(['category.id', 'category.content', 'category.user', 'category.color'])
+            .select(['category.id', 'category.content', 'category.user', 'category.color', 'category.categoryOrder', 'category.isSelected'])
             .where('category.user.id = :userId', { userId })
             .getMany()
     }

@@ -51,7 +51,7 @@ export class TagRepository {
 
     async findAllTagsByUserId(userId: string): Promise<Tag[]> {
         return await this.repository.createQueryBuilder('tag')
-            .select(['tag.id', 'tag.content', 'tag.user'])
+            .select(['tag.id', 'tag.content', 'tag.user', 'tag.tagOrder', 'tag.isSelected'])
             .where('tag.user.id = :userId', { userId })
             .getMany()
     }

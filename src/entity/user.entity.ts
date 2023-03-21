@@ -64,6 +64,12 @@ export class User extends BaseEntity {
     @Column({ default: -1 })
     nextTodoOrder: number
 
+    @Column({ default: -1 })
+    nextTagOrder: number
+
+    @Column({ default: -1 })
+    nextCategoryOrder: number
+
     @CreateDateColumn()
     createdAt: Date;
 

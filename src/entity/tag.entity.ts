@@ -23,6 +23,9 @@ export class Tag extends BaseEntity {
     @Column({ nullable: true })
     tagOrder: number;
 
+    @Column({ default : true})
+    isSelected : boolean
+
     @Column({ default: -1 })
     nextTagWithTodoOrder: number;
 
