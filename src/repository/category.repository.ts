@@ -137,6 +137,8 @@ export class CategoryRepository {
         }
     }
 
+
+    /* 전체 카테고리 수정 */
     async updateCategoriesOrder(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
         const { categoryIds } = updateCategoriesOrderDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();

@@ -17,6 +17,12 @@ export class CreateTagsDto {
     contents: string[];
 }
 
+export class UpdateTagsOrderDto{
+    @ApiProperty({ example: "['TagId1', 'TagId2', 'TagId3',]", description: 'Tag 순서 수정을 위한 TagId 리스트' })
+    @IsString({ each: true })
+    tagIds: string[];
+}
+
 /* tag 단일 업데이트 DTO */
 export class UpdateTagDto extends PartialType(CreateTagDto) { }
 
