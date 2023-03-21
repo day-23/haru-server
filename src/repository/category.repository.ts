@@ -59,7 +59,7 @@ export class CategoryRepository {
 
     //Category
     /* 카테고리를 한번에 여러개 생성하는 코드 */
-    async saveCategories(userId: string, createCategoriesDto: CreateCategoriesDto) {
+    async createCategories(userId: string, createCategoriesDto: CreateCategoriesDto) {
         const existingCategories = await this.repository.find({
             where: {
                 user: { id: userId },

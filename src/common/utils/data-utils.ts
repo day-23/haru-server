@@ -51,7 +51,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
                 flag: item.todo_flag ? true : false,
                 repeatOption: item.todo_repeatOption,
                 repeatValue: item.todo_repeatValue,
-                isSelectedEndDateTime: item.todo_isSelectedEndDateTime,
+                isSelectedEndDateTime: item.todo_isSelectedEndDateTime ? true : false,
                 endDate: item.todo_endDate,
                 repeatEnd : item.todo_repeatEnd,
                 completed : item.todo_completed ? true : false,
