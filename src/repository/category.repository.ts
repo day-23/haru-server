@@ -1,6 +1,6 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
+import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoriesOrderDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
 import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
 import { UserService } from "src/users/users.service";
@@ -134,6 +134,29 @@ export class CategoryRepository {
                 },
                 HttpStatus.FORBIDDEN,
             );
+        }
+    }
+
+    async updateCategoriesOrder(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
+        const { categoryIds } = updateCategoriesOrderDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = categoryIds.map((id, categoryOrder) =>
+                queryRunner.manager.update(Category, { id }, { categoryOrder })
+            );
+            await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
         }
     }
 
