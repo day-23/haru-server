@@ -8,6 +8,7 @@ import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/make
 import { parseRepeatFromSchedule } from "src/common/utils/data-utils";
 import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
+import { Holiday } from "src/entity/holiday.entity";
 import { ScheduleRepeat } from "src/entity/schedule-repeat.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
@@ -17,6 +18,7 @@ import { Repository } from "typeorm";
 
 export class ScheduleRepository {
     constructor(@InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
+        @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
         private readonly categoriesService: CategoriesService,
         private readonly alarmsService: AlarmsService,
     ) { }
@@ -91,6 +93,27 @@ export class ScheduleRepository {
             await queryRunner.release();
         }
     }
+
+    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
+        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
+
+        const [holidays, count] = await this.holidayRepository.createQueryBuilder('holiday')
+            .andWhere('(holiday.date >= :startDate AND holiday.date < :endDate)')
+            .setParameters({ startDate, endDate })
+            .select(['holiday.date', 'holiday.name'])
+            .getManyAndCount()
+
+        return {
+            data: holidays,
+            pagination: {
+                totalItems: count,
+                startDate,
+                endDate
+            },
+        };
+    }
+
 
     /* 스케줄 데이터 불러오기 */
     /* order : 1.repeat_start, 2.repeat_end, 3.created_at */
