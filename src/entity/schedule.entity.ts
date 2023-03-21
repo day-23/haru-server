@@ -56,7 +56,7 @@ export class Schedule extends BaseEntity {
     user: User | string;
 
     /* 스케줄 : 카테고리 = N:1 */
-    @ManyToOne(() => Category, (category) => category.schedules)
+    @ManyToOne(() => Category, (category) => category.schedules, {onDelete : "SET NULL"})
     @JoinColumn({ name: 'category_id' })
     category: Category | string;
 
