@@ -36,8 +36,8 @@ export class TodosService {
         return await this.todoRepository.getCompletedTodosForMain(userId);
     }
 
-    async getAllTodos(): Promise<Todo[]> {
-        return await this.todoRepository.findAll()
+    async getAllTodos(userId: string, todayTodoDto: TodayTodoDto){
+        return await this.todoRepository.findTodosAll(userId, todayTodoDto)
     }
 
     async getTodosByDate(userId: string, datePaginationDto: DatePaginationDto) {

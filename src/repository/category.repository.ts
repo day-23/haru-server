@@ -99,13 +99,13 @@ export class CategoryRepository {
         return existingCategory
     }
 
-    /*  */
+    /* 단일 카테고리 수정 */
     async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<BaseCategory> {
         const promises = [this.findCategoryByUserAndCategoryId(userId, categoryId)]
 
-        const {content} = updateCategoryDto
-        if(content){
-            promises.push(this.repository.findOne({where: {content}}))
+        const { content } = updateCategoryDto
+        if (content) {
+            promises.push(this.repository.findOne({ where: { content } }))
         }
 
         const [existingCategory, alreadyExistContent] = await Promise.all(promises)
