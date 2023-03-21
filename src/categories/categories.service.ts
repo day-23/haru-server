@@ -17,7 +17,7 @@ export class CategoriesService {
     }
     
     async createCategories(userId: string, createTagDto: CreateCategoriesDto) {
-        return await this.categoryRepository.saveCategories(userId, createTagDto)
+        return await this.categoryRepository.createCategories(userId, createTagDto)
     }
     
     async getCategoriesByUserId(userId: string): Promise<BaseCategory[]>  {
