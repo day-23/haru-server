@@ -2,6 +2,7 @@ import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from "src/tags/dto/create.tag.dto";
+import { BaseTag } from "src/tags/interface/tag.interface";
 import { In, Repository } from "typeorm";
 
 
@@ -49,9 +50,9 @@ export class TagRepository {
         return [...createdTags, ...existingTags];
     }
 
-    async findAllTagsByUserId(userId: string): Promise<Tag[]> {
+    async findAllTagsByUserId(userId: string): Promise<BaseTag[]> {
         return await this.repository.createQueryBuilder('tag')
-            .select(['tag.id', 'tag.content', 'tag.user'])
+            .select(['tag.id', 'tag.content', 'tag.user', 'tag.tagOrder', 'tag.isSelected'])
             .where('tag.user.id = :userId', { userId })
             .getMany()
     }

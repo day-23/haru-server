@@ -10,13 +10,15 @@ import { User } from 'src/entity/user.entity';
 import { AlarmRepository } from 'src/repository/alarm.repository';
 import { CategoryRepository } from 'src/repository/category.repository';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { UserRepository } from 'src/repository/user.repository';
+import { UserService } from 'src/users/users.service';
 import { ScheduleController } from './schedules.controller';
 import { ScheduleService } from './schedules.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([User, SubTodo, Category, Alarm, Schedule])],
     controllers: [ScheduleController],
-    providers: [ScheduleService, ScheduleRepository, CategoriesService, CategoryRepository, AlarmsService, AlarmRepository]
+    providers: [ScheduleService, ScheduleRepository, CategoriesService, CategoryRepository, AlarmsService, AlarmRepository, UserRepository, UserService]
 
 })
 export class SchedulesModule { }

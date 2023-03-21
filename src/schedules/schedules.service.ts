@@ -23,7 +23,7 @@ export class ScheduleService {
     }
 
     async getSchedulesBySearch(userId: string, content: string) {
-        return await this.scheduleRepository.getSchedulesBySearch(userId, content)
+        return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     }
 
     async updateSchedule(userId: string, scheduleId: string, schedule: UpdateScheduleDto): Promise<Schedule> {

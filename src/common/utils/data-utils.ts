@@ -1,4 +1,6 @@
 import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
+import { Schedule } from "src/entity/schedule.entity";
+import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { TodoResponse } from "src/todos/interface/todo.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
@@ -129,3 +131,13 @@ export function transformTodosAddTags(todos) {
     }));
 }
   
+export function parseRepeatFromSchedule(schedules){
+    const ret = schedules.map(({scheduleRepeat, ...schedule}) => {
+        return {
+            ...schedule,
+            repeatOption : scheduleRepeat?.repeatOption ?? null,
+            repeatValue : scheduleRepeat?.repeatValue ?? null,
+        }
+    })
+    return ret;
+}

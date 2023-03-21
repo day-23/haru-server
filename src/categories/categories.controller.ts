@@ -3,6 +3,7 @@ import { ApiBody, ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swag
 import { Category } from 'src/entity/category.entity';
 import { CategoriesService } from './categories.service';
 import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from './dto/create.category.dto';
+import { BaseCategory } from './interface/category.interface';
 
 @ApiTags('Category API')
 @Controller('category/:userId')
@@ -32,7 +33,7 @@ export class CategoriesController {
     
     @Get('categories')
     @ApiOperation({ summary: '사용자의 모든 카테고리 조회 API' })
-    async getTagsByUserId(@Param('userId') userId: string): Promise<Category[]>  {
+    async getTagsByUserId(@Param('userId') userId: string): Promise<BaseCategory[]>  {
         return await this.categoriesService.getCategoriesByUserId(userId)
     }
 

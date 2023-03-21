@@ -5,8 +5,8 @@ import { User } from './user.entity';
 
 /* 투두 반복설정 데이터 */
 @Entity()
-export class TodoRepeat extends BaseEntity {
-    constructor(data?: Partial<TodoRepeat>) {
+export class ScheduleRepeat extends BaseEntity {
+    constructor(data?: Partial<ScheduleRepeat>) {
         super();
         if (data) {
             Object.assign(this, data);
@@ -19,11 +19,11 @@ export class TodoRepeat extends BaseEntity {
     @Column()
     repeatOption: string;
 
-    @Column()
+    @Column({ length: 31})
     repeatValue: string;
 
-    /* 투두반복 : 투두 = 1 : 1*/
-    @OneToOne(() => Todo, (todo) => todo.todoRepeat, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'todo_id' })
-    todo: Todo | string
+    /* 스케줄 반복 : 스케줄 = 1 : 1*/
+    @OneToOne(() => Schedule, (schedule) => schedule.scheduleRepeat, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'schedule_id' })
+    schedule: Schedule
 }

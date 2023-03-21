@@ -1,36 +1,60 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
+import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
+import { UserService } from "src/users/users.service";
 import { In, Repository } from "typeorm";
 
 export class CategoryRepository {
     constructor(@InjectRepository(Category) private readonly repository: Repository<Category>,
+    private readonly userService: UserService,
     ) { }
-
 
     //Category
     /* 카테고리를 하나만 생성하는 코드 */
-    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) {
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) : Promise<BaseCategory> {
         const { content, color } = createCategoryDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        const existingCategory = await this.repository.findOne({
-            where: {
-                user: { id: userId },
-                content
+        try {
+            const [updatedUser, existingCategory] = await Promise.all([
+                this.userService.updateNextOrder(userId, 'nextCategoryOrder'),
+                this.repository.findOne({
+                    where: {
+                        user: { id: userId },
+                        content
+                    }
+                })
+            ])
+            if (existingCategory) {
+                throw new ConflictException(`Category with this user already exists`);
             }
-        })
+            const { nextCategoryOrder } = updatedUser
 
-        console.log(existingCategory)
+            const newCategory = this.repository.create({ user: userId, content, color, categoryOrder: nextCategoryOrder })
+            const savedCategory = await this.repository.save(newCategory)
 
-        if (existingCategory) {
-            throw new ConflictException(`Category with this user already exists`);
-        }
+            return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color, categoryOrder: savedCategory.categoryOrder, isSelected: savedCategory.isSelected }
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
 
-        const newCategory = this.repository.create({ user: userId, content, color })
-        const savedCategory = await this.repository.save(newCategory)
-
-        return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color }
+            if (error instanceof ConflictException) {
+                throw error;
+            }
+            
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            await queryRunner.release();
+        }        
     }
 
     //Category
@@ -54,9 +78,9 @@ export class CategoryRepository {
         return [...createdCategories, ...existingCategories];
     }
 
-    async findAllCategoriesByUserId(userId: string): Promise<Category[]> {
+    async findAllCategoriesByUserId(userId: string): Promise<BaseCategory[]> {
         return await this.repository.createQueryBuilder('category')
-            .select(['category.id', 'category.content', 'category.user', 'category.color'])
+            .select(['category.id', 'category.content', 'category.user', 'category.color', 'category.categoryOrder', 'category.isSelected'])
             .where('category.user.id = :userId', { userId })
             .getMany()
     }

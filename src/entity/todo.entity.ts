@@ -6,7 +6,6 @@ import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
 import { TodoRepeat } from './todo-repeat.entity';
-import { TodoLog } from './todolog.entity';
 import { User } from './user.entity';
 
 @Entity({ name: 'todo' })
@@ -75,10 +74,6 @@ export class Todo extends BaseEntity {
     @ManyToOne(() => User, (user) => user.todos)
     @JoinColumn({ name: 'user_id' })
     user: User | string;
-
-    /* 투두 : 투두로그 = 1:N */
-    @OneToMany(() => TodoLog, (todolog) => todolog.todo)
-    todoLog: TodoLog[];
 
     /* 투두 : 태그투두 = 1:N */
     @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.todo)

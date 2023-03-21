@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, JoinColumn, ManyToOne, Column, OneToMany } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { Category } from './category.entity';
+import { ScheduleRepeat } from './schedule-repeat.entity';
 import { User } from './user.entity';
 
 @Entity()
@@ -21,17 +22,8 @@ export class Schedule extends BaseEntity {
     @Column()
     flag: boolean;
 
-    @Column({ nullable: true })
-    repeatOption: string;
-
     @Column()
     timeOption : boolean;
-
-    @Column({ length: 7, nullable: true, })
-    repeatWeek: string;
-
-    @Column({ length: 31, nullable: true, })
-    repeatMonth: string;
 
     @Column({ type: 'timestamp', nullable: true })
     repeatStart: Date;
@@ -62,5 +54,9 @@ export class Schedule extends BaseEntity {
 
     /* 스케줄 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.schedule)
-    alarms: Alarm[] | string[];
+    alarms: (Alarm | string)[];
+
+    /* 스케줄 : 스케줄 반복 = 1:1 */
+    @OneToOne(()=> ScheduleRepeat, (schedulerepeat) => schedulerepeat.schedule)
+    scheduleRepeat : ScheduleRepeat
 }

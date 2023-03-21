@@ -4,6 +4,7 @@ import { swaggerTagsCreateExample } from 'src/common/swagger/tag.example';
 import { swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Tag } from 'src/entity/tag.entity';
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
+import { BaseTag } from './interface/tag.interface';
 import { TagsService } from './tags.service';
 
 @ApiTags('Tag API')
@@ -35,7 +36,7 @@ export class TagsController {
 
     @Get('tags')
     @ApiOperation({ summary: '사용자의 모든 태그 조회 API' })
-    async getTagsByUserId(@Param('userId') userId: string) {
+    async getTagsByUserId(@Param('userId') userId: string) : Promise<BaseTag[]> {
         return await this.tagService.getTagsByUserId(userId)
     }
 

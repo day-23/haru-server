@@ -32,7 +32,7 @@ export class UserService {
         return await this.userRepository.delete(id);
     }
 
-    async updateNextTodoOrder(userId: string) : Promise<User> {
-        return await this.userRepository.updateNextTodoOrder(userId)
+    async updateNextOrder(userId: string, fieldName : string) : Promise<User> {
+        return await this.userRepository.updateNextOrder(userId, fieldName)
     }
 }

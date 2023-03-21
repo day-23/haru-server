@@ -5,10 +5,13 @@ import { CreateAlarmToScheduleResponse } from "src/alarms/interface/CreateAlarmT
 import { CategoriesService } from "src/categories/categories.service";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
+import { parseRepeatFromSchedule } from "src/common/utils/data-utils";
 import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
+import { ScheduleRepeat } from "src/entity/schedule-repeat.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
+import { GetSchedulesResponse, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { Repository } from "typeorm";
 
@@ -18,39 +21,13 @@ export class ScheduleRepository {
         private readonly alarmsService: AlarmsService,
     ) { }
 
-    /* 스케줄 데이터 불러오기 */
-    /* order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
-        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
-        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
-
-        const [todos, count] = await this.repository.createQueryBuilder('schedule')
-            .leftJoinAndSelect('schedule.category', 'category')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .where('schedule.user = :userId', { userId })
-            .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
-            .setParameters({ startDate, endDate })
-            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.timeOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt', 'schedule.updatedAt'])
-            .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['category.id', 'category.content', 'category.color'])
-            .orderBy('schedule.repeat_start', 'ASC')
-            .addOrderBy('schedule.repeat_end', 'DESC')
-            .addOrderBy('schedule.created_at', 'ASC')
-            .getManyAndCount()
-
-        return {
-            data: todos,
-            pagination: {
-                totalItems: count,
-                startDate,
-                endDate
-            },
-        };
-    }
-
+    private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.timeOption', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt']
+    private alarmProperties = ['alarm.id', 'alarm.time']
+    private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
+    private scheduleRepeatProperties = ['schedulerepeat.id', 'schedulerepeat.repeatOption', 'schedulerepeat.repeatValue']
 
     /* 스케줄 데이터 저장 */
-    async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
+    async createSchedule(userId: string, createScheduleDto: CreateScheduleDto): Promise<ScheduleResponse> {
         const { alarms, categoryId, ...scheduleData } = createScheduleDto;
         const savedCategory = await this.categoriesService.getCategoryById(userId, categoryId)
 
@@ -72,15 +49,35 @@ export class ScheduleRepository {
                 schedule: savedSchedule.id,
                 time: time,
             }));
-            const savedAlarms = await queryRunner.manager.save(Alarm, newAlarms);
+
+
+            const promises: Promise<any>[] = [
+                queryRunner.manager.save(Alarm, newAlarms),
+            ];
+
+            if (createScheduleDto.repeatOption) {
+                const newScheduleRepeat = {
+                    schedule: { id: savedSchedule.id },
+                    repeatOption: createScheduleDto.repeatOption,
+                    repeatValue: createScheduleDto.repeatValue
+                };
+                promises.push(queryRunner.manager.save(ScheduleRepeat, newScheduleRepeat))
+            }
+            const [savedAlarms, savedScheduleRepeat] = await Promise.all(promises);
+            await queryRunner.commitTransaction();
+
             const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
 
-            await queryRunner.commitTransaction();
-            const { id, content, color } = savedCategory;
-            const category = { id, content, color };
+            let repeatOption = null
+            let repeatValue = null
+            if (savedScheduleRepeat) {
+                repeatOption = savedScheduleRepeat.repeatOption
+                repeatValue = savedScheduleRepeat.repeatValue
+            }
 
-            return { id: savedSchedule.id, ...savedSchedule, alarms: retAlarms, category };
-
+            const { id, content, color, isSelected } = savedCategory;
+            const category = { id, content, color, isSelected };
+            return { id: savedSchedule.id, ...savedSchedule, alarms: retAlarms, category, repeatOption, repeatValue };
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -94,6 +91,65 @@ export class ScheduleRepository {
             await queryRunner.release();
         }
     }
+
+    /* 스케줄 데이터 불러오기 */
+    /* order : 1.repeat_start, 2.repeat_end, 3.created_at */
+    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) : Promise<GetSchedulesResponseByDate> {
+        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
+        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
+
+        const [schedules, count] = await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.scheduleRepeat', 'schedulerepeat')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
+            .setParameters({ startDate, endDate })
+            .select(this.scheduleProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.categoryProperties)
+            .addSelect(this.scheduleRepeatProperties)
+            .orderBy('schedule.repeat_start', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
+            .getManyAndCount()
+
+        return {
+            data: parseRepeatFromSchedule(schedules),
+            pagination: {
+                totalItems: count,
+                startDate,
+                endDate
+            },
+        };
+    }
+
+
+
+    /* 스케줄 검색 */
+    async findSchedulesBySearch(userId: string, content: string) : Promise<GetSchedulesResponse>{
+        const schedules = await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.scheduleRepeat', 'schedulerepeat')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
+            .setParameters({ searchValue: `%${content}%` })
+            .select(this.scheduleProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.categoryProperties)
+            .addSelect(this.scheduleRepeatProperties)
+            .orderBy('schedule.repeatStart', 'ASC')
+            .addOrderBy('schedule.repeatEnd', 'DESC')
+            .addOrderBy('schedule.createdAt', 'ASC')
+            .take(50)
+            .getMany()
+
+        return {
+            data : parseRepeatFromSchedule(schedules)
+        }
+    }
+
 
     /* 이미 생성된 스케줄에 데이터 추가 */
     /* 알람 추가 */
@@ -157,24 +213,5 @@ export class ScheduleRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
-    }
-
-
-    /* 스케줄 검색 */
-    async getSchedulesBySearch(userId: string, content: string) {
-        return this.repository.createQueryBuilder('schedule')
-            .leftJoinAndSelect('schedule.category', 'category')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .where('schedule.user = :userId', { userId })
-            .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
-            .setParameters({ searchValue: `%${content}%` })
-            .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.timeOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt'])
-            .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['category.id', 'category.content', 'category.color'])
-            .orderBy('schedule.repeatStart', 'ASC')
-            .addOrderBy('schedule.repeatEnd', 'DESC')
-            .addOrderBy('schedule.createdAt', 'ASC')
-            .take(50)
-            .getMany()
     }
 }
