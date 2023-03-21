@@ -34,11 +34,15 @@ export class UpdateCategoryDto extends PartialType(CreateCategoryDto) { }
 
 
 
-/* Category delete DTO */
+/* Category update DTO */
 export class UpdateCategoriesOrderDto {
     @ApiProperty({ example: "['CategoryId1', 'CategoryId2', 'CategoryId3',]", description: 'Category 순서 수정을 위한 CategoryId 리스트' })
     @IsString({ each: true })
     categoryIds: string[];
+
+    @ApiProperty({ example: "[true, false, true]", description: 'Category 선택 여부 수정을 위한 CategoryId 리스트' })
+    @IsBoolean({ each: true })
+    isSelected: boolean[];
 }
 
 

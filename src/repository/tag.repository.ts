@@ -12,7 +12,6 @@ export class TagRepository {
 
     async saveTag(userId: string, createTagDto: CreateTagDto) {
         const { content } = createTagDto;
-
         const existingTag = await this.repository.findOne({ where: { user: { id: userId }, content } });
 
         if (existingTag) {
@@ -21,7 +20,6 @@ export class TagRepository {
 
         const newTag = this.repository.create({ user: userId, content});
         const ret = await this.repository.save(newTag);
-
         return { id: ret.id, content }
     }
 
