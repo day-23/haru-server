@@ -5,6 +5,11 @@ export interface BaseTag {
     isSelected : boolean
 }
 
+export interface BaseTagForTodoResponse {
+    id: string,
+    content: string,
+}
+
 
 export interface BaseTagWithTodo {
     id: number;

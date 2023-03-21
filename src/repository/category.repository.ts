@@ -3,17 +3,40 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
 import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
+import { UserService } from "src/users/users.service";
 import { In, Repository } from "typeorm";
 
 export class CategoryRepository {
     constructor(@InjectRepository(Category) private readonly repository: Repository<Category>,
+    private readonly userService: UserService,
     ) { }
-
 
     //Category
     /* 카테고리를 하나만 생성하는 코드 */
-    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) {
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) : Promise<BaseCategory> {
         const { content, color } = createCategoryDto
+
+
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const { nextTodoOrder } = await this.userService.updateNextOrder(userId, 'nextCategoryOrder')
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            await queryRunner.release();
+        }
+
 
         const existingCategory = await this.repository.findOne({
             where: {
@@ -29,7 +52,7 @@ export class CategoryRepository {
         const newCategory = this.repository.create({ user: userId, content, color })
         const savedCategory = await this.repository.save(newCategory)
 
-        return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color }
+        return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color,categoryOrder: 1,  isSelected:true }
     }
 
     //Category

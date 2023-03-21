@@ -71,15 +71,14 @@ export class UserRepository {
         return user;
     }
 
-
-
-    async updateNextTodoOrder(userId: string): Promise<User> {
+    async updateNextOrder(userId: string, fieldName: string): Promise<User> {
         const user = await this.repository.findOne({ where: { id : userId } });
         if (!user) {
             throw new Error(`User with id ${userId} not found`);
         }
-        user.nextTodoOrder -= 1;
-        
+        user[fieldName] -= 1;
+    
         return await this.repository.save(user);
     }
+    
 }

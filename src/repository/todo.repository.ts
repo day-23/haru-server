@@ -501,7 +501,7 @@ export class TodoRepository {
         await queryRunner.startTransaction();
 
         try {
-            const { nextTodoOrder } = await this.userService.updateNextTodoOrder(userId)
+            const { nextTodoOrder } = await this.userService.updateNextOrder(userId, 'nextTodoOrder')
 
             /* 투두 데이터 저장 */
             const { user, deletedAt, ...savedTodo } = await queryRunner.manager.save(Todo, {
