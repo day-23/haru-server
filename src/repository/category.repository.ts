@@ -82,6 +82,7 @@ export class CategoryRepository {
         return await this.repository.createQueryBuilder('category')
             .select(['category.id', 'category.content', 'category.user', 'category.color', 'category.categoryOrder', 'category.isSelected'])
             .where('category.user.id = :userId', { userId })
+            .orderBy('category.categoryOrder', 'ASC')
             .getMany()
     }
 
@@ -98,9 +99,16 @@ export class CategoryRepository {
         return existingCategory
     }
 
-    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
-        /* CategoryId와 userId로 쿼리 */
-        const existingCategory = await this.findCategoryByUserAndCategoryId(userId, categoryId);
+    /*  */
+    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<BaseCategory> {
+        const promises = [this.findCategoryByUserAndCategoryId(userId, categoryId)]
+
+        const {content} = updateCategoryDto
+        if(content){
+            promises.push(this.repository.findOne({where: {content}}))
+        }
+
+        const [existingCategory, alreadyExistContent] = await Promise.all(promises)
         if (!existingCategory) {
             throw new HttpException(
                 'Category not found',
@@ -108,12 +116,16 @@ export class CategoryRepository {
             );
         }
 
+        if(alreadyExistContent){
+            throw new ConflictException(`Category with this content already exists`);
+        }
+
         try {
             const updatedCategory = new Category({
                 ...existingCategory,
                 ...updateCategoryDto,
             });
-            return this.repository.save(updatedCategory);
+            return await this.repository.save(updatedCategory);
         } catch (error) {
             throw new HttpException(
                 {

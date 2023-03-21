@@ -39,14 +39,14 @@ export class CategoriesController {
 
     @Patch(':categoryId')
     @ApiOperation({ summary: '카테고리 업데이트 API' })
-    async update(@Param('userId') userId: string, @Param('categoryId') categoryId: string, @Body() updateTagDto: UpdateCategoryDto): Promise<string[]> {
+    async updateCategory(@Param('userId') userId: string, @Param('categoryId') categoryId: string, @Body() updateTagDto: UpdateCategoryDto): Promise<BaseCategory> {
         return this.categoriesService.updateCategory(userId, categoryId, updateTagDto);
     }
 
     @Delete('categories')
     @ApiOperation({ summary: '카테고리 여러개 삭제 API' })
     @ApiBody({ type: DeleteCategoriesDto, description: 'Request body example' })
-    async deleteTags(
+    async deleteCategories(
         @Param('userId') userId: string,
         @Body() deleteTagsDto: DeleteCategoriesDto,
     ): Promise<void> {

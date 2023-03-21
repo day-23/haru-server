@@ -32,10 +32,6 @@ export class Category extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn()
-    deletedAt?: Date | null;
-
     /* 다른 엔터티들간의 관계 */
     /* 카테고리 : 사용자 = N : 1 */
     @ManyToOne(() => User, (user) => user.categories)

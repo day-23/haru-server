@@ -24,9 +24,8 @@ export class CategoriesService {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)
     }
 
-    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<string[]> {
-        const category = await this.categoryRepository.updateCategory(userId, categoryId, updateCategoryDto);
-        return [category.id];
+    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<BaseCategory> {
+        return await this.categoryRepository.updateCategory(userId, categoryId, updateCategoryDto);
     }
       
     async deleteCategories(
