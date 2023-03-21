@@ -24,7 +24,6 @@ import { Schedule } from './schedule.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
-import { TodoLog } from './todolog.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -100,9 +99,6 @@ export class User extends BaseEntity {
     /* 사용자 : 투두  -  1:N  */
     @OneToMany(() => Todo, (todo) => todo.user)
     todos: Todo[];
-
-    @OneToMany(() => TodoLog, (todoLog) => todoLog.user)
-    todoLogs: TodoLog[];
 
     /* 사용자 : 서브투두 -  1:N  */
     @OneToMany(() => Tag, (subtodo) => subtodo.user)
