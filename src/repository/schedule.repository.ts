@@ -11,7 +11,7 @@ import { Category } from "src/entity/category.entity";
 import { ScheduleRepeat } from "src/entity/schedule-repeat.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
-import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { GetSchedulesResponse, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { Repository } from "typeorm";
 
@@ -94,7 +94,7 @@ export class ScheduleRepository {
 
     /* 스케줄 데이터 불러오기 */
     /* order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
+    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) : Promise<GetSchedulesResponseByDate> {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
@@ -127,21 +127,27 @@ export class ScheduleRepository {
 
 
     /* 스케줄 검색 */
-    async findSchedulesBySearch(userId: string, content: string) {
-        return this.repository.createQueryBuilder('schedule')
+    async findSchedulesBySearch(userId: string, content: string) : Promise<GetSchedulesResponse>{
+        const schedules = await this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.scheduleRepeat', 'schedulerepeat')
             .where('schedule.user = :userId', { userId })
             .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
             .select(this.scheduleProperties)
-            .addSelect(['alarms.id', 'alarms.time'])
-            .addSelect(['category.id', 'category.content', 'category.color'])
+            .addSelect(this.alarmProperties)
+            .addSelect(this.categoryProperties)
+            .addSelect(this.scheduleRepeatProperties)
             .orderBy('schedule.repeatStart', 'ASC')
             .addOrderBy('schedule.repeatEnd', 'DESC')
             .addOrderBy('schedule.createdAt', 'ASC')
             .take(50)
             .getMany()
+
+        return {
+            data : parseRepeatFromSchedule(schedules)
+        }
     }
 
 

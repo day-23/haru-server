@@ -14,3 +14,17 @@ export interface ScheduleResponse {
     createdAt: string | Date,
     updatedAt: string | Date,
 }
+
+
+export interface GetSchedulesResponseByDate {
+    data: ScheduleResponse[],
+    pagination: {
+        totalItems : number,
+        startDate : string | Date,
+        endDate : string | Date
+    },
+}
+
+export interface GetSchedulesResponse {
+    data: ScheduleResponse[],
+}

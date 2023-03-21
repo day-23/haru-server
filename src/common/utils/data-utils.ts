@@ -131,7 +131,7 @@ export function transformTodosAddTags(todos) {
     }));
 }
   
-export function parseRepeatFromSchedule(schedules : Schedule[]){
+export function parseRepeatFromSchedule(schedules){
     const ret = schedules.map(({scheduleRepeat, ...schedule}) => {
         return {
             ...schedule,

@@ -54,7 +54,7 @@ export class Schedule extends BaseEntity {
 
     /* 스케줄 : 알람 = 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.schedule)
-    alarms: Alarm[] | string[];
+    alarms: (Alarm | string)[];
 
     /* 스케줄 : 스케줄 반복 = 1:1 */
     @OneToOne(()=> ScheduleRepeat, (schedulerepeat) => schedulerepeat.schedule)
