@@ -495,7 +495,7 @@ export class TodoRepository {
 
 
     /* 투두 생성 함수 */
-    async create(userId: string, todo: CreateTodoDto): Promise<TodoResponse> {
+    async createTodo(userId: string, todo: CreateTodoDto): Promise<TodoResponse> {
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -940,7 +940,7 @@ export class TodoRepository {
             const promises: Promise<any>[] = [queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
             queryRunner.manager.update(SubTodo, { todo: todoId }, { completed: true })]
             if (endDate) {
-                promises.push(this.create(userId, createTodoDto))
+                promises.push(this.createTodo(userId, createTodoDto))
             }
             const [updateTodo, updateSubTodo, createNewTodo] = await Promise.all(promises);
             // Commit transaction

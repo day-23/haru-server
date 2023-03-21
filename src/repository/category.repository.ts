@@ -21,8 +21,6 @@ export class CategoryRepository {
             }
         })
 
-        console.log(existingCategory)
-
         if (existingCategory) {
             throw new ConflictException(`Category with this user already exists`);
         }

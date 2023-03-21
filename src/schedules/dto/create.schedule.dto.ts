@@ -20,37 +20,32 @@ export class CreateScheduleDto {
     @IsBoolean()
     flag: boolean;
 
+    @ApiProperty({ description: '일정이 시간까지 포함인지 여부' })
+    @IsBoolean()
+    timeOption: boolean;
+
     /* 반복 설정 */
     @ApiProperty({ description: 'schedule 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
     @MaxLength(10)
     @IsOptional() /* nullable */
     repeatOption: string;
 
-    @ApiProperty({ description: '일정이 시간까지 포함인지 여부' })
-    @IsBoolean()
-    timeOption: boolean;
-
-    @ApiProperty({ description: 'schedule 반복 방식, 월화수 반복의 경우 1110000 으로 표기', nullable: true })
-    @MaxLength(7)
-    @IsOptional() /* nullable */
-    repeatWeek: string;
-
-    @ApiProperty({ description: 'schedule 반복 방식, 월화수 반복의 경우 1110000....01 31 자리로 표기', nullable: true })
+    @ApiProperty({ description: 'schedule 반복 방식, repeatOption에 따라 다른 값 월화수 반복의 경우 1110000 으로 표기', nullable: true })
     @MaxLength(31)
     @IsOptional() /* nullable */
-    repeatMonth: string;
+    repeatValue: string;
 
-    @ApiProperty({description:'반복 시작', nullable : true})
+    @ApiProperty({ description: '반복 시작', nullable: true })
     @IsOptional()
     @Transform(({ value }) => value ? new Date(value) : null)
-    repeatStart : Date;
+    repeatStart: Date;
 
-    @ApiProperty({description:'반복 끝', nullable : true})
+    @ApiProperty({ description: '반복 끝', nullable: true })
     @IsOptional()
     @Transform(({ value }) => value ? new Date(value) : null)
-    repeatEnd : Date;
+    repeatEnd: Date;
 
-    @ApiProperty({ description: 'category id'})
+    @ApiProperty({ description: 'category id' })
     @IsOptional()
     @IsString()
     categoryId: string;
@@ -61,7 +56,7 @@ export class CreateScheduleDto {
 }
 
 
-export class UpdateScheduleDto extends PartialType(CreateScheduleDto){
+export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
     @IsDefined()
     @IsOptional()
     @IsString()

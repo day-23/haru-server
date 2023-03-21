@@ -21,17 +21,14 @@ export class Schedule extends BaseEntity {
     @Column()
     flag: boolean;
 
-    @Column({ nullable: true })
-    repeatOption: string;
-
     @Column()
     timeOption : boolean;
 
-    @Column({ length: 7, nullable: true, })
-    repeatWeek: string;
+    @Column({ nullable: true })
+    repeatOption: string;
 
     @Column({ length: 31, nullable: true, })
-    repeatMonth: string;
+    repeatValue: string;
 
     @Column({ type: 'timestamp', nullable: true })
     repeatStart: Date;
