@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
 import { TagRepository } from 'src/repository/tag.repository';
-import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
+import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from './dto/create.tag.dto';
 import { BaseTag } from './interface/tag.interface';
 
 @Injectable()
@@ -24,10 +24,15 @@ export class TagsService {
     //     return this.tagRepository.findOne(tagId);
     // }
 
+
     async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<Tag> {
         return this.tagRepository.updateTag(userId, tagId, updateTagDto);
     }
 
+    async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
+        return this.tagRepository.updateTagsOrder(userId, updateTagsOrderDto);
+    }
+    
     async deleteTag(userId: string, tagId:string): Promise<void> {
         return await this.tagRepository.deleteOneTag(userId, tagId);
     }

@@ -1,7 +1,7 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
-import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from "src/tags/dto/create.tag.dto";
+import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from "src/tags/dto/create.tag.dto";
 import { BaseTag } from "src/tags/interface/tag.interface";
 import { In, Repository } from "typeorm";
 
@@ -12,7 +12,6 @@ export class TagRepository {
 
     async saveTag(userId: string, createTagDto: CreateTagDto) {
         const { content } = createTagDto;
-
         const existingTag = await this.repository.findOne({ where: { user: { id: userId }, content } });
 
         if (existingTag) {
@@ -21,7 +20,6 @@ export class TagRepository {
 
         const newTag = this.repository.create({ user: userId, content});
         const ret = await this.repository.save(newTag);
-
         return { id: ret.id, content }
     }
 
@@ -54,6 +52,7 @@ export class TagRepository {
         return await this.repository.createQueryBuilder('tag')
             .select(['tag.id', 'tag.content', 'tag.user', 'tag.tagOrder', 'tag.isSelected'])
             .where('tag.user.id = :userId', { userId })
+            .orderBy('tag.tagOrder', 'ASC')
             .getMany()
     }
 
@@ -87,6 +86,33 @@ export class TagRepository {
             );
         }
     }
+
+
+    /* 전체 태그 수정 */
+    async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
+        const { tagIds, isSelected } = updateTagsOrderDto
+
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = tagIds.map((id, tagOrder) =>
+                queryRunner.manager.update(Tag, { id }, { tagOrder, isSelected : isSelected[tagOrder]  })
+            );
+            await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
+        }
+    }
+
 
     async deleteOneTag(userId: string, todoId: string): Promise<void> {
         await this.repository.delete({

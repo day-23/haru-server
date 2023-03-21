@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Category } from 'src/entity/category.entity';
 import { CategoryRepository } from 'src/repository/category.repository';
-import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from './dto/create.category.dto';
+import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoriesOrderDto, UpdateCategoryDto } from './dto/create.category.dto';
 import { BaseCategory } from './interface/category.interface';
 
 @Injectable()
@@ -24,11 +24,14 @@ export class CategoriesService {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)
     }
 
-    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<string[]> {
-        const category = await this.categoryRepository.updateCategory(userId, categoryId, updateCategoryDto);
-        return [category.id];
+    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<BaseCategory> {
+        return await this.categoryRepository.updateCategory(userId, categoryId, updateCategoryDto);
     }
       
+    async updateCategoriesOrderAndIsSelected(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
+        return await this.categoryRepository.updateCategoriesOrderAndIsSelected(userId, updateCategoriesOrderDto);
+    }
+
     async deleteCategories(
         userId: string, deleteTagsDto: DeleteCategoriesDto,
     ): Promise<void> {

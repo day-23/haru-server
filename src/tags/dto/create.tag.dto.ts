@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
 /* tag 단일 생성 DTO */
 export class CreateTagDto {
@@ -15,6 +15,16 @@ export class CreateTagsDto {
     @ApiProperty({ example: '["algorithm", "study", "health"]', description: 'tag 여러개 생성 DTO' })
     @IsString({ each: true })
     contents: string[];
+}
+
+export class UpdateTagsOrderDto{
+    @ApiProperty({ example: "['TagId1', 'TagId2', 'TagId3',]", description: 'Tag 순서 수정을 위한 TagId 리스트' })
+    @IsString({ each: true })
+    tagIds: string[];
+
+    @ApiProperty({ example: "[true, false, true]", description: 'Tag 선택 여부 수정을 위한 TagId 리스트' })
+    @IsBoolean({ each: true })
+    isSelected: boolean[];
 }
 
 /* tag 단일 업데이트 DTO */

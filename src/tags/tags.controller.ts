@@ -3,7 +3,7 @@ import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@n
 import { swaggerTagsCreateExample } from 'src/common/swagger/tag.example';
 import { swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
 import { Tag } from 'src/entity/tag.entity';
-import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
+import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from './dto/create.tag.dto';
 import { BaseTag } from './interface/tag.interface';
 import { TagsService } from './tags.service';
 
@@ -38,6 +38,12 @@ export class TagsController {
     @ApiOperation({ summary: '사용자의 모든 태그 조회 API' })
     async getTagsByUserId(@Param('userId') userId: string) : Promise<BaseTag[]> {
         return await this.tagService.getTagsByUserId(userId)
+    }
+
+    @Patch('order')
+    @ApiOperation({ summary: '태그 순서 업데이트 API' })
+    async updateTagsOrder(@Param('userId') userId: string, @Body() updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
+        return await this.tagService.updateTagsOrder(userId, updateTagsOrderDto);
     }
 
     @Patch(':tagId')

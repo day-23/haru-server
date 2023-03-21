@@ -1,6 +1,6 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
+import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoriesOrderDto, UpdateCategoryDto } from "src/categories/dto/create.category.dto";
 import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
 import { UserService } from "src/users/users.service";
@@ -82,6 +82,7 @@ export class CategoryRepository {
         return await this.repository.createQueryBuilder('category')
             .select(['category.id', 'category.content', 'category.user', 'category.color', 'category.categoryOrder', 'category.isSelected'])
             .where('category.user.id = :userId', { userId })
+            .orderBy('category.categoryOrder', 'ASC')
             .getMany()
     }
 
@@ -98,9 +99,16 @@ export class CategoryRepository {
         return existingCategory
     }
 
-    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
-        /* CategoryId와 userId로 쿼리 */
-        const existingCategory = await this.findCategoryByUserAndCategoryId(userId, categoryId);
+    /* 단일 카테고리 수정 */
+    async updateCategory(userId: string, categoryId: string, updateCategoryDto: UpdateCategoryDto): Promise<BaseCategory> {
+        const promises = [this.findCategoryByUserAndCategoryId(userId, categoryId)]
+
+        const { content } = updateCategoryDto
+        if (content) {
+            promises.push(this.repository.findOne({ where: { content } }))
+        }
+
+        const [existingCategory, alreadyExistContent] = await Promise.all(promises)
         if (!existingCategory) {
             throw new HttpException(
                 'Category not found',
@@ -108,12 +116,16 @@ export class CategoryRepository {
             );
         }
 
+        if(alreadyExistContent){
+            throw new ConflictException(`Category with this content already exists`);
+        }
+
         try {
             const updatedCategory = new Category({
                 ...existingCategory,
                 ...updateCategoryDto,
             });
-            return this.repository.save(updatedCategory);
+            return await this.repository.save(updatedCategory);
         } catch (error) {
             throw new HttpException(
                 {
@@ -122,6 +134,31 @@ export class CategoryRepository {
                 },
                 HttpStatus.FORBIDDEN,
             );
+        }
+    }
+
+
+    /* 전체 카테고리 수정 */
+    async updateCategoriesOrderAndIsSelected(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
+        const { categoryIds, isSelected } = updateCategoriesOrderDto
+        const queryRunner = this.repository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const promises = categoryIds.map((id, categoryOrder) =>
+                queryRunner.manager.update(Category, { id }, { categoryOrder, isSelected : isSelected[categoryOrder] })
+            );
+            await Promise.all(promises);
+            // Commit transaction
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            // Release query runner
+            await queryRunner.release();
         }
     }
 

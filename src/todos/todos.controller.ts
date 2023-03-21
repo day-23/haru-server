@@ -18,7 +18,19 @@ import { TodosService } from './todos.service';
 @Controller('todo/:userId')
 @ApiTags('Todo API')
 export class TodosController {
-    constructor(private readonly todoService: TodosService) { }
+    constructor(private readonly todoService: TodosService) {}
+    
+    @PaginatedResponse()
+    @Get('todos/all')
+    @ApiOperation({ summary: '전체 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
+    @ApiCreatedResponse({
+        description: '투두 페이지네이션 방식으로 조회한다.'
+    })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
+    async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto){
+        return await this.todoService.getAllTodos(userId, todayTodoDto);
+    }
 
     @PaginatedResponse()
     @Get('todos/main')

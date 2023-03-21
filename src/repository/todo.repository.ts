@@ -141,9 +141,24 @@ export class TodoRepository {
         }
     }
 
+    /* 투두 메인화면 + 투데이 투두 */
+    async findTodosAll(userId: string, todayTodoDto: TodayTodoDto) {
+        const [mainTodos, todayTodos] = await Promise.all([
+            this.findTodosForMain(userId),
+            this.getTodayTodos(userId, todayTodoDto)
+        ])
 
-    async findAll(): Promise<Todo[]> {
-        return await this.repository.find()
+        return {
+            data: {
+                flaggedTodos : mainTodos.data.flaggedTodos,
+                taggedTodos : mainTodos.data.taggedTodos,
+                untaggedTodos : mainTodos.data.untaggedTodos,
+                completedTodos : mainTodos.data.completedTodos,
+                todayTodos : todayTodos.data.todayTodos,
+                todayFlaggedTodos : todayTodos.data.flaggedTodos,
+                endDatedTodos : todayTodos.data.endDatedTodos,
+            }
+        };
     }
 
     /* 메인화면에 쓰는 투두 데이터 조회 */
