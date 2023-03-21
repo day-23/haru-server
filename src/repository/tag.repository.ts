@@ -90,7 +90,7 @@ export class TagRepository {
 
     /* 전체 태그 수정 */
     async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
-        const { tagIds } = updateTagsOrderDto
+        const { tagIds, isSelected } = updateTagsOrderDto
 
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
@@ -98,7 +98,7 @@ export class TagRepository {
 
         try {
             const promises = tagIds.map((id, tagOrder) =>
-                queryRunner.manager.update(Tag, { id }, { tagOrder })
+                queryRunner.manager.update(Tag, { id }, { tagOrder, isSelected : isSelected[tagOrder]  })
             );
             await Promise.all(promises);
             // Commit transaction

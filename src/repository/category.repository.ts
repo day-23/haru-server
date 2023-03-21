@@ -139,7 +139,7 @@ export class CategoryRepository {
 
 
     /* 전체 카테고리 수정 */
-    async updateCategoriesOrder(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
+    async updateCategoriesOrderAndIsSelected(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
         const { categoryIds, isSelected } = updateCategoriesOrderDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();

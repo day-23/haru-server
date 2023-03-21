@@ -28,8 +28,8 @@ export class CategoriesService {
         return await this.categoryRepository.updateCategory(userId, categoryId, updateCategoryDto);
     }
       
-    async updateCategoriesOrder(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
-        return await this.categoryRepository.updateCategoriesOrder(userId, updateCategoriesOrderDto);
+    async updateCategoriesOrderAndIsSelected(userId: string, updateCategoriesOrderDto: UpdateCategoriesOrderDto): Promise<void> {
+        return await this.categoryRepository.updateCategoriesOrderAndIsSelected(userId, updateCategoriesOrderDto);
     }
 
     async deleteCategories(

@@ -46,11 +46,11 @@ export class CategoriesController {
     @Patch('order/categories')
     @ApiOperation({ summary: '카테고리 전체 순서 수정 API' })
     @ApiBody({ type: UpdateCategoriesOrderDto, description: 'Request body example' })
-    async updateCategoriesOrder(
+    async updateCategoriesOrderAndIsSelected(
         @Param('userId') userId: string,
         @Body() updateCategoriesOrderDto: UpdateCategoriesOrderDto,
     ): Promise<void> {
-        return await this.categoriesService.updateCategoriesOrder(userId, updateCategoriesOrderDto);
+        return await this.categoriesService.updateCategoriesOrderAndIsSelected(userId, updateCategoriesOrderDto);
     }
 
     @Delete('categories')
