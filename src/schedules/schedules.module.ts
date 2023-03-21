@@ -4,6 +4,7 @@ import { AlarmsService } from 'src/alarms/alarms.service';
 import { CategoriesService } from 'src/categories/categories.service';
 import { Alarm } from 'src/entity/alarm.entity';
 import { Category } from 'src/entity/category.entity';
+import { Holiday } from 'src/entity/holiday.entity';
 import { Schedule } from 'src/entity/schedule.entity';
 import { SubTodo } from 'src/entity/sub-todo.entity';
 import { User } from 'src/entity/user.entity';
@@ -16,7 +17,7 @@ import { ScheduleController } from './schedules.controller';
 import { ScheduleService } from './schedules.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, SubTodo, Category, Alarm, Schedule])],
+    imports: [TypeOrmModule.forFeature([User, SubTodo, Category, Alarm, Schedule, Holiday])],
     controllers: [ScheduleController],
     providers: [ScheduleService, ScheduleRepository, CategoriesService, CategoryRepository, AlarmsService, AlarmRepository, UserRepository, UserService]
 

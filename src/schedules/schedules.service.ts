@@ -14,6 +14,10 @@ export class ScheduleService {
         return await this.scheduleRepository.createSchedule(userId, createScheduleDto)
     }
 
+    async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
+    }
+
     async getSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
         return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
     }
