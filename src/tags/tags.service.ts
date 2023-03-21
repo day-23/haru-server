@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
 import { TagRepository } from 'src/repository/tag.repository';
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto } from './dto/create.tag.dto';
+import { BaseTag } from './interface/tag.interface';
 
 @Injectable()
 export class TagsService {
@@ -15,7 +16,7 @@ export class TagsService {
         return await this.tagRepository.saveTags(userId, createTagsDto);
     }
 
-    async getTagsByUserId(userId: string): Promise<Tag[]> {
+    async getTagsByUserId(userId: string): Promise<BaseTag[]> {
         return this.tagRepository.findAllTagsByUserId(userId);
     }
 

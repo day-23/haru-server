@@ -1,6 +1,8 @@
 export interface BaseTag {
     id: string,
     content: string,
+    tagOrder : number,
+    isSelected : boolean
 }
 
 
