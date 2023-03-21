@@ -15,17 +15,36 @@ export class CategoryRepository {
     /* 카테고리를 하나만 생성하는 코드 */
     async createCategory(userId: string, createCategoryDto: CreateCategoryDto) : Promise<BaseCategory> {
         const { content, color } = createCategoryDto
-
-
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            const { nextTodoOrder } = await this.userService.updateNextOrder(userId, 'nextCategoryOrder')
+            const [updatedUser, existingCategory] = await Promise.all([
+                this.userService.updateNextOrder(userId, 'nextCategoryOrder'),
+                this.repository.findOne({
+                    where: {
+                        user: { id: userId },
+                        content
+                    }
+                })
+            ])
+            if (existingCategory) {
+                throw new ConflictException(`Category with this user already exists`);
+            }
+            const { nextCategoryOrder } = updatedUser
 
+            const newCategory = this.repository.create({ user: userId, content, color, categoryOrder: nextCategoryOrder })
+            const savedCategory = await this.repository.save(newCategory)
+
+            return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color, categoryOrder: savedCategory.categoryOrder, isSelected: savedCategory.isSelected }
         } catch (error) {
             await queryRunner.rollbackTransaction();
+
+            if (error instanceof ConflictException) {
+                throw error;
+            }
+            
             throw new HttpException(
                 {
                     message: 'SQL error',
@@ -35,24 +54,7 @@ export class CategoryRepository {
             );
         } finally {
             await queryRunner.release();
-        }
-
-
-        const existingCategory = await this.repository.findOne({
-            where: {
-                user: { id: userId },
-                content
-            }
-        })
-
-        if (existingCategory) {
-            throw new ConflictException(`Category with this user already exists`);
-        }
-
-        const newCategory = this.repository.create({ user: userId, content, color })
-        const savedCategory = await this.repository.save(newCategory)
-
-        return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color,categoryOrder: 1,  isSelected:true }
+        }        
     }
 
     //Category
