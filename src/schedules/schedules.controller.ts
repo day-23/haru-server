@@ -12,12 +12,11 @@ import { ScheduleService } from './schedules.service';
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
 
-
     @PaginatedResponse()
     @Get('holidays/date')
-    @ApiOperation({ summary: '스케줄을 날짜 파라미터로 조회 API', description: '스케줄을를 조회한다.' })
+    @ApiOperation({ summary: '공휴일을 날짜 파라미터로 조회 API', description: '공휴일을를 조회한다.' })
     @ApiCreatedResponse({
-        description: '스케줄을 페이지네이션 방식으로 조회한다.'
+        description: '공휴일을 페이지네이션 방식으로 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
