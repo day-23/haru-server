@@ -1,9 +1,16 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { Alarm } from "src/entity/alarm.entity";
+import { SubTodo } from "src/entity/sub-todo.entity";
+import { TagWithTodo } from "src/entity/tag-with-todo.entity";
+import { Tag } from "src/entity/tag.entity";
+import { TodoRepeat } from "src/entity/todo-repeat.entity";
+import { Todo } from "src/entity/todo.entity";
+import { User } from "src/entity/user.entity";
 
 
-export class CreateAlarmByTimeDto{
+export class CreateAlarmByTimeDto {
     @ApiProperty({ example: "2023-03-09T18:30:00.123+09:00", description: 'alarm 단일 생성 DTO' })
     @IsNotEmpty()
     @Transform(({ value }) => new Date(value))
@@ -30,14 +37,14 @@ export class CreateTodoDto {
     @IsBoolean()
     flag: boolean;
 
-    @ApiProperty({ description: 'endDate에서 time 까지 사용하는지 여부'})
+    @ApiProperty({ description: 'endDate에서 time 까지 사용하는지 여부' })
     @IsBoolean()
-    isSelectedEndDateTime : boolean;
+    isSelectedEndDateTime: boolean;
 
     @ApiProperty({ description: '마감날짜', nullable: true })
     @IsOptional() /* nullable */
     @Transform(({ value }) => value ? new Date(value) : null)
-    endDate : Date;
+    endDate: Date;
 
     /* 반복 설정 관련 */
     @ApiProperty({ description: 'todo 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -50,10 +57,10 @@ export class CreateTodoDto {
     @IsOptional() /* nullable */
     repeatValue: string;
 
-    @ApiProperty({description:'반복 끝', nullable : true})
+    @ApiProperty({ description: '반복 끝', nullable: true })
     @IsOptional()
     @Transform(({ value }) => value ? new Date(value) : null)
-    repeatEnd : Date;
+    repeatEnd: Date;
 
     @ApiProperty({ description: 'tag의 이름들' })
     @IsString({ each: true })
@@ -65,8 +72,68 @@ export class CreateTodoDto {
 
     @ApiProperty({ description: 'alarms 시간들' })
     @IsString({ each: true })
-    alarms: string[];
+    // @Transform(({ value }) => value ? new Date(value) : null)
+    alarms: Date[];
 }
 
 
-export class UpdateTodoDto extends PartialType(CreateTodoDto){}
+export class UpdateTodoDto extends PartialType(CreateTodoDto) { }
+
+
+export function createTodoFromDto(todoDto: CreateTodoDto, user: User, tags: Tag[], nextTodoOrder: number): Todo {
+    const todo = new Todo();
+    todo.content = todoDto.content;
+    todo.memo = todoDto.memo;
+    todo.todayTodo = todoDto.todayTodo;
+    todo.flag = todoDto.flag;
+    todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
+    todo.endDate = todoDto.endDate;
+    todo.repeatEnd = todoDto.repeatEnd;
+    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new SubTodo({ user, content, subTodoOrder }));
+    todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
+    todo.tagWithTodos = tags.map(tag => new TagWithTodo({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder }))
+    todo.todoRepeat = new TodoRepeat({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
+    todo.user = user;
+    todo.todoOrder = nextTodoOrder + 1
+    todo.todayTodoOrder = nextTodoOrder + 1
+    return todo;
+}
+
+
+export function updateTodoFromDto(existingTodo: Todo, todoDto: CreateTodoDto, userId: string, tags: Tag[]): Todo {
+    const existingTagIds = []
+    const existingTagIdsAndTodoOrderDic = {}
+
+    existingTodo.tagWithTodos.map((tagWithTodo) => {
+        const tagId = tagWithTodo.tag.id
+        existingTagIds.push(tagId)
+        existingTagIdsAndTodoOrderDic[tagId] = tagWithTodo.todoOrder
+    })
+
+    const user = new User({ id: userId })
+    const todo = new Todo();
+    todo.id = existingTodo.id;
+    todo.content = todoDto.content;
+    todo.memo = todoDto.memo;
+    todo.todayTodo = todoDto.todayTodo;
+    todo.flag = todoDto.flag;
+    todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
+    todo.endDate = todoDto.endDate;
+    todo.repeatEnd = todoDto.repeatEnd;
+    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new SubTodo({ user, content, subTodoOrder, completed: existingTodo.subTodos[subTodoOrder].completed }));
+    todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
+    todo.tagWithTodos = tags.map(tag => {
+        if (existingTagIds.includes(tag.id)) {
+            return new TagWithTodo({ user, todo, tag, todoOrder: existingTagIdsAndTodoOrderDic[tag.id] })
+        } else {
+            return new TagWithTodo({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder })
+        }
+    })
+    todo.todoRepeat = new TodoRepeat({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
+    todo.user = user;
+    todo.todoOrder = existingTodo.todoOrder
+    todo.todayTodoOrder = existingTodo.todayTodoOrder
+    return todo;
+}
+
+

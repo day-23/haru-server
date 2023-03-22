@@ -21,7 +21,8 @@ export class CategoryRepository {
 
         try {
             const [updatedUser, existingCategory] = await Promise.all([
-                this.userService.updateNextOrder(userId, 'nextCategoryOrder'),
+                this.userService.updateNextOrder(userId, 'nextCategoryOrder', 1),
+
                 this.repository.findOne({
                     where: {
                         user: { id: userId },

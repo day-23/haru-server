@@ -49,6 +49,11 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-    @IsString()
-    id: string;
+    @IsNumber()
+    @IsOptional()
+    nextTagOrder?: number; 
+
+    @IsNumber()
+    @IsOptional()
+    nextCategoryOrder?: number; 
 }

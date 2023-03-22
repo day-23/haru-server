@@ -3,11 +3,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from "src/tags/dto/create.tag.dto";
 import { BaseTag } from "src/tags/interface/tag.interface";
+import { UserService } from "src/users/users.service";
 import { In, Repository } from "typeorm";
 
 
 export class TagRepository {
     constructor(@InjectRepository(Tag) private readonly repository: Repository<Tag>,
+    private readonly userService : UserService
     ) { }
 
     async saveTag(userId: string, createTagDto: CreateTagDto) {
@@ -26,7 +28,8 @@ export class TagRepository {
 
     /* 태그를 한번에 여러개 생성하는 코드 */
     async saveTags(userId: string, createTagsDto: CreateTagsDto) {
-        // 필요없을 것 같음 -> const user = await this.userService.findOne(userId);
+        let { nextTagOrder } = await this.userService.findOne(userId);
+        
         const existingTags = await this.repository.find({
             where: {
                 user: { id: userId },
@@ -40,11 +43,16 @@ export class TagRepository {
                 const newTag = new Tag({
                     user: userId,
                     content,
+                    tagOrder : nextTagOrder++
                 });
                 return newTag;
             });
 
-        const createdTags = await this.repository.save(newTags);
+        const [createdTags, updateUser] = await Promise.all([
+            this.repository.save(newTags),
+            this.userService.updateUser(userId, {nextTagOrder})
+        ]) 
+
         return [...createdTags, ...existingTags];
     }
 

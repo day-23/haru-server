@@ -20,7 +20,7 @@ export class Category extends BaseEntity {
     @Column({ nullable: true })
     color: string;
 
-    @Column({ nullable: true })
+    @Column({ default:0 })
     categoryOrder: number;
 
     @Column({ default : true})

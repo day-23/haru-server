@@ -1,7 +1,5 @@
 import { MinLength } from 'class-validator';
-import { BaseAlarm } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
-import { GetSubTodoResponse } from 'src/todos/interface/todo.interface';
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne, Relation } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { SubTodo } from './sub-todo.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
@@ -38,7 +36,7 @@ export class Todo extends BaseEntity {
     @Column()
     flag: boolean;
 
-    @Column({ comment: '마감 시간, 선택 여부'})
+    @Column({ comment: '마감 시간, 선택 여부' })
     isSelectedEndDateTime: boolean;
 
     @Column({ comment: '마감일', nullable: true })
@@ -73,20 +71,20 @@ export class Todo extends BaseEntity {
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.todos)
     @JoinColumn({ name: 'user_id' })
-    user: User | string;
+    user: User;
 
     /* 투두 : 태그투두 = 1:N */
-    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.todo)
-    tagWithTodos: TagWithTodo[] | string[];
+    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.todo, { cascade: true })
+    tagWithTodos: TagWithTodo[];
 
     /* 투두 : 하위항목 = 1:N */
-    @OneToMany(() => SubTodo, (subtodo) => subtodo.todo)
-    subTodos: GetSubTodoResponse[] | string[];
+    @OneToMany(() => SubTodo, (subtodo) => subtodo.todo, { cascade: true })
+    subTodos: SubTodo[];
 
     /* 투두 : 알람 = 1:N */
-    @OneToMany(() => Alarm, (alarm) => alarm.todo)
-    alarms: BaseAlarm[] | string[];
+    @OneToMany(() => Alarm, (alarm) => alarm.todo, { cascade: true })
+    alarms: Alarm[];
 
-    @OneToOne( () => TodoRepeat, (todorepeat) => todorepeat.todo)
-    todoRepeat : TodoRepeat
+    @OneToOne('TodoRepeat', 'todo', { cascade: true })
+    todoRepeat: Relation<TodoRepeat>
 }

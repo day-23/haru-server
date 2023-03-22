@@ -2,7 +2,7 @@ import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
+import { CreateAlarmByTimeDto, CreateTodoDto, createTodoFromDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { EntityManager, In, Repository } from "typeorm";
 import { SubTodo } from "src/entity/sub-todo.entity";
@@ -23,6 +23,7 @@ import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDa
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { TodoRepeat } from "src/entity/todo-repeat.entity";
+import { savedTodoJsonToTodoResponse } from "src/todos/parse.todo.json";
 
 
 export class TodoRepository {
@@ -46,87 +47,32 @@ export class TodoRepository {
     private todoRepeatProperties = ['todorepeat.id', 'todorepeat.repeatOption', 'todorepeat.repeatValue']
 
 
-
     /* 투두 생성 함수 */
-    async createTodo(userId: string, todo: CreateTodoDto): Promise<TodoResponse> {
+    async createTodo(userId: string, createTodoDto: CreateTodoDto): Promise<TodoResponse> {
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
-
         try {
-            const { nextTodoOrder } = await this.userService.updateNextOrder(userId, 'nextTodoOrder')
-
+            const [updateTodoOrder, tags] = await Promise.all([
+                this.userService.updateNextOrder(userId, 'nextTodoOrder', -1),
+                this.tagsService.createTags(userId, { contents: createTodoDto.tags })
+            ])
             /* 투두 데이터 저장 */
-            const { user, deletedAt, ...savedTodo } = await queryRunner.manager.save(Todo, {
-                ...todo,
-                user: userId,
-                todoOrder: nextTodoOrder + 1,
-                todayTodoOrder: nextTodoOrder + 1
-            });
-
-            const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
-                todo: savedTodo.id,
-                user: userId,
-                content: subTodo,
-                subTodoOrder,
-            }));
-
-            const newAlarms = todo.alarms.map((alarm) => ({
-                user: userId,
-                todo: savedTodo.id,
-                time: alarm,
-            }));
-
-            const promises: Promise<any>[] = [
-                queryRunner.manager.save(SubTodo, newSubTodos),
-                this.tagsService.createTags(userId, { contents: todo.tags }),
-                queryRunner.manager.save(Alarm, newAlarms),
-            ];
-
-            if (todo.repeatOption) {
-                const newTodoRepeat = {
-                    todo: savedTodo.id,
-                    repeatOption: todo.repeatOption,
-                    repeatValue: todo.repeatValue
-                };
-                promises.push(queryRunner.manager.save(TodoRepeat, newTodoRepeat))
-            }
-
-            const [savedSubTodos, savedTags, savedAlarms, savedTodoRepeat] = await Promise.all(promises);
-            const retSubTodos = savedSubTodos.map(({ id, content, subTodoOrder }) => ({ id, content, subTodoOrder, completed: false }));
-            const retTags = savedTags.map(({ id, content }) => ({ id, content }));
-            const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
-
-
-            let repeatOption = null
-            let repeatValue = null
-            if (savedTodoRepeat) {
-                repeatOption = savedTodoRepeat.repeatOption
-                repeatValue = savedTodoRepeat.repeatValue
-            }
-
-            /* 사용자에 대한 태그와 투두의 정보 저장 */
-            const tagWithTodos = savedTags.map(({ id: tag, nextTagWithTodoOrder }) => ({
-                todo: savedTodo.id,
-                tag,
-                user: userId,
-                todoOrder: nextTagWithTodoOrder
-            }));
+            const todoEntity = createTodoFromDto(createTodoDto, new User({ id: userId }), tags, updateTodoOrder.nextTodoOrder)
 
             await Promise.all([
-                ...savedTags.map((tag) =>
+                ...tags.map((tag) =>
                     queryRunner.manager.update(
                         Tag,
                         { id: tag.id },
                         { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
                     ),
                 ),
-                queryRunner.manager.save(TagWithTodo, tagWithTodos),
+                queryRunner.manager.save(Todo, todoEntity)
             ]);
-
             await queryRunner.commitTransaction();
 
-            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms, repeatOption, repeatValue };
+            return savedTodoJsonToTodoResponse(todoEntity);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -150,13 +96,13 @@ export class TodoRepository {
 
         return {
             data: {
-                flaggedTodos : mainTodos.data.flaggedTodos,
-                taggedTodos : mainTodos.data.taggedTodos,
-                untaggedTodos : mainTodos.data.untaggedTodos,
-                completedTodos : mainTodos.data.completedTodos,
-                todayTodos : todayTodos.data.todayTodos,
-                todayFlaggedTodos : todayTodos.data.flaggedTodos,
-                endDatedTodos : todayTodos.data.endDatedTodos,
+                flaggedTodos: mainTodos.data.flaggedTodos,
+                taggedTodos: mainTodos.data.taggedTodos,
+                untaggedTodos: mainTodos.data.untaggedTodos,
+                completedTodos: mainTodos.data.completedTodos,
+                todayTodos: todayTodos.data.todayTodos,
+                todayFlaggedTodos: todayTodos.data.flaggedTodos,
+                endDatedTodos: todayTodos.data.endDatedTodos,
             }
         };
     }
@@ -607,11 +553,19 @@ export class TodoRepository {
 
 
 
-    async update(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
-        const existingTodo = await this.repository.findOne({
-            where: { id: todoId },
-            relations: ["user", "tagWithTodos", "subTodos", "alarms", "todoRepeat"]
-        });
+    async updateTodo(userId: string, todoId: string, todoDto: CreateTodoDto): Promise<TodoResponse> {
+        const existingTodo = await this.repository
+            .createQueryBuilder("todo")
+            .leftJoinAndSelect("todo.subTodos", "subtodo")
+            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
+            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .where("todo.id = :id", { id: todoId })
+            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt', 'todo.today_todo_order'])
+            .addSelect(this.subTodoProperties)
+            .addSelect(['tagwithtodo.id', 'tagwithtodo.todoOrder'])
+            .addSelect(['tag.id', 'tag.content', 'tag.nextTagWithTodoOrder'])
+            .orderBy("subtodo.subTodoOrder", "ASC")
+            .getOne();
 
         if (!existingTodo) {
             throw new HttpException(
@@ -625,101 +579,25 @@ export class TodoRepository {
         await queryRunner.startTransaction();
 
         try {
-
-            /* 투두 데이터 저장 */
-            const { user, deletedAt, ...savedTodo } = await queryRunner.manager.save(Todo, {
-                id: existingTodo.id,
-                user: existingTodo.user,
-                content: todo.content,
-                memo: todo.memo,
-                flag: todo.flag,
-                todayTodo: todo.todayTodo,
-                repeatEnd: todo.repeatEnd,
-                endDate: todo.repeatEnd,
-                isSelectedEndDateTime: todo.isSelectedEndDateTime,
-                todoOrder: existingTodo.todoOrder,
-                nextSubTodoOrder: existingTodo.nextSubTodoOrder,
-                completed: existingTodo.completed,
-                todayTodoOrder: existingTodo.todayTodoOrder
-            });
-
-            const newSubTodos = todo.subTodos.map((subTodo, subTodoOrder) => ({
-                todo: savedTodo.id,
-                user: userId,
-                content: subTodo,
-                subTodoOrder,
-            }));
-
-            const newAlarms = todo.alarms.map((alarm) => ({
-                user: userId,
-                todo: savedTodo.id,
-                time: alarm,
-            }));
-
-            // Filter out the deleted subTodos
-            const deletedSubTodoIds = existingTodo.subTodos.map(subTodo => subTodo.id)
-            const deletedAlarmsIds = existingTodo.alarms.map(alarm => alarm.id)
-            const deletedTagWithTodoIds = existingTodo.tagWithTodos.map(tagWithTodo => tagWithTodo.id)
-
-            const promises: Promise<any>[] = [
-                queryRunner.manager.save(SubTodo, newSubTodos),
-                this.tagsService.createTags(userId, { contents: todo.tags }),
-                queryRunner.manager.save(Alarm, newAlarms),
-            ];
-
-            if (todo.repeatOption) {
-                const newTodoRepeat = {
-                    id: null,
-                    todo: savedTodo.id,
-                    repeatOption: todo.repeatOption,
-                    repeatValue: todo.repeatValue
-                };
-                if (existingTodo.todoRepeat) {
-                    newTodoRepeat.id = existingTodo.todoRepeat.id
-                }
-                promises.push(queryRunner.manager.save(TodoRepeat, newTodoRepeat))
-            } else {
-                promises.push(queryRunner.manager.delete(TodoRepeat, { todo: existingTodo.id }))
-            }
-
-            promises.push(queryRunner.manager.delete(SubTodo, { id: In(deletedSubTodoIds) }),
-                queryRunner.manager.delete(Alarm, { id: In(deletedAlarmsIds) }),
-                queryRunner.manager.delete(TagWithTodo, { id: In(deletedTagWithTodoIds) }))
-
-            const [savedSubTodos, savedTags, savedAlarms, savedTodoRepeat] = await Promise.all(promises);
-            const retSubTodos = savedSubTodos.map(({ id, content, subTodoOrder }) => ({ id, content, subTodoOrder, completed: false }));
-            const retTags = savedTags.map(({ id, content }) => ({ id, content }));
-            const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
-
-            let repeatOption = null
-            let repeatValue = null
-            if (savedTodoRepeat) {
-                repeatOption = savedTodoRepeat.repeatOption
-                repeatValue = savedTodoRepeat.repeatValue
-            }
-
-            /* 사용자에 대한 태그와 투두의 정보 저장 */
-            const tagWithTodos = savedTags.map(({ id: tag, nextTagWithTodoOrder }) => ({
-                todo: savedTodo.id,
-                tag,
-                user: userId,
-                todoOrder: nextTagWithTodoOrder
-            }));
+            const [tags, deleted] = await Promise.all([
+                this.tagsService.createTags(userId, { contents: todoDto.tags }),
+                this.repository.delete({ id: todoId })
+            ]);
+            const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
 
             await Promise.all([
-                ...savedTags.map((tag) =>
+                ...tags.map((tag) =>
                     queryRunner.manager.update(
                         Tag,
                         { id: tag.id },
                         { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
                     ),
                 ),
-                queryRunner.manager.save(TagWithTodo, tagWithTodos),
+                queryRunner.manager.save(Todo, todoEntity),
             ]);
-
             await queryRunner.commitTransaction();
 
-            return { id: savedTodo.id, ...savedTodo, subTodos: retSubTodos, tags: retTags, alarms: retAlarms, repeatOption, repeatValue };
+            return savedTodoJsonToTodoResponse(todoEntity);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -777,8 +655,9 @@ export class TodoRepository {
 
     }
 
-    /* todo 컬럼에 속한 내용만 변경하는 함수 */
-    async updateTodo(userId: string,todoId: string, updateTodoDto: UpdateTodoDto) {
+
+    /* todo flag 변경할 때만 사용 */
+    async updateTodoFlag(userId: string, todoId: string, updateTodoDto: UpdateTodoDto) {
         const existingTodo = await this.repository.findOne({ where: { id: todoId } });
 
         if (!existingTodo) {
@@ -787,11 +666,10 @@ export class TodoRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
-
         try {
             const updatedTodo = new Todo({
                 ...existingTodo,
-                ...updateTodoDto,
+                flag: updateTodoDto.flag
             });
             await this.repository.save(updatedTodo);
         } catch (error) {
