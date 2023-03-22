@@ -36,9 +36,9 @@ export class SubTodo extends BaseEntity {
     /* 다른 엔터티들간의 관계 */
     @ManyToOne(() => User, (user) => user.subTodos)
     @JoinColumn({ name: 'user_id' })
-    user: User | string;
+    user: User;
 
     @ManyToOne(() => Todo, (todo) => todo.subTodos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
-    todo: Todo | string;
+    todo: Todo;
 }

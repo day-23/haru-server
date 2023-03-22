@@ -70,7 +70,7 @@ export class TodosService {
     }
 
     async updateTodo(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
-        return await this.todoRepository.update(userId, todoId, todo);
+        return await this.todoRepository.updateTodo(userId, todoId, todo);
     }
 
     async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void> {
@@ -102,7 +102,7 @@ export class TodosService {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        return await this.todoRepository.updateTodo(userId, todoId, {flag})
+        return await this.todoRepository.updateTodoFlag(userId, todoId, {flag})
     }
 
     /* 드래그앤드랍 오더링 */

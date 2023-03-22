@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne, Relation } from 'typeorm';
 import { Schedule } from './schedule.entity';
 import { Todo } from './todo.entity';
 import { User } from './user.entity';
@@ -23,7 +23,7 @@ export class TodoRepeat extends BaseEntity {
     repeatValue: string;
 
     /* 투두반복 : 투두 = 1 : 1*/
-    @OneToOne(() => Todo, (todo) => todo.todoRepeat, { onDelete: 'CASCADE' })
+    @OneToOne('Todo', 'todoRepeat', { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'todo_id' })
-    todo: Todo | string
+    todo: Relation<Todo>
 }

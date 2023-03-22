@@ -17,5 +17,5 @@ export interface CreateAlarmToTodoResponse{
 
 export interface BaseAlarm {
     id: string,
-    time: string,
+    time: Date,
 }
