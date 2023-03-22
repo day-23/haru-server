@@ -1,3 +1,4 @@
+import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Post } from "src/entity/post.entity";
@@ -15,8 +16,8 @@ export class PostRepository {
         const savedPost = await this.repository.save(post)
 
         const ret = {
-            id : savedPost.id,
-            content : savedPost.content,
+            id: savedPost.id,
+            content: savedPost.content,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
         }
@@ -51,11 +52,24 @@ export class PostRepository {
 
     async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
         const { content } = updatePostDto
-        const updatedPost = await this.repository.update({ id: postId }, { content })
+        const updatedPost = await this.repository.update({ id: postId, user: { id: userId } }, { content })
+
+        if (updatedPost.affected == 0) {
+            throw new HttpException(
+                'Post not found',
+                HttpStatus.NOT_FOUND
+            );
+        }
     }
 
     async deletePost(userId: string, postId: string): Promise<void> {
-        const updatedPost = await this.repository.delete({ id: postId, user: { id: userId } })
-    }
+        const deleted = await this.repository.delete({ id: postId, user: { id: userId } })
 
+        if (deleted.affected == 0) {
+            throw new HttpException(
+                'Post not found',
+                HttpStatus.NOT_FOUND
+            );
+        }
+    }
 }

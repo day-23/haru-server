@@ -48,7 +48,7 @@ import { FollowsModule } from './follows/follows.module';
         CommentsModule,
         FollowsModule,
     ],
-    controllers: [AppController, CommentsController],
+    controllers: [AppController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],
 })
 export class AppModule implements NestModule {
