@@ -15,6 +15,12 @@ import { TagsModule } from './tags/tags.module';
 import { AlarmsModule } from './alarms/alarms.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { CategoriesModule } from './categories/categories.module';
+import { PostService } from './posts/posts.service';
+import { PostsModule } from './posts/posts.module';
+import { CommentsController } from './comments/comments.controller';
+import { CommentsService } from './comments/comments.service';
+import { CommentsModule } from './comments/comments.module';
+import { FollowsModule } from './follows/follows.module';
 
 @Module({
     imports: [
@@ -38,8 +44,11 @@ import { CategoriesModule } from './categories/categories.module';
         AlarmsModule,
         SchedulesModule,
         CategoriesModule,
+        PostsModule,
+        CommentsModule,
+        FollowsModule,
     ],
-    controllers: [AppController],
+    controllers: [AppController, CommentsController],
     providers: [AppService, AwsService, CheckApiKeyMiddleware],
 })
 export class AppModule implements NestModule {
