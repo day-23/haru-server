@@ -26,7 +26,7 @@ export class Tag extends BaseEntity {
     @Column({ default: true })
     isSelected: boolean
 
-    @Column({ default: -1 })
+    @Column({ default: 0 })
     nextTagWithTodoOrder: number;
 
     @CreateDateColumn()
