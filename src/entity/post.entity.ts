@@ -11,9 +11,6 @@ export class Post extends BaseEntity {
     id: string;
 
     @Column()
-    title: string
-
-    @Column()
     content: string
 
     @CreateDateColumn()

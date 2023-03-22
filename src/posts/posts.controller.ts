@@ -29,8 +29,8 @@ export class PostsController {
 
     @Patch(':postId')
     @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
-    async updatePost(@Param('userId') userId: string, postId: string, @Body() updatePostDto: UpdatePostDto) : Promise<void>{
-        return await this.postService.updatePost(userId,postId, updatePostDto)
+    async updatePost(@Param('userId') userId: string, @Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<void> {
+        return await this.postService.updatePost(userId, postId, updatePostDto)
     }
 
     @Delete(':postId')

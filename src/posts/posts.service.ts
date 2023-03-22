@@ -16,7 +16,7 @@ export class PostService {
         return await this.postRepository.getPostsByPagination(userId, paginationDto);
     }
 
-    async updatePost(userId: string, postId: string,updatePostDto: UpdatePostDto) : Promise<void>{
+    async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
         return await this.postRepository.updatePost(userId, postId, updatePostDto)
     }
 

@@ -13,7 +13,14 @@ export class PostRepository {
         const post = this.repository.create({ user: { id: userId }, content })
 
         const savedPost = await this.repository.save(post)
-        return savedPost
+
+        const ret = {
+            id : savedPost.id,
+            content : savedPost.content,
+            createdAt: savedPost.createdAt,
+            updatedAt: savedPost.updatedAt
+        }
+        return ret
     }
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
