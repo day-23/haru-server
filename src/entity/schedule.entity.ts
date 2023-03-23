@@ -25,10 +25,10 @@ export class Schedule extends BaseEntity {
     @Column()
     timeOption : boolean;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'timestamp' })
     repeatStart: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({ type: 'timestamp' })
     repeatEnd: Date;
 
     @CreateDateColumn()
