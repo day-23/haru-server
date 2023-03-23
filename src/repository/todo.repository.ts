@@ -29,13 +29,8 @@ import { savedTodoJsonToTodoResponse } from "src/todos/parse.todo.json";
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
-        @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
-        @InjectRepository(TagWithTodo) private readonly tagWithTodoRepository: Repository<TagWithTodo>,
-        @InjectRepository(Alarm) private readonly alarmRepository: Repository<Alarm>,
-        @InjectRepository(TodoRepeat) private readonly todoRepeatRepository: Repository<TodoRepeat>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService,
-        private readonly alarmsService: AlarmsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
     private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']

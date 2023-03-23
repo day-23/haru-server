@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
+import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Image } from "src/entity/image.entity";
 import { Post } from "src/entity/post.entity";
+import { User } from "src/entity/user.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
@@ -13,7 +14,7 @@ export class PostRepository {
     public readonly S3_URL: string;
 
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
-            @InjectRepository(Image) private readonly postImagesRepository: Repository<Image>,
+            @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
             private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -36,7 +37,7 @@ export class PostRepository {
             postImages.push(postImage)
         })
 
-        const savedPostImages = await this.postImagesRepository.save(postImages)
+        const savedPostImages = await this.imageRepository.save(postImages)
         console.log(savedPostImages)
 
         const ret = {
@@ -104,5 +105,21 @@ export class PostRepository {
                 HttpStatus.NOT_FOUND
             );
         }
+    }
+
+
+
+    async createProfileImage(userId: string, image: CreatedS3ImageFile){
+        const { originalName, key, contentType, size } = image.uploadedFile
+
+        const profileImage = new Image()
+        profileImage.originalName = originalName
+        profileImage.url = key
+        profileImage.mimeType = contentType
+        profileImage.size = size
+        profileImage.user = new User({ id: userId })
+
+        const savedProfileImage = await this.imageRepository.save(profileImage)
+        return {...savedProfileImage}
     }
 }

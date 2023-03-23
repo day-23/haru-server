@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, Query, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AwsService } from 'src/aws/aws.service';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
@@ -11,8 +11,7 @@ import { PostService } from './posts.service';
 @Controller('post/:userId')
 @ApiTags('게시물 API - 전체 작업중')
 export class PostsController {
-    constructor(private readonly postService: PostService,
-        private readonly awsService : AwsService) { }
+    constructor(private readonly postService: PostService) { }
 
     @Post()
     @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
@@ -62,5 +61,31 @@ export class PostsController {
         return await this.postService.deletePost(userId , postId)
     }
     
+
+    /* 프로필 사진 추가(이미지 하나 추가) */
+    @Post('profile/image')
+    @ApiOperation({ summary: '사용자 프로필 이미지 설정', description: '프로필 이미지를 추가한다.' })
+    @UseInterceptors(FileInterceptor('image',
+        {
+            limits: {
+                fileSize: 40 * 1024 * 1024, // 40MB
+            },
+            // Validate the file types
+            fileFilter: (req: any, file: any, callback: (error: Error | null, acceptFile: boolean) => void) => {
+                if (
+                    file.mimetype === 'image/jpeg' ||
+                    file.mimetype === 'image/png' ||
+                    file.mimetype === 'image/gif'
+                ) {
+                    callback(null, true);
+                } else {
+                    const error = new HttpException(`Failed to upload file. file mimetype must be jpeg, png, gif`, HttpStatus.BAD_REQUEST);
+                    callback(error, false);
+                }
+            },
+        }))
+    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File){
+        return await this.postService.uploadProfileImage(userId, file)
+    }
 
 }

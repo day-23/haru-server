@@ -13,8 +13,6 @@ export class PostService {
 
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto){
         const images = await this.awsService.uploadFilesToS3('sns', files)
-        console.log(images)
-
         return await this.postRepository.createPost(userId, createPostDto, images)
     }
 
@@ -28,5 +26,10 @@ export class PostService {
 
     async deletePost(userId: string, postId: string) : Promise<void>{
         return await this.postRepository.deletePost(userId, postId)
+    }
+
+    async uploadProfileImage(userId: string, file: Express.Multer.File){
+        const image = await this.awsService.uploadFileToS3('profile', file)
+        return await this.postRepository.createProfileImage(userId, image)
     }
 }

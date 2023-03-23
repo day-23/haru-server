@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AwsModule } from 'src/aws/aws.module';
 import { AwsService } from 'src/aws/aws.service';
 import { Comment } from 'src/entity/comment.entity';
 import { Image } from 'src/entity/image.entity';
@@ -16,11 +17,10 @@ import { PostsController } from './posts.controller';
 import { PostService } from './posts.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Tag, TagWithPost, Post, Comment, Image])],
+    imports: [TypeOrmModule.forFeature([User, Tag, TagWithPost, Post, Comment, Image]), AwsModule],
     controllers: [PostsController],
     providers: [UserService, UserRepository,
         TagsService, TagRepository,
-        PostService, PostRepository,
-        AwsService]
+        PostService, PostRepository]
 })
 export class PostsModule { }

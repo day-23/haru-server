@@ -13,11 +13,13 @@ import { AuthController } from './auth.controller';
 import { UserService } from 'src/users/users.service';
 import { NaverStrategy } from './strategies/auth.naver.strategy';
 import { KakaoStrategy } from './strategies/auth.kakao.strategy';
+import { Image } from 'src/entity/image.entity';
+import { AwsModule } from 'src/aws/aws.module';
 
 @Module({
     controllers: [AuthController],
     imports: [
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([User, Image]),
         PassportModule,
         JwtModule.register({
             //토큰 서명 값 설정

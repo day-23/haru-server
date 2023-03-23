@@ -5,6 +5,8 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreatedS3ImageFile } from 'src/aws/interface/awsS3.interface';
+import { Image } from 'src/entity/image.entity';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dto/users.dto';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
@@ -12,7 +14,7 @@ import { User } from '../entity/user.entity';
 @Injectable()
 export class UserRepository {
     constructor(
-        @InjectRepository(User) private readonly repository: Repository<User>,
+        @InjectRepository(User) private readonly repository: Repository<User>
     ) { }
 
     async findOne(id: string): Promise<User> {
