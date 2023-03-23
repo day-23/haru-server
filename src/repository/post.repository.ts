@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
@@ -9,25 +10,38 @@ import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interf
 import { Repository } from "typeorm";
 
 export class PostRepository {
+    public readonly S3_URL: string;
+
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
-            @InjectRepository(PostImage) private readonly postImagesRepository: Repository<PostImage>
-    ) { }
+            @InjectRepository(PostImage) private readonly postImagesRepository: Repository<PostImage>,
+            private readonly configService: ConfigService
+    ) {
+        this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
+     }
 
     async createPost(userId: string, createPostDto: CreatePostDto, images : CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
         const post = this.repository.create({ user: { id: userId }, content })
         const savedPost = await this.repository.save(post)
 
-        const createArr = []
+        const postImages = []
 
         images.uploadedFiles.map((image) => {
-            createArr.push(this.postImagesRepository.create({post : {id : savedPost.id}, url: image.key }))
+            const postImage = new PostImage()
+            postImage.post = savedPost
+            postImage.originalName = image.originalName
+            postImage.url = image.key
+            postImage.mimeType = image.contentType
+            postImage.size = image.size
+            postImages.push(postImage)
         })
-        
-        await this.postImagesRepository.save(createArr)
+
+        const savedPostImages = await this.postImagesRepository.save(postImages)
+        console.log(savedPostImages)
 
         const ret = {
             id: savedPost.id,
+            images : savedPostImages.map(({id, originalName, url, mimeType}) => ({id, originalName, url: this.S3_URL+ url, mimeType}) ),
             content: savedPost.content,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
@@ -37,18 +51,26 @@ export class PostRepository {
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit } = paginationDto;
-        const [posts, count] = await this.repository.findAndCount({
-            take: limit,
-            skip: (page - 1) * limit,
-            order: { createdAt: "DESC" }
-        });
+        const skip = (page - 1) * limit
+
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .innerJoinAndSelect('post.postImages', 'postimage')
+            .innerJoinAndSelect('post.user', 'user')
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .getManyAndCount();
 
         const totalPages = Math.ceil(count / limit);
+
         return {
             data: posts.map(post => ({
                 id: post.id,
-                user: post.user,
+                user: { id : post.user.id , name : post.user.name },
                 content: post.content,
+                images: post.postImages.map(({ id, originalName, url, mimeType}) => ({
+                    id, originalName, url : this.S3_URL + url, mimeType
+                })),
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt
             })),

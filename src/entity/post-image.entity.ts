@@ -12,9 +12,6 @@ export class PostImage extends BaseEntity {
     originalName: string;
 
     @Column()
-    encoding: string;
-
-    @Column()
     mimeType: string;
 
     @Column("decimal", { precision: 10, scale: 2 })
@@ -36,7 +33,7 @@ export class PostImage extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 사진 : 게시글 = N:1 */
-    @ManyToOne(() => Post, (post) => post.id)
+    @ManyToOne(() => Post, (post) => post.postImages)
     @JoinColumn({ name: 'post_id' })
     post: Post;
 

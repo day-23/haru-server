@@ -30,8 +30,8 @@ export class Post extends BaseEntity {
     user: User;
 
     /* 게시글 : 사진 = 1:N */
-    @OneToMany(() => PostImage, (postImage) => postImage.id)
-    postImage: PostImage[];
+    @OneToMany(() => PostImage, (postImage) => postImage.post)
+    postImages: PostImage[];
 
     /* 게시글 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.id)

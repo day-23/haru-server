@@ -3,6 +3,7 @@ import * as AWS from 'aws-sdk';
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PromiseResult } from 'aws-sdk/lib/request';
+import { CreatedS3ImageFiles } from './interface/awsS3.interface';
 
 // sharp
 
@@ -42,12 +43,12 @@ export class AwsService {
         }
     }
 
-    async uploadFilesToS3(folder: string, files: Express.Multer.File[]): Promise<{
-        uploadedFiles: { key: string; s3Object: PromiseResult<AWS.S3.PutObjectOutput, AWS.AWSError>; contentType: string }[];
-    }> {
+    async uploadFilesToS3(folder: string, files: Express.Multer.File[]): Promise<CreatedS3ImageFiles> {
         try {
             const uploadedFiles = [];
             for (const file of files) {
+                const originalName = file.originalname
+                
                 const key = `${folder}/${Date.now()}_${path.basename(file.originalname,)}`.replace(/ /g, '');
                 const s3Object = await this.awsS3
                     .putObject({
@@ -58,7 +59,9 @@ export class AwsService {
                         ContentType: file.mimetype,
                     })
                     .promise();
-                const uploadedFile = { key, s3Object, contentType: file.mimetype };
+                
+                const uploadedFile = { originalName, key, s3Object, contentType: file.mimetype, size: file.size};
+
                 uploadedFiles.push(uploadedFile);
             }
             return { uploadedFiles };
