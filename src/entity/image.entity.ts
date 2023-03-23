@@ -40,4 +40,7 @@ export class Image extends BaseEntity {
     @OneToMany(() => PostLike, (postlike) => postlike.id)
     postlike: PostLike[];
 
+
+    @CreateDateColumn()
+    createdAt: Date;
 }

@@ -5,6 +5,7 @@ import { AwsService } from 'src/aws/aws.service';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
+import { PostImageResponse } from './interface/post-image.interface';
 import { PostCreateResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 
@@ -84,8 +85,16 @@ export class PostsController {
                 }
             },
         }))
-    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File){
+    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File): Promise<PostImageResponse>{
         return await this.postService.uploadProfileImage(userId, file)
     }
+
+
+    @Get('profile/images')
+    @ApiOperation({ summary: '사용자 프로필 이미지를 조회', description: '프로필 이미지를 조회한다.' })
+    async getProfileImagesByUserId(@Param('userId') userId: string): Promise<PostImageResponse[]> {
+        return await this.postService.getProfileImagesByUserId(userId)
+    }
+
 
 }

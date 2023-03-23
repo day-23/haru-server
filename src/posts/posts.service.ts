@@ -3,6 +3,7 @@ import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/repository/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
+import { PostImageResponse } from './interface/post-image.interface';
 import { PostCreateResponse } from './interface/post.interface';
 
 @Injectable()
@@ -28,8 +29,12 @@ export class PostService {
         return await this.postRepository.deletePost(userId, postId)
     }
 
-    async uploadProfileImage(userId: string, file: Express.Multer.File){
+    async uploadProfileImage(userId: string, file: Express.Multer.File): Promise<PostImageResponse>{
         const image = await this.awsService.uploadFileToS3('profile', file)
         return await this.postRepository.createProfileImage(userId, image)
+    }
+
+    async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
+        return await this.postRepository.getProfileImagesByUserId(userId)
     }
 }

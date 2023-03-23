@@ -7,6 +7,7 @@ import { Image } from "src/entity/image.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
+import { PostImageResponse } from "src/posts/interface/post-image.interface";
 import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 
@@ -107,9 +108,7 @@ export class PostRepository {
         }
     }
 
-
-
-    async createProfileImage(userId: string, image: CreatedS3ImageFile){
+    async createProfileImage(userId: string, image: CreatedS3ImageFile) : Promise<PostImageResponse>{
         const { originalName, key, contentType, size } = image.uploadedFile
 
         const profileImage = new Image()
@@ -120,6 +119,17 @@ export class PostRepository {
         profileImage.user = new User({ id: userId })
 
         const savedProfileImage = await this.imageRepository.save(profileImage)
-        return {...savedProfileImage}
+        return {
+            id: savedProfileImage.id,
+            originalName,
+            url : this.S3_URL + key,
+            mimeType : contentType,
+        }
+    }
+
+
+    async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
+        const images = await this.imageRepository.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } })
+        return images.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url : this.S3_URL + url, mimeType }))
     }
 }
