@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as AWS from 'aws-sdk';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PromiseResult } from 'aws-sdk/lib/request';
 
@@ -38,9 +38,35 @@ export class AwsService {
                 .promise();
             return { key, s3Object, contentType: file.mimetype };
         } catch (error) {
-            throw new BadRequestException(`File upload failed : ${error}`);
+            throw new HttpException(`Failed to upload file : ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async uploadFilesToS3(folder: string, files: Express.Multer.File[]): Promise<{
+        uploadedFiles: { key: string; s3Object: PromiseResult<AWS.S3.PutObjectOutput, AWS.AWSError>; contentType: string }[];
+    }> {
+        try {
+            const uploadedFiles = [];
+            for (const file of files) {
+                const key = `${folder}/${Date.now()}_${path.basename(file.originalname,)}`.replace(/ /g, '');
+                const s3Object = await this.awsS3
+                    .putObject({
+                        Bucket: this.S3_BUCKET_NAME,
+                        Key: key,
+                        Body: file.buffer,
+                        ACL: 'public-read',
+                        ContentType: file.mimetype,
+                    })
+                    .promise();
+                const uploadedFile = { key, s3Object, contentType: file.mimetype };
+                uploadedFiles.push(uploadedFile);
+            }
+            return { uploadedFiles };
+        } catch (error) {
+            throw new HttpException(`Failed to upload file : ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     async deleteS3Object(
         key: string,
@@ -58,7 +84,7 @@ export class AwsService {
                 .promise();
             return { success: true };
         } catch (error) {
-            throw new BadRequestException(`Failed to delete file : ${error}`);
+            throw new HttpException(`Failed to delete file : ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

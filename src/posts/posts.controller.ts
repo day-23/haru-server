@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { AwsService } from 'src/aws/aws.service';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
@@ -9,12 +11,33 @@ import { PostService } from './posts.service';
 @Controller('post/:userId')
 @ApiTags('게시물 API - 전체 작업중')
 export class PostsController {
-    constructor(private readonly postService: PostService) { }
+    constructor(private readonly postService: PostService,
+        private readonly awsService : AwsService) { }
 
     @Post()
-    @ApiOperation({ summary: '게시물 생성 API', description: '게시물을 생성한다.' })
-    async createPost(@Param('userId') userId: string, @Body() createPostDto: CreatePostDto) : Promise<PostCreateResponse>{
-        return await this.postService.createPost(userId, createPostDto)
+    @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
+    @UseInterceptors(FilesInterceptor('images', 10,
+        {
+            limits: {
+                fileSize: 40 * 1024 * 1024, // 40MB
+                files: 10, // 파일 10개로 제한
+            },
+            // Validate the file types
+            fileFilter: (req: any, file: any, callback: (error: Error | null, acceptFile: boolean) => void) => {
+                if (
+                    file.mimetype === 'image/jpeg' ||
+                    file.mimetype === 'image/png' ||
+                    file.mimetype === 'image/gif'
+                ) {
+                    callback(null, true);
+                } else {
+                    const error = new HttpException(`Failed to upload file. file mimetype must be jpeg, png, gif`, HttpStatus.BAD_REQUEST);
+                    callback(error, false);
+                }
+            },
+        }))
+    async uploadFilesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[], @Body() createPostDto:CreatePostDto) {
+        return await this.postService.createPost(userId, files, createPostDto)
     }
 
     @PaginatedResponse()
@@ -39,4 +62,5 @@ export class PostsController {
         return await this.postService.deletePost(userId , postId)
     }
     
+
 }

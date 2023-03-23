@@ -1,19 +1,30 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
+import { PostImage } from "src/entity/post-image.entity";
 import { Post } from "src/entity/post.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 
 export class PostRepository {
-    constructor(@InjectRepository(Post) private readonly repository: Repository<Post>) { }
+    constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
+            @InjectRepository(PostImage) private readonly postImagesRepository: Repository<PostImage>
+    ) { }
 
-    async createPost(userId: string, createPostDto: CreatePostDto): Promise<PostCreateResponse> {
+    async createPost(userId: string, createPostDto: CreatePostDto, images : CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
         const post = this.repository.create({ user: { id: userId }, content })
-
         const savedPost = await this.repository.save(post)
+
+        const createArr = []
+
+        images.uploadedFiles.map((image) => {
+            createArr.push(this.postImagesRepository.create({post : {id : savedPost.id}, url: image.key }))
+        })
+        
+        await this.postImagesRepository.save(createArr)
 
         const ret = {
             id: savedPost.id,

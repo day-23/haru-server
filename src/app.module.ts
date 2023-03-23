@@ -49,7 +49,7 @@ import { FollowsModule } from './follows/follows.module';
         FollowsModule,
     ],
     controllers: [AppController],
-    providers: [AppService, AwsService, CheckApiKeyMiddleware],
+    providers: [AppService, CheckApiKeyMiddleware],
 })
 export class AppModule implements NestModule {
     /* 개발 환경의 경우 서버에서 로그 찍어주기 */

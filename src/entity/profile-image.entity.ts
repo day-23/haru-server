@@ -7,6 +7,18 @@ export class ProfileImage extends BaseEntity {
     id: string;
 
     @Column()
+    originalName: string;
+
+    @Column()
+    encoding: string;
+
+    @Column()
+    mimeType: string;
+
+    @Column("decimal", { precision: 10, scale: 2 })
+    size: number;
+
+    @Column()
     url: string;
 
     @CreateDateColumn()

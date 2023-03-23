@@ -35,14 +35,14 @@ export class CreateScheduleDto {
     @IsOptional() /* nullable */
     repeatValue: string;
 
-    @ApiProperty({ description: '반복 시작', nullable: true })
+    @ApiProperty({ description: '반복 시작'})
     @IsOptional()
-    @Transform(({ value }) => value ? new Date(value) : null)
+    @Transform(({ value }) => new Date(value))
     repeatStart: Date;
 
-    @ApiProperty({ description: '반복 끝', nullable: true })
+    @ApiProperty({ description: '반복 끝'})
     @IsOptional()
-    @Transform(({ value }) => value ? new Date(value) : null)
+    @Transform(({ value }) => new Date(value))
     repeatEnd: Date;
 
     @ApiProperty({ description: 'category id' })
