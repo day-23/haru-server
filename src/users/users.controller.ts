@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ParseIntPipe, ValidationPipe, DefaultValuePipe, ParseUUIDPipe, UseGuards, Req, UseInterceptors, } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ParseIntPipe, ValidationPipe, DefaultValuePipe, ParseUUIDPipe, UseGuards, Req, UseInterceptors, HttpException, HttpStatus, UploadedFiles, UploadedFile, } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { User } from 'src/entity/user.entity';
@@ -7,6 +7,7 @@ import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.gaurd';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('user')

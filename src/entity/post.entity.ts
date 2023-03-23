@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
-import { PostImage } from './post-image.entity';
+import { Image } from './image.entity';
 import { PostLike } from './post-like.entity';
 import { TagWithPost } from './tag-with-post.entity';
 import { User } from './user.entity';
@@ -30,8 +30,8 @@ export class Post extends BaseEntity {
     user: User;
 
     /* 게시글 : 사진 = 1:N */
-    @OneToMany(() => PostImage, (postImage) => postImage.id)
-    postImage: PostImage[];
+    @OneToMany(() => Image, (postImage) => postImage.post)
+    postImages: Image[];
 
     /* 게시글 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.id)

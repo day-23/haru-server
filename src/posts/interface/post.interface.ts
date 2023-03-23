@@ -1,15 +1,17 @@
 import { Pagination } from "src/common/interface/pagination.interface";
 import { User } from "src/entity/user.entity";
+import { PostImageResponse } from "./post-image.interface";
 
 export interface PostCreateResponse {
+    id: string,
     content: string,
+    images : PostImageResponse[]
     createdAt: string | Date,
     updatedAt: string | Date,
 }
 
 export interface PostGetResponse extends PostCreateResponse{
-    id: string,
-    user : User,
+    user : Partial<User>,
 }
 
 

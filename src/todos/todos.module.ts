@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlarmsService } from 'src/alarms/alarms.service';
+import { AwsModule } from 'src/aws/aws.module';
+import { AwsService } from 'src/aws/aws.service';
 import { Alarm } from 'src/entity/alarm.entity';
+import { Image } from 'src/entity/image.entity';
 import { SubTodo } from 'src/entity/sub-todo.entity';
 import { TagWithTodo } from 'src/entity/tag-with-todo.entity';
 import { Tag } from 'src/entity/tag.entity';

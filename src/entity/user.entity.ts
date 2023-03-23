@@ -15,15 +15,14 @@ import {
 import { Alarm } from './alarm.entity';
 import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
-import { Following } from './following.entity';
 import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
-import { ProfileImage } from './profile-image.entity';
 import { Category } from './category.entity';
 import { Schedule } from './schedule.entity';
 import { TagWithTodo } from './tag-with-todo.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
+import { Image } from './image.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -83,16 +82,16 @@ export class User extends BaseEntity {
     /* 다른 엔터티들간의 관계 */
 
     /* 사용자 : 프로필 이미지  -  1:N  */
-    @OneToMany(() => ProfileImage, (profileImage) => profileImage.id)
-    profile_image_id: ProfileImage[];
+    @OneToMany(() => Image, (image) => image.user)
+    profileImages: Image[];
 
     /* 사용자 : 팔로우  -  1:N  */
-    @OneToMany(() => Follow, (follow) => follow.id)
-    follow_id: Post[];
+    @OneToMany(() => Follow, (follow) => follow.follow)
+    follow: Follow[];
 
     /* 사용자 : 팔로윙  -  1:N  */
-    @OneToMany(() => Following, (following) => following.id)
-    following_id: Post[];
+    @OneToMany(() => Follow, (following) => following.following)
+    following: Follow[];
 
     /* 사용자 : 게시글  -  1:N  */
     @OneToMany(() => Post, (post) => post.id)

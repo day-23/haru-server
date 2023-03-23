@@ -21,6 +21,7 @@ import { CommentsController } from './comments/comments.controller';
 import { CommentsService } from './comments/comments.service';
 import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
+import { AwsModule } from './aws/aws.module';
 
 @Module({
     imports: [
