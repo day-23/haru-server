@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AwsService } from 'src/aws/aws.service';
 import { Comment } from 'src/entity/comment.entity';
+import { PostImage } from 'src/entity/post-image.entity';
 import { Post } from 'src/entity/post.entity';
 import { TagWithPost } from 'src/entity/tag-with-post.entity';
 import { Tag } from 'src/entity/tag.entity';
@@ -14,10 +16,11 @@ import { PostsController } from './posts.controller';
 import { PostService } from './posts.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Tag, TagWithPost, Post, Comment])],
+    imports: [TypeOrmModule.forFeature([User, Tag, TagWithPost, Post, Comment, PostImage])],
     controllers: [PostsController],
     providers: [UserService, UserRepository,
         TagsService, TagRepository,
-        PostService, PostRepository]
+        PostService, PostRepository,
+        AwsService]
 })
 export class PostsModule { }

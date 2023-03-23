@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/repository/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
@@ -6,10 +7,15 @@ import { PostCreateResponse } from './interface/post.interface';
 
 @Injectable()
 export class PostService {
-    constructor(private readonly postRepository: PostRepository) { }
+    constructor(private readonly postRepository: PostRepository,
+        private readonly awsService: AwsService
+        ) { }
 
-    async createPost(userId: string, createPostDto: CreatePostDto) : Promise<PostCreateResponse>{
-        return await this.postRepository.createPost(userId, createPostDto)
+    async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto){
+        const images = await this.awsService.uploadFilesToS3('sns', files)
+        console.log(images)
+
+        return await this.postRepository.createPost(userId, createPostDto, images)
     }
 
     async getPostsByPagination(userId : string, paginationDto: PaginationDto){

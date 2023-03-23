@@ -16,7 +16,6 @@ export class Follow extends BaseEntity{
     @DeleteDateColumn()
     deletedAt?: Date | null;
 
-
     /* 다른 엔터티들간의 관계 */
     /* 사용자 : 팔로우 = N:1 */
     @ManyToOne(() => User, (user) => user.id)
