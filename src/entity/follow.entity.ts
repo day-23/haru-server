@@ -18,7 +18,11 @@ export class Follow extends BaseEntity{
 
     /* 다른 엔터티들간의 관계 */
     /* 사용자 : 팔로우 = N:1 */
-    @ManyToOne(() => User, (user) => user.id)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+    @ManyToOne(() => User, (user) => user.follow)
+    @JoinColumn()
+    follow: User;
+
+    @ManyToOne(() => User, (user) => user.following)
+    @JoinColumn()
+    following: User;
 }
