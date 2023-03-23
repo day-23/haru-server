@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
-import { PostImage } from "src/entity/post-image.entity";
+import { Image } from "src/entity/image.entity";
 import { Post } from "src/entity/post.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interface/post.interface";
@@ -13,7 +13,7 @@ export class PostRepository {
     public readonly S3_URL: string;
 
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
-            @InjectRepository(PostImage) private readonly postImagesRepository: Repository<PostImage>,
+            @InjectRepository(Image) private readonly postImagesRepository: Repository<Image>,
             private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -27,7 +27,7 @@ export class PostRepository {
         const postImages = []
 
         images.uploadedFiles.map((image) => {
-            const postImage = new PostImage()
+            const postImage = new Image()
             postImage.post = savedPost
             postImage.originalName = image.originalName
             postImage.url = image.key

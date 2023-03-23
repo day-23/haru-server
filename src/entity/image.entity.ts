@@ -2,9 +2,10 @@ import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDat
 import { Comment } from './comment.entity';
 import { PostLike } from './post-like.entity';
 import { Post } from './post.entity';
+import { User } from './user.entity';
 
 @Entity()
-export class PostImage extends BaseEntity {
+export class Image extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -20,22 +21,16 @@ export class PostImage extends BaseEntity {
     @Column()
     url: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
-    @DeleteDateColumn()
-    deletedAt?: Date | null;
-
-
     /* 다른 엔터티들간의 관계 */
     /* 사진 : 게시글 = N:1 */
     @ManyToOne(() => Post, (post) => post.postImages)
     @JoinColumn({ name: 'post_id' })
     post: Post;
+
+    /* 프로필 사진 : 사용자 */
+    @ManyToOne(() => User, (user) => user.profileImages)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
 
     /* 사진 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.id)

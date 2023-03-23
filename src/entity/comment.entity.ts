@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
-import { PostImage } from './post-image.entity';
+import { Image } from './image.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
 
@@ -35,9 +35,9 @@ export class Comment extends BaseEntity {
     post: Post;
 
     /* 댓글 : 사진 = N : 1 */
-    @ManyToOne(() => PostImage, (postImage) => postImage.id)
+    @ManyToOne(() => Image, (postImage) => postImage.id)
     @JoinColumn({ name: 'post_image_id' })
-    postImage: PostImage;
+    postImage: Image;
 
     /* 댓글 : 사용자 = N : 1 */
     @ManyToOne(() => User, (user) => user.id)
