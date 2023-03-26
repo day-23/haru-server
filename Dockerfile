@@ -5,7 +5,6 @@ ENV NODE_OPTIONS="--max-old-space-size=512"
 
 WORKDIR /var/app
 COPY . .
-COPY /tmp/.env /var/app/.env
 
 RUN npm install
 RUN npm install pm2 -g
