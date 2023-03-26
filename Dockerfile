@@ -1,7 +1,7 @@
 FROM node:18
 RUN mkdir -p /var/app
 
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 
 WORKDIR /var/app
 COPY . .
