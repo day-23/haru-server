@@ -47,10 +47,10 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ env.VERSION }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-      # Create .env file
-      - name: Create .env file
+    # Set Docker environment variables using MY_SECRETS
+      - name: Set Docker environment variables
         run: |
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$MY_SECRETS" > /tmp/.env
+          echo "$MY_SECRETS" | jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' >> $GITHUB_ENV
         env:
           MY_SECRETS: ${{ toJson(secrets) }}
       # GitHub 컨테이너 레지스트리에 로그인 후 빌드 & 푸시
