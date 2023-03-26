@@ -10,8 +10,6 @@ env:
   DOCKER_IMAGE: ghcr.io/${{ github.actor }}/github-actions-auto
   VERSION: ${{ github.sha }}
   NAME: go_cicd
-  PORT: ${{ secrets.PORT }}
-  MY_SECRETS: ${{ toJson(secrets) }}
 
 jobs:
   notify:
@@ -52,7 +50,7 @@ jobs:
       # Create .env file
       - name: Create .env file
         run: |
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$MY_SECRETS" > /var/app/.env
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$MY_SECRETS" > /tmp/.env
         env:
           MY_SECRETS: ${{ toJson(secrets) }}
       # GitHub 컨테이너 레지스트리에 로그인 후 빌드 & 푸시
