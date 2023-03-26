@@ -6,6 +6,9 @@ ENV NODE_OPTIONS="--max-old-space-size=1536"
 WORKDIR /var/app
 COPY . .
 
+RUN apt-get update && \
+    apt-get install -y jq
+
 RUN npm install
 RUN npm install pm2 -g
 RUN npm run build
