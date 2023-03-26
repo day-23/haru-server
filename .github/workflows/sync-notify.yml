@@ -52,7 +52,7 @@ jobs:
       # Create .env file
       - name: Create .env file
         run: |
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$MY_SECRETS" > .env
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$MY_SECRETS" > /var/app/.env
         env:
           MY_SECRETS: ${{ toJson(secrets) }}
       # GitHub 컨테이너 레지스트리에 로그인 후 빌드 & 푸시
