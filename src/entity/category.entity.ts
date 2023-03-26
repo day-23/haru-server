@@ -14,6 +14,16 @@ export class Category extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    /* 다른 엔터티들간의 관계 */
+    /* 카테고리 : 사용자 = N : 1 */
+    @ManyToOne(() => User, (user) => user.categories)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    /* 카테고리 : 스케줄 = 1:N */
+    @OneToMany(() => Schedule, (schedule) => schedule.category)
+    schedules: Schedule[];
+
     @Column()
     content: string;
 
@@ -26,23 +36,5 @@ export class Category extends BaseEntity {
     @Column({ default : true})
     isSelected : boolean
 
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-    @DeleteDateColumn()
-    deletedAt?: Date | null;
-
-    /* 다른 엔터티들간의 관계 */
-    /* 카테고리 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.categories)
-    @JoinColumn({ name: 'user_id' })
-    user: User | string;
-
-    /* 카테고리 : 스케줄 = 1:N */
-    @OneToMany(() => Schedule, (schedule) => schedule.category)
-    schedules: Schedule[];
 
 }

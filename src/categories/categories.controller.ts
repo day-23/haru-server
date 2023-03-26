@@ -27,9 +27,9 @@ export class CategoriesController {
     @ApiCreatedResponse({
         description: '카테고리를 생성한다. 해당 사용자가 이미 사용하는 카테고리를 입력하는 경우, 새로 생성하진 않음'
     })
-    async create(@Param('userId') userId: string, @Body() createCategoriesDto: CreateCategoriesDto): Promise<Category[]> {
-        return await this.categoriesService.createCategories(userId, createCategoriesDto)
-    }
+    // async create(@Param('userId') userId: string, @Body() createCategoriesDto: CreateCategoriesDto): Promise<Category[]> {
+    //     // return await this.categoriesService.createCategories(userId, createCategoriesDto)
+    // }
     
     @Get('categories')
     @ApiOperation({ summary: '사용자의 모든 카테고리 조회 API' })

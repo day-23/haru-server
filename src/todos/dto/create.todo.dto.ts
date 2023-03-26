@@ -2,10 +2,9 @@ import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { Alarm } from "src/entity/alarm.entity";
-import { SubTodo } from "src/entity/sub-todo.entity";
-import { TagWithTodo } from "src/entity/tag-with-todo.entity";
+import { Subtodo } from "src/entity/subtodo.entity";
+import { TodoTags } from "src/entity/todo-tags.entity";
 import { Tag } from "src/entity/tag.entity";
-import { TodoRepeat } from "src/entity/todo-repeat.entity";
 import { Todo } from "src/entity/todo.entity";
 import { User } from "src/entity/user.entity";
 
@@ -82,18 +81,18 @@ export class UpdateTodoDto extends PartialType(CreateTodoDto) { }
 
 export function createTodoFromDto(todoDto: CreateTodoDto, user: User, tags: Tag[], nextTodoOrder: number): Todo {
     const todo = new Todo();
-    todo.content = todoDto.content;
-    todo.memo = todoDto.memo;
-    todo.todayTodo = todoDto.todayTodo;
-    todo.flag = todoDto.flag;
-    todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
-    todo.endDate = todoDto.endDate;
-    todo.repeatEnd = todoDto.repeatEnd;
-    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new SubTodo({ user, content, subTodoOrder }));
-    todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
-    todo.tagWithTodos = tags.map(tag => new TagWithTodo({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder }))
-    todo.todoRepeat = new TodoRepeat({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
-    todo.user = user;
+    // todo.content = todoDto.content;
+    // todo.memo = todoDto.memo;
+    // todo.todayTodo = todoDto.todayTodo;
+    // todo.flag = todoDto.flag;
+    // todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
+    // todo.endDate = todoDto.endDate;
+    // todo.repeatEnd = todoDto.repeatEnd;
+    // todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new SubTodo({ user, content, subTodoOrder }));
+    // todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
+    // todo.tagWithTodos = tags.map(tag => new TagWithTodo({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder }))
+    // todo.repeat = new Repeat({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
+    // todo.user = user;
     todo.todoOrder = nextTodoOrder + 1
     todo.todayTodoOrder = nextTodoOrder + 1
     return todo;
@@ -104,33 +103,33 @@ export function updateTodoFromDto(existingTodo: Todo, todoDto: CreateTodoDto, us
     const existingTagIds = []
     const existingTagIdsAndTodoOrderDic = {}
 
-    existingTodo.tagWithTodos.map((tagWithTodo) => {
-        const tagId = tagWithTodo.tag.id
-        existingTagIds.push(tagId)
-        existingTagIdsAndTodoOrderDic[tagId] = tagWithTodo.todoOrder
-    })
+    // existingTodo.tagWithTodos.map((tagWithTodo) => {
+    //     const tagId = tagWithTodo.tag.id
+    //     existingTagIds.push(tagId)
+    //     existingTagIdsAndTodoOrderDic[tagId] = tagWithTodo.todoOrder
+    // })
 
     const user = new User({ id: userId })
     const todo = new Todo();
     todo.id = existingTodo.id;
-    todo.content = todoDto.content;
-    todo.memo = todoDto.memo;
-    todo.todayTodo = todoDto.todayTodo;
-    todo.flag = todoDto.flag;
-    todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
-    todo.endDate = todoDto.endDate;
-    todo.repeatEnd = todoDto.repeatEnd;
-    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new SubTodo({ user, content, subTodoOrder, completed: existingTodo.subTodos[subTodoOrder].completed }));
-    todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
-    todo.tagWithTodos = tags.map(tag => {
-        if (existingTagIds.includes(tag.id)) {
-            return new TagWithTodo({ user, todo, tag, todoOrder: existingTagIdsAndTodoOrderDic[tag.id] })
-        } else {
-            return new TagWithTodo({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder })
-        }
-    })
-    todo.todoRepeat = new TodoRepeat({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
-    todo.user = user;
+    // todo.content = todoDto.content;
+    // todo.memo = todoDto.memo;
+    // todo.todayTodo = todoDto.todayTodo;
+    // todo.flag = todoDto.flag;
+    // todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
+    // todo.endDate = todoDto.endDate;
+    // todo.repeatEnd = todoDto.repeatEnd;
+    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new Subtodo({ content, subTodoOrder, completed: existingTodo.subTodos[subTodoOrder].completed }));
+    // todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
+    // todo.tagWithTodos = tags.map(tag => {
+    //     if (existingTagIds.includes(tag.id)) {
+    //         return new TodoTags({ user, todo, tag, todoOrder: existingTagIdsAndTodoOrderDic[tag.id] })
+    //     } else {
+    //         // return new TodoTags({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder })
+    //     }
+    // })
+    // todo.repeat = new Repetition({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
+    // todo.user = user;
     todo.todoOrder = existingTodo.todoOrder
     todo.todayTodoOrder = existingTodo.todayTodoOrder
     return todo;

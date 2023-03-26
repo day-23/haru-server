@@ -1,14 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlarmsService } from 'src/alarms/alarms.service';
-import { AwsModule } from 'src/aws/aws.module';
-import { AwsService } from 'src/aws/aws.service';
 import { Alarm } from 'src/entity/alarm.entity';
-import { Image } from 'src/entity/image.entity';
-import { SubTodo } from 'src/entity/sub-todo.entity';
-import { TagWithTodo } from 'src/entity/tag-with-todo.entity';
+import { Subtodo } from 'src/entity/subtodo.entity';
+import { TodoTags } from 'src/entity/todo-tags.entity';
 import { Tag } from 'src/entity/tag.entity';
-import { TodoRepeat } from 'src/entity/todo-repeat.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { User } from 'src/entity/user.entity';
 import { AlarmRepository } from 'src/repository/alarm.repository';
@@ -21,7 +17,7 @@ import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo, User, SubTodo, Tag, TagWithTodo, Alarm, TodoRepeat])],
+    imports: [TypeOrmModule.forFeature([Todo, User, Subtodo, Tag, TodoTags, Alarm])],
     controllers: [TodosController],
     providers: [TodosService, TodoRepository, 
                 UserService, UserRepository, 

@@ -33,12 +33,13 @@ export class CategoryRepository {
             if (existingCategory) {
                 throw new ConflictException(`Category with this user already exists`);
             }
-            const { nextCategoryOrder } = updatedUser
+            // const { nextCategoryOrder } = updatedUser
 
-            const newCategory = this.repository.create({ user: userId, content, color, categoryOrder: nextCategoryOrder })
-            const savedCategory = await this.repository.save(newCategory)
+            // const newCategory = this.repository.create({ user: userId, content, color, categoryOrder: nextCategoryOrder })
+            // const savedCategory = await this.repository.save(newCategory)
 
-            return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color, categoryOrder: savedCategory.categoryOrder, isSelected: savedCategory.isSelected }
+            // return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color, categoryOrder: savedCategory.categoryOrder, isSelected: savedCategory.isSelected }
+            return null
         } catch (error) {
             await queryRunner.rollbackTransaction();
 
@@ -75,8 +76,8 @@ export class CategoryRepository {
                 content
             }));
 
-        const createdCategories = await this.repository.save(newCategories);
-        return [...createdCategories, ...existingCategories];
+        // const createdCategories = await this.repository.save(newCategories);
+        // return [...createdCategories, ...existingCategories];
     }
 
     async findAllCategoriesByUserId(userId: string): Promise<BaseCategory[]> {
@@ -178,13 +179,13 @@ export class CategoryRepository {
     }
 
     async deleteCategories(userId: string, deleteCategoriesDto: DeleteCategoriesDto): Promise<void> {
-        const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: userId });
+        // const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: userId });
 
-        if (result.affected === 0) {
-            throw new HttpException(
-                `No category with ID associated with user with ID ${userId} was found`,
-                HttpStatus.NOT_FOUND,
-            );
-        }
+        // if (result.affected === 0) {
+        //     throw new HttpException(
+        //         `No category with ID associated with user with ID ${userId} was found`,
+        //         HttpStatus.NOT_FOUND,
+        //     );
+        // }
     }
 }

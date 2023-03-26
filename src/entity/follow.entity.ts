@@ -6,6 +6,7 @@ export class Follow extends BaseEntity{
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    /* 차단 여부 */
     @Column()
     relation : boolean
 

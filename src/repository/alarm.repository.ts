@@ -27,8 +27,10 @@ export class AlarmRepository {
             throw new ConflictException(`Alarm with this ${todoId ? 'todo' : 'schedule'} already exists`);
         }
 
-        const newAlarm = this.repository.create({ user: userId, todo: todoId, schedule: scheduleId, time });
-        return this.repository.save(newAlarm);
+        // const newAlarm = this.repository.create({ user: userId, todo: todoId, schedule: scheduleId, time });
+        // return this.repository.save(newAlarm);
+
+        return null
     }
 
 
@@ -40,8 +42,8 @@ export class AlarmRepository {
         if (!todoId) {
             const newAlarms = createAlarmsDto.times.map((time) => {
                 return new Alarm({
-                    user: userId,
-                    schedule: scheduleId,
+                    // user: userId,
+                    // schedule: scheduleId,
                     time
                 })
             })
@@ -49,8 +51,8 @@ export class AlarmRepository {
         } else {
             const newAlarms = createAlarmsDto.times.map((time) => {
                 return new Alarm({
-                    user: userId,
-                    todo: todoId,
+                    // user: userId,
+                    // todo: todoId,
                     time
                 })
             })

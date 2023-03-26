@@ -13,7 +13,8 @@ export class TagsService {
     }
 
     async createTags(userId: string, createTagsDto: CreateTagsDto): Promise<Tag[]> {
-        return await this.tagRepository.saveTags(userId, createTagsDto);
+        // return await this.tagRepository.saveTags(userId, createTagsDto);
+        return null
     }
 
     async getTagsByUserId(userId: string): Promise<BaseTag[]> {

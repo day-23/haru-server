@@ -1,4 +1,4 @@
-import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
+// import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
 import { Pagination, PaginationByDate } from "src/common/interface/pagination.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
@@ -19,7 +19,7 @@ export interface TodoResponse {
     createdAt: string | Date,
     updatedAt: string | Date,
     subTodos: GetSubTodoResponse[],
-    alarms: BaseAlarm[],
+    // alarms: BaseAlarm[],
     tags: BaseTagForTodoResponse[]
 }
 

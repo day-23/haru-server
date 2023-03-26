@@ -18,17 +18,18 @@ export class TagRepository {
 
         if (existingTag) {
             throw new ConflictException(`Tag with this user already exists`);
-        }
+        // }
 
-        const newTag = this.repository.create({ user: userId, content});
-        const ret = await this.repository.save(newTag);
-        return { id: ret.id, content }
+        }
+        // const newTag = this.repository.create({ user: userId, content});
+        // const ret = await this.repository.save(newTag);
+        // return { id: ret.id, content }
     }
 
 
     /* 태그를 한번에 여러개 생성하는 코드 */
     async saveTags(userId: string, createTagsDto: CreateTagsDto) {
-        let { nextTagOrder } = await this.userService.findOne(userId);
+        // let { nextTagOrder } = await this.userService.findOne(userId);
         
         const existingTags = await this.repository.find({
             where: {
@@ -41,19 +42,19 @@ export class TagRepository {
             .filter(content => !existingTags.some(tag => tag.content.toUpperCase() === content.toUpperCase()))
             .map(content => {
                 const newTag = new Tag({
-                    user: userId,
+                    // user: userId,
                     content,
-                    tagOrder : nextTagOrder++
+                    // tagOrder : nextTagOrder++
                 });
                 return newTag;
             });
 
-        const [createdTags, updateUser] = await Promise.all([
-            this.repository.save(newTags),
-            this.userService.updateUser(userId, {nextTagOrder})
-        ]) 
+        // const [createdTags, updateUser] = await Promise.all([
+        //     this.repository.save(newTags),
+        //     // this.userService.updateUser(userId, {nextTagOrder})
+        // ]) 
 
-        return [...createdTags, ...existingTags];
+        // return [...createdTags, ...existingTags];
     }
 
     async findAllTagsByUserId(userId: string): Promise<BaseTag[]> {
@@ -131,7 +132,7 @@ export class TagRepository {
 
     async deleteTags(userId: string, deleteTagsDto: DeleteTagsDto): Promise<void> {
         try {
-            await this.repository.delete({ id: In(deleteTagsDto.tagIds), user: userId });
+            // await this.repository.delete({ id: In(deleteTagsDto.tagIds), user: userId });
         } catch (error) {
             throw new HttpException(
                 {

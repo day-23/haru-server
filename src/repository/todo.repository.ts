@@ -5,12 +5,12 @@ import { Todo } from "src/entity/todo.entity";
 import { CreateAlarmByTimeDto, CreateTodoDto, createTodoFromDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { EntityManager, In, Repository } from "typeorm";
-import { SubTodo } from "src/entity/sub-todo.entity";
+import { Subtodo } from "src/entity/subtodo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { TagsService } from "src/tags/tags.service";
-import { TagWithTodo } from "src/entity/tag-with-todo.entity";
+import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery, transformTodosAddTags } from "src/common/utils/data-utils";
@@ -22,13 +22,12 @@ import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto }
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodosResponse, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
-import { TodoRepeat } from "src/entity/todo-repeat.entity";
 import { savedTodoJsonToTodoResponse } from "src/todos/parse.todo.json";
 
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
-        @InjectRepository(SubTodo) private readonly subTodoRepository: Repository<SubTodo>,
+        @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
         private readonly userService: UserService,
         private readonly tagsService: TagsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
@@ -53,21 +52,22 @@ export class TodoRepository {
                 this.tagsService.createTags(userId, { contents: createTodoDto.tags })
             ])
             /* 투두 데이터 저장 */
-            const todoEntity = createTodoFromDto(createTodoDto, new User({ id: userId }), tags, updateTodoOrder.nextTodoOrder)
+            // const todoEntity = createTodoFromDto(createTodoDto, new User({ id: userId }), tags, updateTodoOrder.nextTodoOrder)
 
-            await Promise.all([
-                ...tags.map((tag) =>
-                    queryRunner.manager.update(
-                        Tag,
-                        { id: tag.id },
-                        { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
-                    ),
-                ),
-                queryRunner.manager.save(Todo, todoEntity)
-            ]);
-            await queryRunner.commitTransaction();
+            // await Promise.all([
+            //     ...tags.map((tag) =>
+            //         queryRunner.manager.update(
+            //             Tag,
+            //             { id: tag.id },
+            //             { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
+            //         ),
+            //     ),
+            //     queryRunner.manager.save(Todo, todoEntity)
+            // ]);
+            // await queryRunner.commitTransaction();
 
-            return savedTodoJsonToTodoResponse(todoEntity);
+            // return savedTodoJsonToTodoResponse(todoEntity);
+            return null
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -154,7 +154,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
+            .leftJoinAndSelect('todo.Repeat', 'repeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
@@ -180,7 +180,6 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
@@ -235,7 +234,7 @@ export class TodoRepository {
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
             .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
+                .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
             .leftJoinAndSelect('tagwithtodo.tag', 'tag')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 1')
@@ -580,16 +579,16 @@ export class TodoRepository {
             ]);
             const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
 
-            await Promise.all([
-                ...tags.map((tag) =>
-                    queryRunner.manager.update(
-                        Tag,
-                        { id: tag.id },
-                        { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
-                    ),
-                ),
-                queryRunner.manager.save(Todo, todoEntity),
-            ]);
+            // await Promise.all([
+            //     ...tags.map((tag) =>
+            //         queryRunner.manager.update(
+            //             Tag,
+            //             { id: tag.id },
+            //             // { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
+            //         ),
+            //     ),
+            //     queryRunner.manager.save(Todo, todoEntity),
+            // ]);
             await queryRunner.commitTransaction();
 
             return savedTodoJsonToTodoResponse(todoEntity);
@@ -607,7 +606,7 @@ export class TodoRepository {
         }
     }
 
-    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<SubTodo> {
+    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo> {
         const existingSubTodo = await this.subTodoRepository.findOne({ where: { id: subTodoId } });
 
         if (!existingSubTodo) {
@@ -637,7 +636,7 @@ export class TodoRepository {
 
     async delete(userId: string, todoId: string): Promise<void> {
         const result = await this.repository.delete({
-            user: { id: userId },
+            // user: { id: userId },
             id: todoId
         });
 
@@ -742,7 +741,7 @@ export class TodoRepository {
 
         try {
             const promises = todoIds.map((todoId, todoOrder) =>
-                queryRunner.manager.update(TagWithTodo, { todo: todoId, tag: tagId }, { todoOrder })
+                queryRunner.manager.update(TodoTags, { todo: todoId, tag: tagId }, { todoOrder })
             );
             await Promise.all(promises);
             // Commit transaction
@@ -767,7 +766,7 @@ export class TodoRepository {
 
         try {
             const promises = subTodoIds.map((id, subTodoOrder) => {
-                queryRunner.manager.update(SubTodo, { id }, { subTodoOrder })
+                queryRunner.manager.update(Subtodo, { id }, { subTodoOrder })
             })
             await Promise.all(promises);
             await queryRunner.commitTransaction();
@@ -789,7 +788,7 @@ export class TodoRepository {
         try {
             await Promise.all([
                 queryRunner.manager.update(Todo, { id: todoId }, notRepeatTodoCompleteDto),
-                queryRunner.manager.update(SubTodo, { todo: todoId }, notRepeatTodoCompleteDto),
+                queryRunner.manager.update(Subtodo, { todo: todoId }, notRepeatTodoCompleteDto),
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();
@@ -808,7 +807,7 @@ export class TodoRepository {
         todoId: string, subTodoId: string): Promise<void> {
         const result = await this.subTodoRepository.delete({
             id: subTodoId,
-            user: { id: userId },
+            // user: { id: userId },
         })
 
         if (result.affected === 0) {
@@ -829,7 +828,7 @@ export class TodoRepository {
 
         try {
             const promises: Promise<any>[] = [queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
-            queryRunner.manager.update(SubTodo, { todo: todoId }, { completed: true })]
+            queryRunner.manager.update(Subtodo, { todo: todoId }, { completed: true })]
             if (endDate) {
                 promises.push(this.createTodo(userId, createTodoDto))
             }
