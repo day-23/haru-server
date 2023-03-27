@@ -75,9 +75,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
       # 3000 -> 80 포트로 수행하도록 지정
-      - name: Set up environment variables
-        run: |
-          export $(echo "${SECRETS_JSON}" | jq -r 'to_entries[] | "SECRET_\(.key | ascii_upcase)=\(.value)"')
       - name: 'Create env file'
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
