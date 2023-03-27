@@ -75,10 +75,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
       # 3000 -> 80 포트로 수행하도록 지정
-      - name: 'Create env file'
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
       - name: Docker run
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
           docker run -d -p 80:3000
+           --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
