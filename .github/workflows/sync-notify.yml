@@ -83,5 +83,5 @@ jobs:
       - name: 'Create env file'
         run: |
           echo "${{ secrets.ENV_FILE }}" > env_file
-          docker cp env_file ${env.NAME}:/var/app/.env
+          docker cp env_file ${{env.NAME}}:/var/app/.env
           rm env_file
