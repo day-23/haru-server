@@ -157,13 +157,13 @@ export class CategoryRepository {
     }
 
     async deleteCategories(userId: string, deleteCategoriesDto: DeleteCategoriesDto): Promise<void> {
-        // const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: userId });
+        const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: {id :userId }});
 
-        // if (result.affected === 0) {
-        //     throw new HttpException(
-        //         `No category with ID associated with user with ID ${userId} was found`,
-        //         HttpStatus.NOT_FOUND,
-        //     );
-        // }
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No category with ID associated with user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
     }
 }

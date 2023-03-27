@@ -13,23 +13,9 @@ export class CategoriesController {
     @Post()
     @ApiOperation({ summary: '카테고리 생성 API', description: '카테고리를 생성한다.' })
     @ApiBody({ type: CreateCategoryDto, description: 'Request body example' })
-    @ApiCreatedResponse({
-        description: '카테고리를 생성한다. 해당 사용자가 이미 사용하는 카테고리를 입력하는 경우, 새로 생성하진 않음'
-    })
     async createCategory(@Param('userId') userId: string, @Body() createCategoryDto: CreateCategoryDto){
         return await this.categoriesService.createCategory(userId, createCategoryDto)
     }
-    
-
-    @Post('categories')
-    @ApiOperation({ summary: '카테고리 생성 API', description: '카테고리를 생성한다.' })
-    @ApiBody({ type: CreateCategoriesDto, description: 'Request body example' })
-    @ApiCreatedResponse({
-        description: '카테고리를 생성한다. 해당 사용자가 이미 사용하는 카테고리를 입력하는 경우, 새로 생성하진 않음'
-    })
-    // async create(@Param('userId') userId: string, @Body() createCategoriesDto: CreateCategoriesDto): Promise<Category[]> {
-    //     // return await this.categoriesService.createCategories(userId, createCategoriesDto)
-    // }
     
     @Get('categories')
     @ApiOperation({ summary: '사용자의 모든 카테고리 조회 API' })
