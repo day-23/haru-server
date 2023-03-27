@@ -82,4 +82,6 @@ jobs:
            --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "${{ secrets.ENV_FILE }}" > env_file
+          docker cp env_file ${env.NAME}:/var/app/.env
+          rm env_file
