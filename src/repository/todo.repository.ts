@@ -47,10 +47,8 @@ export class TodoRepository {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
-            const [updateTodoOrder, tags] = await Promise.all([
-                this.userService.updateNextOrder(userId, 'nextTodoOrder', -1),
-                this.tagsService.createTags(userId, { contents: createTodoDto.tags })
-            ])
+            const tags = await this.tagsService.createTags(userId, { contents: createTodoDto.tags })
+            
             /* 투두 데이터 저장 */
             // const todoEntity = createTodoFromDto(createTodoDto, new User({ id: userId }), tags, updateTodoOrder.nextTodoOrder)
 

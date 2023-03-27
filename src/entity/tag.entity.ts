@@ -38,4 +38,5 @@ export class Tag extends BaseEntity {
     /* 태그 : 태그게시물 = 1:N */
     @OneToMany(() => PostTags, (postTags) => postTags.tag)
     postTags: PostTags[];
+
 }

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AlarmsModule } from 'src/alarms/alarms.module';
 import { Category } from 'src/entity/category.entity';
 import { Holiday } from 'src/entity/holiday.entity';
 import { Schedule } from 'src/entity/schedule.entity';
@@ -8,9 +9,8 @@ import { ScheduleController } from './schedules.controller';
 import { ScheduleService } from './schedules.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Holiday, Schedule])],
+    imports: [AlarmsModule, TypeOrmModule.forFeature([Holiday, Schedule])],
     controllers: [ScheduleController],
     providers: [ScheduleService, ScheduleRepository]
-
 })
 export class SchedulesModule { }

@@ -15,10 +15,7 @@ export class CategoriesService {
     async getCategoryById(userId : string, categoryId : string): Promise<Category>{
         return await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId)
     }
-    
-    async createCategories(userId: string, createTagDto: CreateCategoriesDto) {
-        return await this.categoryRepository.createCategories(userId, createTagDto)
-    }
+
     
     async getCategoriesByUserId(userId: string): Promise<BaseCategory[]>  {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)

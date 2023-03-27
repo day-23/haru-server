@@ -18,7 +18,7 @@ export class ScheduleRepository {
 
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
     async createSchedule(userId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto) : Promise<Schedule> {
-        const savedSchedule = await this.repository.save(createScheduleDto)
+        const savedSchedule = await this.repository.save({...createScheduleDto, user: {id:userId}  })
         return savedSchedule
     }
 }

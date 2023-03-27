@@ -1,9 +1,8 @@
 import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Alarm } from 'src/entity/alarm.entity';
 import { AlarmsService } from './alarms.service';
-import { CreateAlarmDto, CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
+import { CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
 
 
 @ApiTags('Alarm API')

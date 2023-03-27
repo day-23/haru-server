@@ -35,6 +35,4 @@ export class Category extends BaseEntity {
 
     @Column({ default : true})
     isSelected : boolean
-
-
 }

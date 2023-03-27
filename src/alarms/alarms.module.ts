@@ -9,5 +9,6 @@ import { AlarmRepository } from 'src/repository/alarm.repository';
     imports: [TypeOrmModule.forFeature([Alarm])],
     controllers: [AlarmsController],
     providers: [AlarmsService, AlarmRepository],
+    exports : [AlarmsService, AlarmRepository]
 })
 export class AlarmsModule { }

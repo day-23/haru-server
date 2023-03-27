@@ -1,17 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { AlarmRepository } from 'src/repository/alarm.repository';
 // import { CreateAlarmToScheduleResponse } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
 // import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 // import { Schedule } from 'src/entity/schedule.entity';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
-import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
-import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto } from './dto/create.schedule.dto';
 
 @Injectable()
 export class ScheduleService {
-    constructor(private readonly scheduleRepository: ScheduleRepository) { }
+    constructor(private readonly scheduleRepository: ScheduleRepository,
+            private readonly alarmRepository: AlarmRepository
+        ) { }
 
     async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
-        return await this.scheduleRepository.createSchedule(userId, createScheduleDto)
+        const {alarms, ...schedule} = createScheduleDto
+
+        const newSchedule = await this.scheduleRepository.createSchedule(userId, schedule)
+        const newAlarms = await this.alarmRepository.createAlarms(userId, { scheduleId:newSchedule.id , times:alarms})
+
+        return await this.scheduleRepository.createSchedule(userId, schedule)
     }
 
     // async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {

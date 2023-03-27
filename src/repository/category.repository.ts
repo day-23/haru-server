@@ -4,11 +4,10 @@ import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCate
 import { BaseCategory } from "src/categories/interface/category.interface";
 import { Category } from "src/entity/category.entity";
 import { UserService } from "src/users/users.service";
-import { In, Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 
 export class CategoryRepository {
     constructor(@InjectRepository(Category) private readonly repository: Repository<Category>,
-    private readonly userService: UserService,
     ) { }
 
     //Category
@@ -20,33 +19,33 @@ export class CategoryRepository {
         await queryRunner.startTransaction();
 
         try {
-            const [updatedUser, existingCategory] = await Promise.all([
-                this.userService.updateNextOrder(userId, 'nextCategoryOrder', 1),
+            const [existingCategory, nextCategoryOrder] = await Promise.all([
+                this.repository.findOne({ where: { user: { id: userId }, content } }),
+                this.repository.createQueryBuilder('category')
+                    .select('MAX(category.categoryOrder)', 'maxOrder')
+                    .where('category.user = :userId', { userId })
+                    .getRawOne()
+                ,])
 
-                this.repository.findOne({
-                    where: {
-                        user: { id: userId },
-                        content
-                    }
-                })
-            ])
             if (existingCategory) {
                 throw new ConflictException(`Category with this user already exists`);
             }
-            // const { nextCategoryOrder } = updatedUser
-
-            // const newCategory = this.repository.create({ user: userId, content, color, categoryOrder: nextCategoryOrder })
-            // const savedCategory = await this.repository.save(newCategory)
-
-            // return { id: savedCategory.id, content: savedCategory.content, color: savedCategory.color, categoryOrder: savedCategory.categoryOrder, isSelected: savedCategory.isSelected }
-            return null
+            
+            // save newCategory
+            const newCategory = await queryRunner.manager.save(Category, {
+                content,
+                color,
+                categoryOrder: nextCategoryOrder.maxOrder + 1,
+                user: {id : userId},
+            })
+            await queryRunner.commitTransaction();
+            return { id: newCategory.id, content: newCategory.content, color: newCategory.color, categoryOrder: newCategory.categoryOrder, isSelected: newCategory.isSelected }
         } catch (error) {
             await queryRunner.rollbackTransaction();
 
             if (error instanceof ConflictException) {
                 throw error;
             }
-            
             throw new HttpException(
                 {
                     message: 'SQL error',
@@ -57,27 +56,6 @@ export class CategoryRepository {
         } finally {
             await queryRunner.release();
         }        
-    }
-
-    //Category
-    /* 카테고리를 한번에 여러개 생성하는 코드 */
-    async createCategories(userId: string, createCategoriesDto: CreateCategoriesDto) {
-        const existingCategories = await this.repository.find({
-            where: {
-                user: { id: userId },
-                content: In(createCategoriesDto.contents)
-            }
-        });
-
-        const newCategories = createCategoriesDto.contents
-            .filter(content => !existingCategories.some(category => category.content === content))
-            .map((content) => ({
-                user: userId,
-                content
-            }));
-
-        // const createdCategories = await this.repository.save(newCategories);
-        // return [...createdCategories, ...existingCategories];
     }
 
     async findAllCategoriesByUserId(userId: string): Promise<BaseCategory[]> {
@@ -107,7 +85,7 @@ export class CategoryRepository {
 
         const { content } = updateCategoryDto
         if (content) {
-            promises.push(this.repository.findOne({ where: { content } }))
+            promises.push(this.repository.findOne({ where: { content, id: Not(categoryId) } }))
         }
 
         const [existingCategory, alreadyExistContent] = await Promise.all(promises)
