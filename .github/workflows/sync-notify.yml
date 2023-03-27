@@ -84,12 +84,10 @@ jobs:
       - name: Set up environment variables
         run: |
           export $(echo "${SECRETS_JSON}" | jq -r 'to_entries[] | "SECRET_\(.key | ascii_upcase)=\(.value)"')
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
       - name: Docker run
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          export $(echo "${SECRETS_JSON}" | jq -r 'to_entries[] | "SECRET_\(.key | ascii_upcase)=\(.value)"')
-          docker run -d -p 80:3000 \
-          $(echo "${SECRETS_JSON}" | jq -r 'to_entries[] | "-e SECRET_\(.key | ascii_upcase)=\(.value)"') \
-           --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
-        env:
-          SECRETS_JSON: ${{ toJson(secrets) }}
+          docker run -d -p 80:3000
