@@ -36,11 +36,6 @@ export class CreateAlarmDto {
 
 /* alarm 여러개 생성 DTO */
 export class CreateAlarmsDto {
-    @ApiProperty({ example: 'todoId', description: '알림을 생성하고자하는 todo의 Id' })
-    @ValidateIf(o => o.scheduleId === null)
-    @IsNotEmpty()
-    todoId: string;
-
     @ApiProperty({ example: 'scheduleId', description: '알림을 생성하고자하는 schedule의 Id' })
     @ValidateIf(o => o.todoId === null)
     @IsNotEmpty()

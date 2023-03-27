@@ -11,11 +11,11 @@ import { ScheduleService } from './schedules.service';
 @ApiTags('Schedule API')
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
-    // @Post()
-    // @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })
-    // async create(@Param('userId') userId: string, @Body() createTodoDto: CreateScheduleDto){
-    //     return await this.scheduleService.createSchedule(userId, createTodoDto)
-    // }
+    @Post()
+    @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })
+    async create(@Param('userId') userId: string, @Body() createScheduleDto: CreateScheduleDto){
+        return await this.scheduleService.createSchedule(userId, createScheduleDto)
+    }
 
     // @PaginatedResponse()
     // @Get('holidays/date')

@@ -10,9 +10,9 @@ import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto'
 export class ScheduleService {
     constructor(private readonly scheduleRepository: ScheduleRepository) { }
 
-    // async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
-    //     return await this.scheduleRepository.createSchedule(userId, createScheduleDto)
-    // }
+    async createSchedule(userId: string, createScheduleDto: CreateScheduleDto) {
+        return await this.scheduleRepository.createSchedule(userId, createScheduleDto)
+    }
 
     // async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
     //     return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)

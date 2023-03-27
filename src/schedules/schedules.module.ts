@@ -1,27 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlarmsService } from 'src/alarms/alarms.service';
-import { AwsModule } from 'src/aws/aws.module';
-import { CategoriesService } from 'src/categories/categories.service';
-import { Alarm } from 'src/entity/alarm.entity';
 import { Category } from 'src/entity/category.entity';
 import { Holiday } from 'src/entity/holiday.entity';
-import { Image } from 'src/entity/image.entity';
-// import { Schedule } from 'src/entity/schedule.entity';
-import { Subtodo } from 'src/entity/subtodo.entity';
-import { User } from 'src/entity/user.entity';
-import { AlarmRepository } from 'src/repository/alarm.repository';
-import { CategoryRepository } from 'src/repository/category.repository';
+import { Schedule } from 'src/entity/schedule.entity';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
-import { UserRepository } from 'src/repository/user.repository';
-import { UserService } from 'src/users/users.service';
 import { ScheduleController } from './schedules.controller';
 import { ScheduleService } from './schedules.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Subtodo, Category, Alarm, Holiday, Image])],
+    imports: [TypeOrmModule.forFeature([Holiday, Schedule])],
     controllers: [ScheduleController],
-    providers: [ScheduleService, ScheduleRepository, CategoriesService, CategoryRepository, AlarmsService, AlarmRepository, UserRepository, UserService]
+    providers: [ScheduleService, ScheduleRepository]
 
 })
 export class SchedulesModule { }

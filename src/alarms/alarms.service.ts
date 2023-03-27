@@ -8,12 +8,11 @@ import { CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
 export class AlarmsService {
     constructor(private readonly alarmRepository: AlarmRepository) { }
 
-    async createAlarm(userId: string, todoId: string, scheduleId: string, dto: CreateAlarmByTimeDto){
-        return await this.alarmRepository.createAlarm(userId, todoId, scheduleId, dto)
+    async createAlarm(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<Alarm> {
+        return await this.alarmRepository.createAlarm(userId, scheduleId, dto)
     }
 
-
-    async createAlarms(userId:string, createAlarmsDto:CreateAlarmsDto):Promise<Alarm[]>{
+    async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto): Promise<Alarm[]> {
         return await this.alarmRepository.createAlarms(userId, createAlarmsDto)
     }
 

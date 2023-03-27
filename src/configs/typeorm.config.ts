@@ -15,6 +15,7 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     // synchronize: true, //배포시 false로 바꿔야함
     // host: '34.64.54.33',
     // password: 'dlalswo8!',
+    // host: '34.64.225.253',
     host: '127.0.0.1',
     password: 'dlalswo8',
     port: 3306,

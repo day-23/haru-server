@@ -61,6 +61,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:latest
+          memory: '2g'
   # 배포 Job
   deploy:
     needs: build  # build 후에 실행되도록 정의
@@ -77,4 +78,10 @@ jobs:
       - name: Docker run
         run: |
           docker stop ${{ env.NAME }} && docker rm ${{ env.NAME }} && docker rmi ${{ env.DOCKER_IMAGE }}:latest
-          docker run -d -p 8080:8080 --name go_cicd --restart always ${{ env.DOCKER_IMAGE }}:latest
+          docker run -d -p 80:3000 \
+           --name ${{ env.NAME }} --restart always ${{ env.DOCKER_IMAGE }}:latest
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > env_file
+          docker cp env_file ${{env.NAME}}:/var/app/.env
+          rm env_file

@@ -36,7 +36,6 @@ export class Todo extends BaseEntity {
     folded: boolean;
 
     /* 다른 엔터티들간의 관계 */
-
     /* 투두 : 태그투두 = 1:N */
     @OneToMany(() => TodoTags, (tagwithtodo) => tagwithtodo.todo, { cascade: true })
     todoTags: TodoTags[];
@@ -49,4 +48,8 @@ export class Todo extends BaseEntity {
     @JoinColumn({ name: 'schedule_id' })
     @Index({ unique: true })
     schedule: Schedule
+
+    @ManyToOne(() => Todo, { nullable: true })
+    @JoinColumn({ name: 'parent_id' })
+    parent: Todo;
 }

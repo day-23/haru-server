@@ -1,27 +1,14 @@
-// import { HttpException, HttpStatus } from "@nestjs/common";
-// import { InjectRepository } from "@nestjs/typeorm";
-// import { AlarmsService } from "src/alarms/alarms.service";
-// // import { CreateAlarmToScheduleResponse } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
-// import { CategoriesService } from "src/categories/categories.service";
-// import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
-// import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
-// import { parseRepeatFromSchedule } from "src/common/utils/data-utils";
-// import { Alarm } from "src/entity/alarm.entity";
-// import { Category } from "src/entity/category.entity";
-// import { Holiday } from "src/entity/holiday.entity";
-// import { Repeat } from "src/entity/repeat.entity";
-// import { Task } from "src/entity/task.entity";
-// import { CreateScheduleDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
-// // import { GetSchedulesResponse, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
-// import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
-// import { Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+import { AlarmsService } from "src/alarms/alarms.service";
+import { CategoriesService } from "src/categories/categories.service";
+import { Schedule } from "src/entity/schedule.entity";
+import { CreateScheduleDto, CreateScheduleWithoutAlarmsDto } from "src/schedules/dto/create.schedule.dto";
+import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { Repository } from "typeorm";
 
 export class ScheduleRepository {
     constructor(
-        // @InjectRepository(Task) private readonly repository: Repository<Task>,
-        // @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
-        // private readonly categoriesService: CategoriesService,
-        // private readonly alarmsService: AlarmsService,
+        @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
     ) { }
 
     // private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.timeOption', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt']
@@ -29,7 +16,19 @@ export class ScheduleRepository {
     // private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
     // private scheduleRepeatProperties = ['schedulerepeat.id', 'schedulerepeat.repeatOption', 'schedulerepeat.repeatValue']
 
-    // /* 스케줄 데이터 저장 */
+    // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
+    async createSchedule(userId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto) : Promise<Schedule> {
+        const savedSchedule = await this.repository.save(createScheduleDto)
+        return savedSchedule
+    }
+}
+
+
+        
+
+
+
+
     // async createSchedule(userId: string, createScheduleDto: CreateScheduleDto): Promise<ScheduleResponse> {
     //     const { alarms, categoryId, ...scheduleData } = createScheduleDto;
     //     const savedCategory = await this.categoriesService.getCategoryById(userId, categoryId)
@@ -239,4 +238,4 @@ export class ScheduleRepository {
     //         );
     //     }
     // }
-}
+    
