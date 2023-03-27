@@ -13,7 +13,7 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     // database: process.env.TYPEORM_DATABASE,
     // entities: ['dist/**/*.entity.{ts,js}'], // Entity 연결
     // synchronize: true, //배포시 false로 바꿔야함
-    host: '34.64.54.33',
+    host: '34.64.225.253',
     port: 3306,
     username: 'root',
     password: 'dlalswo8!',
