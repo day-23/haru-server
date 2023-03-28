@@ -1,16 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Todo } from 'src/entity/todo.entity';
 import { TodoRepository } from 'src/todos/todo.repository';
-import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
-import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, GetTodosResponse, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -20,19 +17,19 @@ export class TodosService {
         return await this.todoRepository.findTodosForMain(userId);
     }
 
-    async getFlaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+    async getFlaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
         return await this.todoRepository.getFlaggedTodosForMain(userId);
     }
 
-    async getTaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+    async getTaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
         return await this.todoRepository.getTaggedTodosForMain(userId);
     }
 
-    async getUnTaggedTodosForMain(userId : string): Promise<GetTodosResponse> {
+    async getUnTaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
         return await this.todoRepository.getUnTaggedTodosForMain(userId);
     }
 
-    async getCompletedTodosForMain(userId : string): Promise<GetTodosResponse> {
+    async getCompletedTodosForMain(userId : string): Promise<TodoResponse[]> {
         return await this.todoRepository.getCompletedTodosForMain(userId);
     }
 

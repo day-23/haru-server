@@ -8,10 +8,10 @@ import { Todo } from 'src/entity/todo.entity';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
-import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, GetTodosResponse, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -64,7 +64,7 @@ export class TodosController {
         description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getFlaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getFlaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getFlaggedTodosForMain(userId);
     }
 
@@ -75,7 +75,7 @@ export class TodosController {
         description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getTaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getTaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getTaggedTodosForMain(userId);
     }
 
@@ -86,7 +86,7 @@ export class TodosController {
         description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getUnTaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getUnTaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getUnTaggedTodosForMain(userId);
     }
 
@@ -97,7 +97,7 @@ export class TodosController {
         description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
     })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getCompletedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getCompletedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getCompletedTodosForMain(userId);
     }
 

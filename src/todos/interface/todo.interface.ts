@@ -1,39 +1,27 @@
 // import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
 import { Pagination, PaginationByDate } from "src/common/interface/pagination.interface";
-import { Alarm } from "src/entity/alarm.entity";
-import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
+import { BaseSchedule } from "src/schedules/interface/schedule.interface";
+import { BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
 
-export interface TodoResponse {
-    id: string,
-    content: string,
-    memo: string,
+export interface BaseTodo extends BaseSchedule {
     todayTodo: boolean,
     flag: boolean,
-    isSelectedEndDateTime: boolean,
     endDate: string | Date,
-    repeatOption : string,
-    repeatValue : string,
-    repeatEnd: string | Date,
     todoOrder: number,
     completed: boolean,
-    createdAt: string | Date,
-    updatedAt: string | Date,
-    subTodos: GetSubTodoResponse[],
-    // alarms: BaseAlarm[],
+    subTodos: BaseSubTodo[],
     tags: BaseTagForTodoResponse[]
 }
 
-export interface GetTodosForMain{
-    data : {
-        flaggedTodos : TodoResponse[],
-        taggedTodos: TodoResponse[],
-        untaggedTodos : TodoResponse[],
-        completedTodos : TodoResponse[],
-    }
-}
+export interface TodoResponse extends BaseTodo { }
 
-export interface GetTodosResponse {
-    data: TodoResponse[],
+export interface GetTodosForMain {
+    data: {
+        flaggedTodos: TodoResponse[],
+        taggedTodos: TodoResponse[],
+        untaggedTodos: TodoResponse[],
+        completedTodos: TodoResponse[],
+    }
 }
 
 export interface GetTodosPaginationResponse {
@@ -43,7 +31,7 @@ export interface GetTodosPaginationResponse {
 
 export interface GetTodayTodosResponse {
     data: {
-        flaggedTodos : TodoResponse[]
+        flaggedTodos: TodoResponse[]
         todayTodos: TodoResponse[]
         endDatedTodos: TodoResponse[]
     },
@@ -61,14 +49,9 @@ export interface GetTodosResponseByDate {
     pagination: PaginationByDate
 }
 
-
-
 export interface BaseSubTodo {
     id: string,
     content: string,
     subTodoOrder: number,
-}
-
-export interface GetSubTodoResponse extends BaseSubTodo {
-    completed : boolean
+    completed: boolean
 }

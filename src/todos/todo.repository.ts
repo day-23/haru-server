@@ -2,7 +2,7 @@ import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateAlarmByTimeDto, CreateTodoDto, createTodoFromDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
+import { CreateTodoDto, createTodoFromDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { EntityManager, In, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
@@ -12,18 +12,12 @@ import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/make
 import { TagsService } from "src/tags/tags.service";
 import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
-import { Alarm } from "src/entity/alarm.entity";
 import { formattedTodoDataFromTagRawQuery, transformTodosAddTags } from "src/common/utils/data-utils";
-import { AlarmsService } from "src/alarms/alarms.service";
-import { CreateTagDto } from "src/tags/dto/create.tag.dto";
 import { CreateSubTodoDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
-import { User } from "src/entity/user.entity";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodosResponse, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
-import { savedTodoJsonToTodoResponse } from "src/todos/parse.todo.json";
-
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
@@ -111,15 +105,15 @@ export class TodoRepository {
 
         return {
             data: {
-                flaggedTodos: flaggedTodos.data,
-                taggedTodos: taggedTodos.data,
-                untaggedTodos: untaggedTodos.data,
-                completedTodos: completedTodos.data,
+                flaggedTodos: flaggedTodos,
+                taggedTodos: taggedTodos,
+                untaggedTodos: untaggedTodos,
+                completedTodos: completedTodos,
             }
         };
     }
 
-    async getFlaggedTodosForMain(userId: string): Promise<GetTodosResponse> {
+    async getFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const flaggedTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -141,12 +135,10 @@ export class TodoRepository {
             .getMany()
 
         const ret = transformTodosAddTags(flaggedTodos)
-        return {
-            data: ret
-        }
+        return ret
     }
 
-    async getTaggedTodosForMain(userId: string): Promise<GetTodosResponse> {
+    async getTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const taggedTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -167,12 +159,10 @@ export class TodoRepository {
             .orderBy('todo.todoOrder', 'ASC')
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
-        return {
-            data: transformTodosAddTags(taggedTodos)
-        }
+        return transformTodosAddTags(taggedTodos)
     }
 
-    async getUnTaggedTodosForMain(userId: string): Promise<GetTodosResponse> {
+    async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const unTaggedTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -193,12 +183,10 @@ export class TodoRepository {
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
 
-        return {
-            data: transformTodosAddTags(unTaggedTodos)
-        }
+        return transformTodosAddTags(unTaggedTodos)
     }
 
-    async getCompletedTodosForMain(userId: string): Promise<GetTodosResponse> {
+    async getCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const completedTodos = await this.repository.createQueryBuilder('todo')
             .leftJoinAndSelect('todo.subTodos', 'subtodo')
             .leftJoinAndSelect('todo.alarms', 'alarm')
@@ -218,9 +206,7 @@ export class TodoRepository {
             .addOrderBy('subtodo.subTodoOrder', 'ASC')
             .getMany()
 
-        return {
-            data: transformTodosAddTags(completedTodos)
-        }
+        return transformTodosAddTags(completedTodos)
     }
 
     /* 오늘의 할일 */
