@@ -45,12 +45,12 @@ export class TodoRepository {
         
         // make dictionary with tagId as key and maxTodoOrder as value
         const maxTodoOrderPerTagIdDict = maxTodoOrderPerTagId.reduce((acc, cur) => {
-            acc[cur.tag] = cur.maxTodoOrder;
+            acc[cur.tag] = cur.maxTodoOrder + 1;
             return acc;
         }, {})
 
         const todoTagsEntities = tagIds.map(tagId => {
-            return this.todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId] + 1 })
+            return this.todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
         })
 
         return await this.todoTagsRepository.save(todoTagsEntities);
@@ -59,12 +59,8 @@ export class TodoRepository {
     /* 투두 생성 함수 */
     async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto): Promise<Todo> {
         //find next todo order and today todo order by Promise.all
-        const [nextTodoOrder, nextTodayTodoOrder] = await Promise.all([
-            this.findNextTodoOrder(userId),
-            this.findNextTodayTodoOrder(userId)
-        ])
-
-        const todo = this.repository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodayTodoOrder });
+        const nextTodoOrder = await this.findNextTodoOrder(userId)
+        const todo = this.repository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
         return await this.repository.save(todo);
     }
 

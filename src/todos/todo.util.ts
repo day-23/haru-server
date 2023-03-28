@@ -16,22 +16,22 @@ export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo
         id: todo.id,
         content: scheduleResponse.content,
         memo: scheduleResponse.memo,
-        isAllDay: scheduleResponse.isAllDay,
-        endDate: scheduleResponse.repeatStart,
-        repeatEnd: scheduleResponse.repeatEnd,
-        repeatOption: scheduleResponse.repeatOption,
-        repeatValue: scheduleResponse.repeatValue,
-        alarms: scheduleResponse.alarms,
-        createdAt: scheduleResponse.createdAt,
-        updatedAt: scheduleResponse.updatedAt,
-
         todayTodo: todo.todayTodo,
         flag: todo.flag,
+        isAllDay: scheduleResponse.isAllDay,
+        endDate: scheduleResponse.repeatStart,
+        repeatOption: scheduleResponse.repeatOption,
+        repeatValue: scheduleResponse.repeatValue,
+        repeatEnd: scheduleResponse.repeatEnd,
         todoOrder: todo.todoOrder,
         completed: todo.completed,
         folded : todo.folded,
         subTodos,
-        tags
+        tags,
+        alarms: scheduleResponse.alarms,
+        createdAt: scheduleResponse.createdAt,
+        updatedAt: scheduleResponse.updatedAt,
     };
+    
     return response;
 }
