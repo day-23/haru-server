@@ -12,18 +12,15 @@ export class TagRepository {
     private readonly userService : UserService
     ) { }
 
-    async saveTag(userId: string, createTagDto: CreateTagDto) {
+    async saveTag(userId: string, createTagDto: CreateTagDto) : Promise<Tag> {
         const { content } = createTagDto;
         const existingTag = await this.repository.findOne({ where: { user: { id: userId }, content } });
-
         if (existingTag) {
             throw new ConflictException(`Tag with this user already exists`);
-        // }
-
         }
-        // const newTag = this.repository.create({ user: userId, content});
-        // const ret = await this.repository.save(newTag);
-        // return { id: ret.id, content }
+        
+        const newTag = this.repository.create({ user: {id :userId}, content});
+        return await this.repository.save(newTag);
     }
 
 

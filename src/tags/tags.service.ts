@@ -8,8 +8,9 @@ import { BaseTag } from './interface/tag.interface';
 export class TagsService {
     constructor(private readonly tagRepository: TagRepository) { }
 
-    async createTag(userId: string, createTagDto: CreateTagDto){
-        return await this.tagRepository.saveTag(userId, createTagDto);
+    async createTag(userId: string, createTagDto: CreateTagDto) : Promise<BaseTag>{
+        const {id, content, isSelected, tagOrder} =  await this.tagRepository.saveTag(userId, createTagDto);
+        return {id, content, isSelected, tagOrder}
     }
 
     async createTags(userId: string, createTagsDto: CreateTagsDto): Promise<Tag[]> {
