@@ -8,8 +8,8 @@ import { ThrottlerGuard } from 'src/common/guards/throttler.guard';
 import { Image } from 'src/entity/image.entity';
 import { User } from 'src/entity/user.entity';
 import { PostService } from 'src/posts/posts.service';
-import { PostRepository } from 'src/repository/post.repository';
-import { UserRepository } from 'src/repository/user.repository';
+import { PostRepository } from 'src/posts/post.repository';
+import { UserRepository } from 'src/users/user.repository';
 import { UserController } from './users.controller';
 import { UserService } from './users.service';
 

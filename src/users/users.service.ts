@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { User } from 'src/entity/user.entity';
-import { UserRepository } from 'src/repository/user.repository';
+import { UserRepository } from 'src/users/user.repository';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 
 

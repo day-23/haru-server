@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Alarm } from 'src/entity/alarm.entity';
-import { AlarmRepository } from 'src/repository/alarm.repository';
+import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
 import { BaseAlarm } from './interface/alarm.interface';

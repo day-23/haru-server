@@ -28,7 +28,6 @@ import { savedTodoJsonToTodoResponse } from "src/todos/parse.todo.json";
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
-        private readonly userService: UserService,
         private readonly tagsService: TagsService,
         @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }

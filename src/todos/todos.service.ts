@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Todo } from 'src/entity/todo.entity';
-import { TodoRepository } from 'src/repository/todo.repository';
+import { TodoRepository } from 'src/todos/todo.repository';
 import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';

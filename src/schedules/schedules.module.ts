@@ -5,7 +5,7 @@ import { CategoriesModule } from 'src/categories/categories.module';
 import { Category } from 'src/entity/category.entity';
 import { Holiday } from 'src/entity/holiday.entity';
 import { Schedule } from 'src/entity/schedule.entity';
-import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { ScheduleController } from './schedules.controller';
 import { ScheduleService } from './schedules.service';
 

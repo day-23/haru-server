@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
-import { TagRepository } from 'src/repository/tag.repository';
+import { TagRepository } from 'src/tags/tag.repository';
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from './dto/create.tag.dto';
 import { BaseTag } from './interface/tag.interface';
 

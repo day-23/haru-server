@@ -4,12 +4,12 @@ import { BaseAlarm } from 'src/alarms/interface/alarm.interface';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Alarm } from 'src/entity/alarm.entity';
 import { Schedule } from 'src/entity/schedule.entity';
-import { AlarmRepository } from 'src/repository/alarm.repository';
+import { AlarmRepository } from 'src/alarms/alarm.repository';
 // import { CreateAlarmToScheduleResponse } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
 // import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 // import { Schedule } from 'src/entity/schedule.entity';
-import { CategoryRepository } from 'src/repository/category.repository';
-import { ScheduleRepository } from 'src/repository/schedule.repository';
+import { CategoryRepository } from 'src/categories/category.repository';
+import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
@@ -32,7 +32,8 @@ export class ScheduleService {
         if (categoryId) {
             category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
         } else {
-            throw new BadRequestException(`categoryId is required`);
+            // throw new BadRequestException(`categoryId is required`);
+            
         }
 
         // Create a new queryRunner if one was not provided
