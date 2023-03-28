@@ -6,10 +6,13 @@ import { TodoRepository } from 'src/todos/todo.repository';
 import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
 import { TagsModule } from 'src/tags/tags.module';
+import { SchedulesModule } from 'src/schedules/schedules.module';
+import { TodoTags } from 'src/entity/todo-tags.entity';
 
 @Module({
-    imports: [TagsModule, TypeOrmModule.forFeature([Todo, Subtodo])],
+    imports: [SchedulesModule, TagsModule, TypeOrmModule.forFeature([Todo, Subtodo, TodoTags])],
     controllers: [TodosController],
-    providers: [TodosService, TodoRepository]
+    providers: [TodosService, TodoRepository],
+    exports: [TodosService]
 })
 export class TodosModule { }

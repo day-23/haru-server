@@ -96,6 +96,10 @@ export class User extends BaseEntity {
     @OneToMany(() => Schedule, (schedules) => schedules.user)
     schedules: Schedule[];
 
+    /* 사용자 : Task  -  1:N  */
+    @OneToMany(() => Todo, (todos) => todos.user)
+    todos: Todo[];
+
     /* 사용자 : 서브투두 -  1:N  */
     @OneToMany(() => Tag, (subtodo) => subtodo.user)
     subTodos: Tag[];

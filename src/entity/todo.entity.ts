@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDat
 import { Subtodo } from './subtodo.entity';
 import { TodoTags } from './todo-tags.entity';
 import { Schedule } from './schedule.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'todo' })
 export class Todo extends BaseEntity {
@@ -52,4 +53,9 @@ export class Todo extends BaseEntity {
     @ManyToOne(() => Todo, { nullable: true })
     @JoinColumn({ name: 'parent_id' })
     parent: Todo;
+
+    /* 투두 : 사용자 = N:1 */
+    @ManyToOne(() => User, (user) => user.todos)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
 }

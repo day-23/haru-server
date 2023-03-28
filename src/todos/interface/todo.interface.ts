@@ -9,6 +9,7 @@ export interface BaseTodo extends BaseSchedule {
     endDate: string | Date,
     todoOrder: number,
     completed: boolean,
+    folded : boolean,
     subTodos: BaseSubTodo[],
     tags: BaseTagForTodoResponse[]
 }

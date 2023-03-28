@@ -53,6 +53,7 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
                 repeatValue: item.todo_repeatValue,
                 isAllDay: item.todo_isAllDay ? true : false,
                 endDate: item.todo_endDate,
+                folded: item.todo_folded,
                 repeatEnd : item.todo_repeatEnd,
                 completed : item.todo_completed ? true : false,
                 createdAt: item.todo_created_At,

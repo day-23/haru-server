@@ -2,18 +2,17 @@ import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateTodoDto, createTodoFromDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
+import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
-import { EntityManager, In, Repository } from "typeorm";
+import { DataSource, EntityManager, In, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
-import { TagsService } from "src/tags/tags.service";
 import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { formattedTodoDataFromTagRawQuery, transformTodosAddTags } from "src/common/utils/data-utils";
-import { CreateSubTodoDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
+import { CreateSubTodoDto, CreateSubTodosDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
@@ -22,8 +21,9 @@ import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
-        private readonly tagsService: TagsService,
+        @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>,
         @InjectEntityManager() private readonly entityManager: EntityManager,
+        private dataSource: DataSource
     ) { }
     private todoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
     private todayTodoProperties = ['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todayTodoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt']
@@ -33,45 +33,79 @@ export class TodoRepository {
     private tagProperties = ['tag.id', 'tag.content']
     private todoRepeatProperties = ['todorepeat.id', 'todorepeat.repeatOption', 'todorepeat.repeatValue']
 
+    /* create todoTags */
+    async createTodoTags(todoId: string, tagIds: string[]): Promise<TodoTags[]> {
+        // in todoTags, group by tag_id and get max value per tag_id
+        const maxTodoOrderPerTagId = await this.todoTagsRepository.createQueryBuilder('todoTags')
+            .select('MAX(todoTags.todoOrder)', 'maxTodoOrder')
+            .addSelect('todoTags.tag', 'tag')
+            .where('todoTags.tag IN (:...tagIds)', { tagIds })
+            .groupBy('todoTags.tag')
+            .getRawMany();
+        
+        // make dictionary with tagId as key and maxTodoOrder as value
+        const maxTodoOrderPerTagIdDict = maxTodoOrderPerTagId.reduce((acc, cur) => {
+            acc[cur.tag] = cur.maxTodoOrder;
+            return acc;
+        }, {})
+
+        const todoTagsEntities = tagIds.map(tagId => {
+            return this.todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId] + 1 })
+        })
+
+        return await this.todoTagsRepository.save(todoTagsEntities);
+    }
 
     /* 투두 생성 함수 */
-    async createTodo(userId: string, createTodoDto: CreateTodoDto): Promise<TodoResponse> {
-        const queryRunner = this.repository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-        try {
-            const tags = await this.tagsService.createTags(userId, { contents: createTodoDto.tags })
-            
-            /* 투두 데이터 저장 */
-            // const todoEntity = createTodoFromDto(createTodoDto, new User({ id: userId }), tags, updateTodoOrder.nextTodoOrder)
+    async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto): Promise<Todo> {
+        //find next todo order and today todo order by Promise.all
+        const [nextTodoOrder, nextTodayTodoOrder] = await Promise.all([
+            this.findNextTodoOrder(userId),
+            this.findNextTodayTodoOrder(userId)
+        ])
 
-            // await Promise.all([
-            //     ...tags.map((tag) =>
-            //         queryRunner.manager.update(
-            //             Tag,
-            //             { id: tag.id },
-            //             { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
-            //         ),
-            //     ),
-            //     queryRunner.manager.save(Todo, todoEntity)
-            // ]);
-            // await queryRunner.commitTransaction();
-
-            // return savedTodoJsonToTodoResponse(todoEntity);
-            return null
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.FORBIDDEN,
-            );
-        } finally {
-            await queryRunner.release();
-        }
+        const todo = this.repository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodayTodoOrder });
+        return await this.repository.save(todo);
     }
+
+    /* create subTodos */
+    async createSubTodos(todoId: string, contents: string[]): Promise<Subtodo[]> {
+        const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
+        const subTodoEntities = contents.map((content, index) => {
+            return this.subTodoRepository.create({content, todo: { id: todoId }, subTodoOrder: nextSubTodoOrder + index})
+        })
+        return await this.subTodoRepository.save(subTodoEntities);
+    }
+
+    async findNextSubTodoOrder(todoId: string): Promise<number> {
+        const maxSubTodoOrder = await this.subTodoRepository.createQueryBuilder('subtodo')
+            .select('MAX(subtodo.subTodoOrder)', 'maxSubTodoOrder')
+            .where('subtodo.todo = :todoId', { todoId })
+            .getRawOne();
+
+        console.log('maxSubTodoOrder', maxSubTodoOrder)
+        return maxSubTodoOrder.maxSubTodoOrder + 1;
+    }
+
+    // find Next Todo Order
+    async findNextTodoOrder(userId: string): Promise<number> {
+        const maxTodoOrder = await this.repository.createQueryBuilder('todo')
+            .select('MAX(todo.todoOrder)', 'maxTodoOrder')
+            .where('todo.user = :userId', { userId })
+            .getRawOne();
+        return maxTodoOrder.maxTodoOrder + 1;
+    }
+
+    // find Next Today Todo Order
+    async findNextTodayTodoOrder(userId: string): Promise<number> {
+        const maxTodayTodoOrder = await this.repository.createQueryBuilder('todo')
+            .select('MAX(todo.todayTodoOrder)', 'maxTodayTodoOrder')
+            .where('todo.user = :userId', { userId })
+            .andWhere('todo.todayTodo = true')
+            .getRawOne();
+        return maxTodayTodoOrder.maxTodayTodoOrder + 1;
+    }
+
 
     /* 투두 메인화면 + 투데이 투두 */
     async findTodosAll(userId: string, todayTodoDto: TodayTodoDto) {
@@ -556,10 +590,10 @@ export class TodoRepository {
         await queryRunner.startTransaction();
 
         try {
-            const [tags, deleted] = await Promise.all([
-                this.tagsService.createTags(userId, { contents: todoDto.tags }),
-                this.repository.delete({ id: todoId })
-            ]);
+            // const [tags, deleted] = await Promise.all([
+                // this.tagsService.createTags(userId, { contents: todoDto.tags }),
+            //     this.repository.delete({ id: todoId })
+            // ]);
             // const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
 
             // await Promise.all([
@@ -813,7 +847,7 @@ export class TodoRepository {
             const promises: Promise<any>[] = [queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
             queryRunner.manager.update(Subtodo, { todo: todoId }, { completed: true })]
             if (endDate) {
-                promises.push(this.createTodo(userId, createTodoDto))
+                // promises.push(this.createTodo(userId, createTodoDto))
             }
             const [updateTodo, updateSubTodo, createNewTodo] = await Promise.all(promises);
             // Commit transaction

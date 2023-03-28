@@ -1,10 +1,9 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateAlarmsDto, UpdateAlarmDto } from "src/alarms/dto/create.alarm.dto";
+import { CreateAlarmByTimeDto, CreateAlarmsDto, UpdateAlarmDto } from "src/alarms/dto/create.alarm.dto";
 import { BaseAlarm } from "src/alarms/interface/alarm.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { User } from "src/entity/user.entity";
-import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { QueryRunner, Repository } from "typeorm";
 
 export class AlarmRepository {

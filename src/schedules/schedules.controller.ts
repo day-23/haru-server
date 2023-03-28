@@ -2,8 +2,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
-// import { Schedule } from 'src/entity/schedule.entity';
-import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleService } from './schedules.service';

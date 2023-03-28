@@ -17,7 +17,7 @@ export class TagsController {
 
     @Post('tags')
     @ApiOperation({ summary: '태그 여러개 생성 API', description: '태그를 여러개 생성한다.' })
-    async createTags(@Param('userId') userId: string, @Body() createTagDto: CreateTagsDto){
+    async createTags(@Param('userId') userId: string, @Body() createTagDto: CreateTagsDto): Promise<BaseTag[]>{
         return await this.tagService.createTags(userId, createTagDto)
     }
 

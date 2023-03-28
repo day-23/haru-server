@@ -18,7 +18,7 @@ export class TagsService {
         return {id, content, isSelected, tagOrder}
     }
 
-    async createTags(userId: string, createTagsDto: CreateTagsDto){
+    async createTags(userId: string, createTagsDto: CreateTagsDto):Promise<BaseTag[]>{
         return await this.tagRepository.saveTags(userId, createTagsDto);
     }
 

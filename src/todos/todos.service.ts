@@ -1,17 +1,42 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CreateScheduleDto } from 'src/schedules/dto/create.schedule.dto';
+import { ScheduleService } from 'src/schedules/schedules.service';
+import { TagsService } from 'src/tags/tags.service';
 import { TodoRepository } from 'src/todos/todo.repository';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
-import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { parseTodoResponse } from './todo.util';
 
 @Injectable()
 export class TodosService {
-    constructor(private readonly todoRepository: TodoRepository) { }
+    constructor(private readonly todoRepository: TodoRepository,
+        private readonly scheduleService: ScheduleService,
+        private readonly tagService: TagsService
+        ) { }
+
+
+    async createTodo(userId: string, createTodoDto: CreateTodoDto): Promise<TodoResponse> {
+        const { todayTodo, flag, tags, subTodos, endDate, ...createScheduleDto } = createTodoDto
+        
+        const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null });
+        
+        const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag });
+
+        const savedTags = tags.length > 0 ? await this.tagService.createTags(userId, { contents: tags }) : [];
+        if (savedTags.length > 0) {
+            await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id));
+        }
+
+        const savedSubTodos = subTodos.length > 0 ? await this.todoRepository.createSubTodos(savedTodo.id, subTodos) : [];
+
+        return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);
+    }
     
     async getTodosForMain(userId : string): Promise<GetTodosForMain> {
         return await this.todoRepository.findTodosForMain(userId);
@@ -60,10 +85,6 @@ export class TodosService {
     /* 검색 */
     async getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findTodosBySearch(userId, content)
-    }
-
-    async createTodo(userId: string, todo: CreateTodoDto): Promise<TodoResponse> {
-        return await this.todoRepository.createTodo(userId, todo);
     }
 
     async updateTodo(userId: string, todoId: string, todo: CreateTodoDto) {

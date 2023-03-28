@@ -1,17 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectEntityManager, } from '@nestjs/typeorm';
-import { BaseAlarm } from 'src/alarms/interface/alarm.interface';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Alarm } from 'src/entity/alarm.entity';
-import { Schedule } from 'src/entity/schedule.entity';
 import { AlarmRepository } from 'src/alarms/alarm.repository';
-// import { CreateAlarmToScheduleResponse } from 'src/alarms/interface/CreateAlarmToScheduleResponse.interface';
-// import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
-// import { Schedule } from 'src/entity/schedule.entity';
 import { CategoryRepository } from 'src/categories/category.repository';
 import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
 
