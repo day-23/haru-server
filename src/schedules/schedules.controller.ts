@@ -12,6 +12,7 @@ import { ScheduleService } from './schedules.service';
 @ApiTags('Schedule API')
 export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
+
     @Post()
     @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })
     async create(@Param('userId') userId: string, @Body() createScheduleDto: CreateScheduleDto) : Promise<ScheduleResponse>{
@@ -24,6 +25,13 @@ export class ScheduleController {
         @Param('scheduleId') scheduleId: string,
         @Body() schedule: CreateScheduleDto) : Promise<ScheduleResponse>{
         return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
+    }
+
+    @Delete(':scheduleId')
+    @ApiOperation({ summary: '스케줄 삭제 API', description: '스케줄를 삭제한다.' })
+    async deleteSchedule(@Param('userId') userId: string,
+        @Param('scheduleId') scheduleId: string): Promise<void> {
+        return this.scheduleService.deleteSchedule(userId, scheduleId);
     }
 
 
@@ -64,15 +72,6 @@ export class ScheduleController {
     // }
 
 
-    // @Delete(':scheduleId')
-    // @ApiOperation({ summary: '스케줄 삭제 API', description: '스케줄를 삭제한다.' })
-    // @ApiCreatedResponse({
-    //     description: '스케줄를 삭제한다.'
-    // })
-    // async deleteSchedule(@Param('userId') userId: string,
-    //     @Param('scheduleId') scheduleId: string): Promise<void> {
-    //     return this.scheduleService.deleteSchedule(userId, scheduleId);
-    // }
 
 
 }

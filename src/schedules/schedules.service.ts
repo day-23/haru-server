@@ -113,6 +113,10 @@ export class ScheduleService {
         }
     }
 
+    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
+        return this.scheduleRepository.deleteSchedule(userId, scheduleId);
+    }
+
     // async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse>  {
     //     return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
     // }
@@ -133,7 +137,4 @@ export class ScheduleService {
 
   
 
-    // async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
-    //     return this.scheduleRepository.deleteSchedule(userId, scheduleId);
-    // }
 }

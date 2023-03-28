@@ -26,7 +26,6 @@ export class ScheduleRepository {
         return savedSchedule
     }
 
-
     /* 스케줄 내용 업데이트 */
     async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
@@ -35,7 +34,6 @@ export class ScheduleRepository {
         const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId }, id: scheduleId })
         return savedSchedule
     }
-
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
         return await this.repository.createQueryBuilder('schedule')
@@ -47,6 +45,21 @@ export class ScheduleRepository {
             .addSelect(this.alarmProperties)
             .addSelect(this.categoryProperties)
             .getOne()
+    }
+
+    /* 스케줄 삭제 */
+    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
+        const result = await this.repository.delete({
+            user: { id: userId },
+            id: scheduleId
+        });
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No scheduleId with ID ${scheduleId} and user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
+        }
     }
 
 
@@ -148,18 +161,5 @@ export class ScheduleRepository {
     // }
 
 
-    // /* 스케줄 삭제 */
-    // async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
-    //     const result = await this.repository.delete({
-    //         // user: { id: userId },
-    //         id: scheduleId
-    //     });
-
-    //     if (result.affected === 0) {
-    //         throw new HttpException(
-    //             `No scheduleId with ID ${scheduleId} and user with ID ${userId} was found`,
-    //             HttpStatus.NOT_FOUND,
-    //         );
-    //     }
-    // }
+   
     

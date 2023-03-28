@@ -7,7 +7,6 @@ import { User } from "src/entity/user.entity";
 import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
 import { QueryRunner, Repository } from "typeorm";
 
-
 export class AlarmRepository {
     constructor(@InjectRepository(Alarm) private readonly repository: Repository<Alarm>,
     ) { }
@@ -28,7 +27,6 @@ export class AlarmRepository {
         return savedAlarm;
     }
 
-
     /* 알람 여러개를 한번에 추가 */
     async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto, queryRunner?: QueryRunner): Promise<Alarm[]> {
         const { todoId, scheduleId, times }  = createAlarmsDto
@@ -44,7 +42,6 @@ export class AlarmRepository {
         return savedAlarms;
     }
 
-
     async updateAlarm(userId: string, alarmId: string, updateAlarmDto: UpdateAlarmDto): Promise<Alarm> {
         const existingAlarm = await this.repository.findOne({ where: { id: alarmId, user: { id: userId } } });
 
@@ -54,7 +51,6 @@ export class AlarmRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
-
         try {
             const updatedAlarm = new Alarm({
                 ...existingAlarm,
@@ -90,8 +86,6 @@ export class AlarmRepository {
         return savedAlarms;
     }
     
-
-
     async deleteAlarm(userId: string, alarmId: string): Promise<void> {
         await this.repository.delete({
             user: { id: userId },
