@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 /* tag 단일 생성 DTO */
 export class CreateTagDto {
@@ -28,7 +28,11 @@ export class UpdateTagsOrderDto{
 }
 
 /* tag 단일 업데이트 DTO */
-export class UpdateTagDto extends PartialType(CreateTagDto) { }
+export class UpdateTagDto extends PartialType(CreateTagDto) { 
+    @IsOptional()
+    @IsBoolean()
+    isSelected : boolean;
+}
 
 /* tag delete DTO */
 export class DeleteTagsDto {

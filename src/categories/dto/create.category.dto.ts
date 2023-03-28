@@ -33,7 +33,6 @@ export class CreateCategoriesDto {
 export class UpdateCategoryDto extends PartialType(CreateCategoryDto) { }
 
 
-
 /* Category update DTO */
 export class UpdateCategoriesOrderDto {
     @ApiProperty({ example: "['CategoryId1', 'CategoryId2', 'CategoryId3',]", description: 'Category 순서 수정을 위한 CategoryId 리스트' })

@@ -18,8 +18,13 @@ export class TagRepository {
         if (existingTag) {
             throw new ConflictException(`Tag with this user already exists`);
         }
+        //find max tagOrder by where user.id = userId
+        const nextTagOrder = await this.repository.createQueryBuilder('tag')
+                .select('MAX(tag.tagOrder)', 'maxOrder')
+                .where('tag.user = :userId', { userId })
+                .getRawOne()
         
-        const newTag = this.repository.create({ user: {id :userId}, content});
+        const newTag = this.repository.create({ user : {id : userId}, content, tagOrder : nextTagOrder.maxOrder + 1})
         return await this.repository.save(newTag);
     }
 

@@ -545,7 +545,7 @@ export class TodoRepository {
 
 
 
-    async updateTodo(userId: string, todoId: string, todoDto: CreateTodoDto): Promise<TodoResponse> {
+    async updateTodo(userId: string, todoId: string, todoDto: CreateTodoDto) {
         const existingTodo = await this.repository
             .createQueryBuilder("todo")
             .leftJoinAndSelect("todo.subTodos", "subtodo")
@@ -575,7 +575,7 @@ export class TodoRepository {
                 this.tagsService.createTags(userId, { contents: todoDto.tags }),
                 this.repository.delete({ id: todoId })
             ]);
-            const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
+            // const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
 
             // await Promise.all([
             //     ...tags.map((tag) =>
@@ -589,7 +589,7 @@ export class TodoRepository {
             // ]);
             await queryRunner.commitTransaction();
 
-            return savedTodoJsonToTodoResponse(todoEntity);
+            // return savedTodoJsonToTodoResponse(todoEntity);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(

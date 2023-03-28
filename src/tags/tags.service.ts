@@ -13,9 +13,13 @@ export class TagsService {
         return {id, content, isSelected, tagOrder}
     }
 
-    async createTags(userId: string, createTagsDto: CreateTagsDto): Promise<Tag[]> {
-        // return await this.tagRepository.saveTags(userId, createTagsDto);
-        return null
+    async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<BaseTag> {
+        const {id, content, isSelected, tagOrder} = await this.tagRepository.updateTag(userId, tagId, updateTagDto);
+        return {id, content, isSelected, tagOrder}
+    }
+
+    async createTags(userId: string, createTagsDto: CreateTagsDto){
+        return await this.tagRepository.saveTags(userId, createTagsDto);
     }
 
     async getTagsByUserId(userId: string): Promise<BaseTag[]> {
@@ -26,10 +30,6 @@ export class TagsService {
     //     return this.tagRepository.findOne(tagId);
     // }
 
-
-    async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<Tag> {
-        return this.tagRepository.updateTag(userId, tagId, updateTagDto);
-    }
 
     async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
         return this.tagRepository.updateTagsOrder(userId, updateTagsOrderDto);

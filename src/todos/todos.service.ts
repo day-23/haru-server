@@ -69,8 +69,8 @@ export class TodosService {
         return await this.todoRepository.createTodo(userId, todo);
     }
 
-    async updateTodo(userId: string, todoId: string, todo: CreateTodoDto): Promise<TodoResponse> {
-        return await this.todoRepository.updateTodo(userId, todoId, todo);
+    async updateTodo(userId: string, todoId: string, todo: CreateTodoDto) {
+        // return await this.todoRepository.updateTodo(userId, todoId, todo);
     }
 
     async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void> {

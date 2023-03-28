@@ -186,8 +186,8 @@ export class TodosController {
     })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() todo: CreateTodoDto): Promise<TodoResponse> {
-        return this.todoService.updateTodo(userId, todoId, todo);
+        @Body() todo: CreateTodoDto) {
+        // return this.todoService.updateTodo(userId, todoId, todo);
     }
 
 

@@ -20,8 +20,14 @@ export class TagsController {
 
     @Post('tags')
     @ApiOperation({ summary: '태그 여러개 생성 API', description: '태그를 여러개 생성한다.' })
-    async createTags(@Param('userId') userId: string, @Body() createTagDto: CreateTagsDto): Promise<Tag[]> {
+    async createTags(@Param('userId') userId: string, @Body() createTagDto: CreateTagsDto){
         return await this.tagService.createTags(userId, createTagDto)
+    }
+
+    @Patch(':tagId')
+    @ApiOperation({ summary: '카테고리 업데이트 API' })
+    async updateTag(@Param('userId') userId: string, @Param('tagId') tagId: string, @Body() updateTagDto: UpdateTagDto): Promise<BaseTag> {
+        return this.tagService.updateTag(userId, tagId, updateTagDto);
     }
 
     @Get('tags')
@@ -38,7 +44,7 @@ export class TagsController {
 
     @Patch(':tagId')
     @ApiOperation({ summary: '태그 업데이트 API' })
-    async update(@Param('userId') userId: string, @Param('tagId') tagId: string, @Body() updateTagDto: UpdateTagDto): Promise<Tag> {
+    async update(@Param('userId') userId: string, @Param('tagId') tagId: string, @Body() updateTagDto: UpdateTagDto): Promise<BaseTag> {
         return this.tagService.updateTag(userId, tagId, updateTagDto);
     }
 
