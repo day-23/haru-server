@@ -72,6 +72,25 @@ export class AlarmRepository {
         }
     }
 
+    // update Alarms where by ScheduleId, if alarms more than 0, delete all alarms and create new alarms
+    async updateAlarms(userId: string, updateAlarmsDto: CreateAlarmsDto, queryRunner?: QueryRunner): Promise<Alarm[]> {
+        const { todoId, scheduleId, times } = updateAlarmsDto;
+        const taskId = todoId || scheduleId;
+        const alarmRepository = queryRunner ? queryRunner.manager.getRepository(Alarm) : this.repository;
+
+        const existingAlarms = await alarmRepository.find({ where: { schedule: { id: taskId }, user: { id: userId } } });
+        if (existingAlarms.length > 0) {
+            await alarmRepository.delete({ schedule: { id: taskId }, user: { id: userId } });
+        }
+        const newAlarms = times.map(time => {
+            return alarmRepository.create({ user: { id: userId }, schedule: { id: taskId }, time});
+        }
+        )
+        const savedAlarms = await alarmRepository.save(newAlarms);
+        return savedAlarms;
+    }
+    
+
 
     async deleteAlarm(userId: string, alarmId: string): Promise<void> {
         await this.repository.delete({

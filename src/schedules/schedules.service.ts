@@ -10,7 +10,7 @@ import { AlarmRepository } from 'src/repository/alarm.repository';
 import { CategoryRepository } from 'src/repository/category.repository';
 import { ScheduleRepository } from 'src/repository/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { CreateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
 
@@ -65,6 +65,54 @@ export class ScheduleService {
         }
     }
 
+    async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleDto, queryRunner?: QueryRunner): Promise<ScheduleResponse> {
+        //find schedule by scheduleId, if not find then throw error
+        const { alarms, ...schedule } = createScheduleDto
+        const { categoryId } = schedule
+
+        let category = null;
+        if (categoryId) {
+            category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
+        }
+
+        const scheduleToUpdate = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+        if (!scheduleToUpdate) {
+            throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
+        }
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+        try {
+            // Start the transaction
+            await queryRunner.startTransaction();
+            const updatedSchedule = await this.scheduleRepository.updateSchedule(userId, scheduleId, schedule, queryRunner);
+
+            let savedAlarms: Alarm[] = []
+            if (alarms.length > 0) {
+                savedAlarms = await this.alarmRepository.updateAlarms(userId, { scheduleId: updatedSchedule.id, times: alarms }, queryRunner);
+            }
+            await queryRunner.commitTransaction();
+            return parseScheduleResponse(updatedSchedule, category, savedAlarms)
+        }
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        }
+        finally {
+            // Release the query runner if it was created in this function
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
+        }
+    }
+
     // async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse>  {
     //     return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
     // }
@@ -83,9 +131,7 @@ export class ScheduleService {
     //     return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     // }
 
-    // async updateSchedule(userId: string, scheduleId: string, schedule: UpdateScheduleDto): Promise<Schedule> {
-    //     return this.scheduleRepository.updateSchedule(userId, scheduleId, schedule);
-    // }
+  
 
     // async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
     //     return this.scheduleRepository.deleteSchedule(userId, scheduleId);

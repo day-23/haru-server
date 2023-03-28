@@ -8,7 +8,7 @@ export interface ScheduleResponse {
     id: string,
     content: string,
     memo: string,
-    timeOption: boolean,
+    isAllDay: boolean,
     repeatStart : string | Date,
     repeatEnd: string | Date,
     repeatOption : string,

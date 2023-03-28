@@ -1,8 +1,9 @@
+import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AlarmsService } from "src/alarms/alarms.service";
 import { CategoriesService } from "src/categories/categories.service";
 import { Schedule } from "src/entity/schedule.entity";
-import { CreateScheduleDto, CreateScheduleWithoutAlarmsDto } from "src/schedules/dto/create.schedule.dto";
+import { CreateScheduleDto, CreateScheduleWithoutAlarmsDto, UpdateScheduleDto } from "src/schedules/dto/create.schedule.dto";
 import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { QueryRunner, Repository } from "typeorm";
 
@@ -11,9 +12,9 @@ export class ScheduleRepository {
         @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
     ) { }
 
-    // private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.timeOption', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt']
-    // private alarmProperties = ['alarm.id', 'alarm.time']
-    // private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
+    private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.isAllDay', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.repeatOption', 'schedule.repeatValue', 'schedule.createdAt', 'schedule.updatedAt']
+    private alarmProperties = ['alarm.id', 'alarm.time']
+    private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
     // private scheduleRepeatProperties = ['schedulerepeat.id', 'schedulerepeat.repeatOption', 'schedulerepeat.repeatValue']
 
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
@@ -24,6 +25,52 @@ export class ScheduleRepository {
         const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId } })
         return savedSchedule
     }
+
+
+    /* 스케줄 내용 업데이트 */
+    async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const { categoryId } = createScheduleDto
+
+        const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId }, id: scheduleId })
+        return savedSchedule
+    }
+
+
+    async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
+        return await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .where('schedule.id = :scheduleId', { scheduleId })
+            .andWhere('schedule.user = :userId', { userId })
+            .select(this.scheduleProperties)
+            .addSelect(this.alarmProperties)
+            .addSelect(this.categoryProperties)
+            .getOne()
+    }
+
+
+    //         const joinedSchedule = await this.repository.createQueryBuilder('schedule')
+    //             .leftJoinAndSelect('schedule.alarms', 'alarms')
+    //             .leftJoinAndSelect('schedule.category', 'category')
+    //             .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
+    //             .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.timeOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt', 'schedule.updatedAt'])
+    //             .addSelect(['alarms.id', 'alarms.time'])
+    //             .addSelect(['category.id', 'category.content', 'category.color'])
+    //             .getOne();
+
+    //         // return savedSchedule
+    //         return joinedSchedule
+    //     } catch (error) {
+    //         throw new HttpException(
+    //             {
+    //                 message: 'SQL error',
+    //                 error: error.sqlMessage,
+    //             },
+    //             HttpStatus.INTERNAL_SERVER_ERROR,
+    //         );
+    //     }
+    // }
 
 
 
@@ -98,47 +145,6 @@ export class ScheduleRepository {
     // async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse> {
     //     const result = await this.alarmsService.createAlarm(userId, null, scheduleId, dto)
     //     return { id: result.id, scheduleId: result.schedule, time: result.time }
-    // }
-
-    // /* 스케줄 내용 업데이트 */
-    // async updateSchedule(userId: string, scheduleId: string, dto: UpdateScheduleDto): Promise<Schedule> {
-    //     dto.validateFields(); // validate category and alarms fields
-
-    //     const existingSchedule = await this.repository.createQueryBuilder('schedule')
-    //         .where('schedule.id = :scheduleId AND schedule.user_id = :userId', { scheduleId, userId })
-    //         .getOne()
-
-    //     if (!existingSchedule) {
-    //         throw new HttpException(
-    //             'Schedule not found',
-    //             HttpStatus.NOT_FOUND,
-    //         );
-    //     }
-
-    //     try {
-    //         // const updatedSchedule = this.repository.create({ ...existingSchedule, ...dto });
-    //         // const savedSchedule = await this.repository.save(updatedSchedule);
-
-    //         const joinedSchedule = await this.repository.createQueryBuilder('schedule')
-    //             .leftJoinAndSelect('schedule.alarms', 'alarms')
-    //             .leftJoinAndSelect('schedule.category', 'category')
-    //             // .where('schedule.id = :scheduleId', { scheduleId: savedSchedule.id })
-    //             .select(['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.flag', 'schedule.repeatOption', 'schedule.timeOption', 'schedule.repeatWeek', 'schedule.repeatMonth', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.createdAt', 'schedule.updatedAt'])
-    //             .addSelect(['alarms.id', 'alarms.time'])
-    //             .addSelect(['category.id', 'category.content', 'category.color'])
-    //             .getOne();
-
-    //         // return savedSchedule
-    //         return joinedSchedule
-    //     } catch (error) {
-    //         throw new HttpException(
-    //             {
-    //                 message: 'SQL error',
-    //                 error: error.sqlMessage,
-    //             },
-    //             HttpStatus.INTERNAL_SERVER_ERROR,
-    //         );
-    //     }
     // }
 
 

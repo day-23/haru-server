@@ -5,6 +5,7 @@ import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 // import { Schedule } from 'src/entity/schedule.entity';
 import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
+import { ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleService } from './schedules.service';
 
 @Controller('schedule/:userId')
@@ -13,9 +14,18 @@ export class ScheduleController {
     constructor(private readonly scheduleService: ScheduleService) { }
     @Post()
     @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })
-    async create(@Param('userId') userId: string, @Body() createScheduleDto: CreateScheduleDto){
+    async create(@Param('userId') userId: string, @Body() createScheduleDto: CreateScheduleDto) : Promise<ScheduleResponse>{
         return await this.scheduleService.createSchedule(userId, createScheduleDto)
     }
+
+    @Patch(':scheduleId')
+    @ApiOperation({ summary: '스케줄 일정 전체 내용 수정 API', description: '스케줄를 수정한다.' })
+    async updateSchedule(@Param('userId') userId: string,
+        @Param('scheduleId') scheduleId: string,
+        @Body() schedule: CreateScheduleDto) : Promise<ScheduleResponse>{
+        return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
+    }
+
 
     // @PaginatedResponse()
     // @Get('holidays/date')
@@ -44,17 +54,6 @@ export class ScheduleController {
     // }
 
 
-    // @Post(':scheduleId/alarm')
-    // @ApiOperation({ summary: '이미 생성된 스케줄러에 알람을 추가하는 API', description: '스케줄러에 알람을 추가한다.' })
-    // @ApiCreatedResponse({
-    //     description: '이미 생성되어있는 스케줄러에 알람을 추가한다.'
-    // })
-    // async addAlarmToTodo(@Param('userId') userId: string, @Param('scheduleId') scheduleId: string,
-    //         @Body() createAlarmByTimeDto:CreateAlarmByTimeDto) {
-    //     return await this.scheduleService.createAlarmToSchedule(userId, scheduleId, createAlarmByTimeDto)
-    // }
-
-
     // @Get('search')
     // @ApiOperation({ summary: '일정 검색 API', description: '일정를 검색한다.' })
     // async searchSchedules(
@@ -64,17 +63,6 @@ export class ScheduleController {
     //     return this.scheduleService.getSchedulesBySearch(userId, content)
     // }
 
-
-    // @Patch(':scheduleId')
-    // @ApiOperation({ summary: '스케줄 본체 내용 수정 API', description: '스케줄를 수정한다.' })
-    // @ApiCreatedResponse({
-    //     description: '스케줄를 수정한다.'
-    // })
-    // async updateSchedule(@Param('userId') userId: string,
-    //     @Param('scheduleId') scheduleId: string,
-    //     // @Body() schedule: UpdateScheduleDto): Promise<Schedule> {
-    //     return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
-    // }
 
     // @Delete(':scheduleId')
     // @ApiOperation({ summary: '스케줄 삭제 API', description: '스케줄를 삭제한다.' })

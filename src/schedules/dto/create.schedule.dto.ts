@@ -18,7 +18,7 @@ export class CreateScheduleDto {
 
     @ApiProperty({ description: '일정이 시간까지 포함인지 여부' })
     @IsBoolean()
-    timeOption: boolean;
+    isAllDay: boolean;
 
     @ApiProperty({ description: '반복 시작'})
     @IsOptional()

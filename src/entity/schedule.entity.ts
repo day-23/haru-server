@@ -34,7 +34,7 @@ export class Schedule extends BaseEntity {
     memo: string;
 
     @Column()
-    timeOption: boolean;
+    isAllDay: boolean;
 
     @Column({ type: 'datetime', nullable: true })
     @Index()
