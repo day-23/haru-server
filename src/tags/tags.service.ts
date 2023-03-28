@@ -34,10 +34,6 @@ export class TagsService {
     async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
         return this.tagRepository.updateTagsOrder(userId, updateTagsOrderDto);
     }
-    
-    async deleteTag(userId: string, tagId:string): Promise<void> {
-        return await this.tagRepository.deleteOneTag(userId, tagId);
-    }
 
     async deleteTags(userId: string, deleteTagsDto: DeleteTagsDto):Promise<void> {
         return await this.tagRepository.deleteTags(userId, deleteTagsDto)

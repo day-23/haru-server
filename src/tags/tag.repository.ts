@@ -122,24 +122,13 @@ export class TagRepository {
         }
     }
 
-
-    async deleteOneTag(userId: string, todoId: string): Promise<void> {
-        await this.repository.delete({
-            user: { id: userId },
-            id: todoId
-        });
-    }
-
     async deleteTags(userId: string, deleteTagsDto: DeleteTagsDto): Promise<void> {
-        try {
-            // await this.repository.delete({ id: In(deleteTagsDto.tagIds), user: userId });
-        } catch (error) {
+        const result = await this.repository.delete({ id: In(deleteTagsDto.tagIds), user: { id: userId } });
+
+        if (result.affected === 0) {
             throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.FORBIDDEN,
+                'Tag not found',
+                HttpStatus.NOT_FOUND,
             );
         }
     }
