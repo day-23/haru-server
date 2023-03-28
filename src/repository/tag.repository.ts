@@ -3,13 +3,11 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from "src/tags/dto/create.tag.dto";
 import { BaseTag } from "src/tags/interface/tag.interface";
-import { UserService } from "src/users/users.service";
 import { In, Repository } from "typeorm";
 
 
 export class TagRepository {
     constructor(@InjectRepository(Tag) private readonly repository: Repository<Tag>,
-    private readonly userService : UserService
     ) { }
 
     async saveTag(userId: string, createTagDto: CreateTagDto) : Promise<Tag> {

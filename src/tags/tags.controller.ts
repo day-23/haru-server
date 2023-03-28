@@ -1,8 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiBody, ApiCreatedResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { swaggerTagsCreateExample } from 'src/common/swagger/tag.example';
-import { swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
-import { Tag } from 'src/entity/tag.entity';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from './dto/create.tag.dto';
 import { BaseTag } from './interface/tag.interface';
 import { TagsService } from './tags.service';
@@ -22,12 +19,6 @@ export class TagsController {
     @ApiOperation({ summary: '태그 여러개 생성 API', description: '태그를 여러개 생성한다.' })
     async createTags(@Param('userId') userId: string, @Body() createTagDto: CreateTagsDto){
         return await this.tagService.createTags(userId, createTagDto)
-    }
-
-    @Patch(':tagId')
-    @ApiOperation({ summary: '카테고리 업데이트 API' })
-    async updateTag(@Param('userId') userId: string, @Param('tagId') tagId: string, @Body() updateTagDto: UpdateTagDto): Promise<BaseTag> {
-        return this.tagService.updateTag(userId, tagId, updateTagDto);
     }
 
     @Get('tags')
