@@ -130,14 +130,3 @@ export function transformTodosAddTags(todos) {
       tags: mapTagWithTodos(tagWithTodos),
     }));
 }
-  
-export function parseRepeatFromSchedule(schedules){
-    const ret = schedules.map(({scheduleRepeat, ...schedule}) => {
-        return {
-            ...schedule,
-            repeatOption : scheduleRepeat?.repeatOption ?? null,
-            repeatValue : scheduleRepeat?.repeatValue ?? null,
-        }
-    })
-    return ret;
-}

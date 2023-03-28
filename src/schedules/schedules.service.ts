@@ -1,6 +1,7 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectEntityManager, } from '@nestjs/typeorm';
 import { BaseAlarm } from 'src/alarms/interface/alarm.interface';
+import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { Alarm } from 'src/entity/alarm.entity';
 import { Schedule } from 'src/entity/schedule.entity';
 import { AlarmRepository } from 'src/repository/alarm.repository';
@@ -117,6 +118,15 @@ export class ScheduleService {
         return this.scheduleRepository.deleteSchedule(userId, scheduleId);
     }
 
+    async getSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
+    }
+
+    async getSchedulesBySearch(userId: string, content: string) {
+        return await this.scheduleRepository.findSchedulesBySearch(userId, content)
+    }
+
+
     // async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse>  {
     //     return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
     // }
@@ -124,15 +134,6 @@ export class ScheduleService {
 
     // async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
     //     return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
-    // }
-
-    // async getSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
-    //     return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
-    // }
-
-
-    // async getSchedulesBySearch(userId: string, content: string) {
-    //     return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     // }
 
   
