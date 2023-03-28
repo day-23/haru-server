@@ -36,10 +36,15 @@ export class CreateAlarmDto {
 
 /* alarm 여러개 생성 DTO */
 export class CreateAlarmsDto {
+    @ApiProperty({ example: 'todoId', description: '알림을 생성하고자하는 todo의 Id' })
+    @IsOptional()
+    @IsString()
+    todoId?: string;
+
     @ApiProperty({ example: 'scheduleId', description: '알림을 생성하고자하는 schedule의 Id' })
-    @ValidateIf(o => o.todoId === null)
-    @IsNotEmpty()
-    scheduleId: string;
+    @IsOptional()
+    @IsString()
+    scheduleId?: string;
 
     /* 알람이기 때문에 Date는 필수값 */
     @ApiProperty({ example: '["2023-03-09T18:30:00.123+09:00", "2023-03-09T18:30:00.123+10:00", "2023-03-09T18:30:00.123+09:00"]', description: 'alarm 여러개 생성 DTO' })

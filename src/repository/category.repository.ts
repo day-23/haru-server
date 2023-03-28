@@ -12,50 +12,29 @@ export class CategoryRepository {
 
     //Category
     /* 카테고리를 하나만 생성하는 코드 */
-    async createCategory(userId: string, createCategoryDto: CreateCategoryDto) : Promise<BaseCategory> {
+    async createCategory(userId: string, createCategoryDto: CreateCategoryDto): Promise<BaseCategory> {
         const { content, color } = createCategoryDto
-        const queryRunner = this.repository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
 
-        try {
-            const [existingCategory, nextCategoryOrder] = await Promise.all([
-                this.repository.findOne({ where: { user: { id: userId }, content } }),
-                this.repository.createQueryBuilder('category')
-                    .select('MAX(category.categoryOrder)', 'maxOrder')
-                    .where('category.user = :userId', { userId })
-                    .getRawOne()
-                ,])
+        const [existingCategory, nextCategoryOrder] = await Promise.all([
+            this.repository.findOne({ where: { user: { id: userId }, content } }),
+            this.repository.createQueryBuilder('category')
+                .select('MAX(category.categoryOrder)', 'maxOrder')
+                .where('category.user = :userId', { userId })
+                .getRawOne()
+            ,])
 
-            if (existingCategory) {
-                throw new ConflictException(`Category with this user already exists`);
-            }
-            
-            // save newCategory
-            const newCategory = await queryRunner.manager.save(Category, {
-                content,
-                color,
-                categoryOrder: nextCategoryOrder.maxOrder + 1,
-                user: {id : userId},
-            })
-            await queryRunner.commitTransaction();
-            return { id: newCategory.id, content: newCategory.content, color: newCategory.color, categoryOrder: newCategory.categoryOrder, isSelected: newCategory.isSelected }
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
+        if (existingCategory) {
+            throw new ConflictException(`Category with this user already exists`);
+        }
 
-            if (error instanceof ConflictException) {
-                throw error;
-            }
-            throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.FORBIDDEN,
-            );
-        } finally {
-            await queryRunner.release();
-        }        
+        // save newCategory
+        const newCategory = await this.repository.save({
+            content,
+            color,
+            categoryOrder: nextCategoryOrder.maxOrder + 1,
+            user: { id: userId },
+        })
+        return { id: newCategory.id, content: newCategory.content, color: newCategory.color, categoryOrder: newCategory.categoryOrder, isSelected: newCategory.isSelected }
     }
 
     async findAllCategoriesByUserId(userId: string): Promise<BaseCategory[]> {
@@ -68,7 +47,7 @@ export class CategoryRepository {
 
     async findCategoryByUserAndCategoryId(userId: string, categoryId: string): Promise<Category> {
         const existingCategory = await this.repository.findOne({ where: { id: categoryId } });
-        
+
         if (!existingCategory) {
             throw new HttpException(
                 'Category not found',
@@ -96,7 +75,7 @@ export class CategoryRepository {
             );
         }
 
-        if(alreadyExistContent){
+        if (alreadyExistContent) {
             throw new ConflictException(`Category with this content already exists`);
         }
 
@@ -127,7 +106,7 @@ export class CategoryRepository {
 
         try {
             const promises = categoryIds.map((id, categoryOrder) =>
-                queryRunner.manager.update(Category, { id }, { categoryOrder, isSelected : isSelected[categoryOrder] })
+                queryRunner.manager.update(Category, { id }, { categoryOrder, isSelected: isSelected[categoryOrder] })
             );
             await Promise.all(promises);
             // Commit transaction
@@ -157,7 +136,7 @@ export class CategoryRepository {
     }
 
     async deleteCategories(userId: string, deleteCategoriesDto: DeleteCategoriesDto): Promise<void> {
-        const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: {id :userId }});
+        const result = await this.repository.delete({ id: In(deleteCategoriesDto.categoryIds), user: { id: userId } });
 
         if (result.affected === 0) {
             throw new HttpException(

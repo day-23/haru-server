@@ -4,7 +4,7 @@ import { CategoriesService } from "src/categories/categories.service";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleDto, CreateScheduleWithoutAlarmsDto } from "src/schedules/dto/create.schedule.dto";
 import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
-import { Repository } from "typeorm";
+import { QueryRunner, Repository } from "typeorm";
 
 export class ScheduleRepository {
     constructor(
@@ -17,103 +17,21 @@ export class ScheduleRepository {
     // private scheduleRepeatProperties = ['schedulerepeat.id', 'schedulerepeat.repeatOption', 'schedulerepeat.repeatValue']
 
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
-    async createSchedule(userId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto) : Promise<Schedule> {
-        const savedSchedule = await this.repository.save({...createScheduleDto, user: {id:userId}  })
+    async createSchedule(userId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const { categoryId } = createScheduleDto
+
+        const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId } })
         return savedSchedule
     }
+
+
+
+
+
+    
 }
 
-
-        
-
-
-
-
-    // async createSchedule(userId: string, createScheduleDto: CreateScheduleDto): Promise<ScheduleResponse> {
-    //     const { alarms, categoryId, ...scheduleData } = createScheduleDto;
-    //     const savedCategory = await this.categoriesService.getCategoryById(userId, categoryId)
-
-    //     const queryRunner = this.repository.manager.connection.createQueryRunner();
-    //     await queryRunner.connect();
-    //     await queryRunner.startTransaction();
-
-    //     try {
-    //         /* 스케줄 저장 */
-    //         // const { ...savedSchedule } = await queryRunner.manager.save(Schedule, {
-    //         //     ...scheduleData,
-    //         //     // user: userId,
-
-    //         // });
-
-    //         /* 스케줄 알람 저장 */
-    //         const newAlarms = alarms.map((time) => ({
-    //             user: userId,
-    //             // schedule: savedSchedule.id,
-    //             time: time,
-    //         }));
-
-
-    //         const promises: Promise<any>[] = [
-    //             queryRunner.manager.save(Alarm, newAlarms),
-    //         ];
-
-    //         if (createScheduleDto.repeatOption) {
-    //             const newScheduleRepeat = {
-    //                 // schedule: { id: savedSchedule.id },
-    //                 repeatOption: createScheduleDto.repeatOption,
-    //                 repeatValue: createScheduleDto.repeatValue
-    //             };
-    //             promises.push(queryRunner.manager.save(Repeat, newScheduleRepeat))
-    //         }
-    //         const [savedAlarms, savedScheduleRepeat] = await Promise.all(promises);
-    //         await queryRunner.commitTransaction();
-
-    //         const retAlarms = savedAlarms.map(({ id, time }) => ({ id, time }));
-
-    //         let repeatOption = null
-    //         let repeatValue = null
-    //         if (savedScheduleRepeat) {
-    //             repeatOption = savedScheduleRepeat.repeatOption
-    //             repeatValue = savedScheduleRepeat.repeatValue
-    //         }
-
-    //         const { id, content, color, isSelected } = savedCategory;
-    //         const category = { id, content, color, isSelected };
-    //         // return { id: savedSchedule.id, ...savedSchedule, alarms: retAlarms, category, repeatOption, repeatValue };
-    //         return null
-    //     } catch (error) {
-    //         await queryRunner.rollbackTransaction();
-    //         throw new HttpException(
-    //             {
-    //                 message: 'SQL error',
-    //                 error: error.sqlMessage,
-    //             },
-    //             HttpStatus.FORBIDDEN,
-    //         );
-    //     } finally {
-    //         await queryRunner.release();
-    //     }
-    // }
-
-    // async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
-    //     const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
-    //     const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
-
-    //     const [holidays, count] = await this.holidayRepository.createQueryBuilder('holiday')
-    //         .andWhere('(holiday.date >= :startDate AND holiday.date < :endDate)')
-    //         .setParameters({ startDate, endDate })
-    //         .select(['holiday.date', 'holiday.name'])
-    //         .getManyAndCount()
-
-    //     return {
-    //         data: holidays,
-    //         pagination: {
-    //             totalItems: count,
-    //             startDate,
-    //             endDate
-    //         },
-    //     };
-    // }
 
 
     // /* 스케줄 데이터 불러오기 */

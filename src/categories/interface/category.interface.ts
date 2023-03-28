@@ -5,6 +5,3 @@ export interface BaseCategory {
     categoryOrder: number;
     isSelected: boolean;
 }
-
-export interface BaseCategoryForScheduleResponse extends Omit<BaseCategory, 'categoryOrder'> { }
-

@@ -11,8 +11,9 @@ import { AwsModule } from 'src/aws/aws.module';
 import { Image } from 'src/entity/image.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Category, User, Image]), AwsModule],
+    imports: [TypeOrmModule.forFeature([Category, ])],
     controllers: [CategoriesController],
-    providers: [CategoriesService, CategoryRepository, UserRepository, UserService],
+    providers: [CategoriesService, CategoryRepository],
+    exports : [CategoriesService, CategoryRepository]
 })
 export class CategoriesModule { }

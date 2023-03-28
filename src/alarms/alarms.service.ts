@@ -3,6 +3,7 @@ import { Alarm } from 'src/entity/alarm.entity';
 import { AlarmRepository } from 'src/repository/alarm.repository';
 import { CreateAlarmByTimeDto } from 'src/todos/dto/create.todo.dto';
 import { CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
+import { BaseAlarm } from './interface/alarm.interface';
 
 @Injectable()
 export class AlarmsService {
@@ -12,8 +13,12 @@ export class AlarmsService {
         return await this.alarmRepository.createAlarm(userId, scheduleId, dto)
     }
 
-    async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto): Promise<Alarm[]> {
-        return await this.alarmRepository.createAlarms(userId, createAlarmsDto)
+    async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto): Promise<BaseAlarm[]> {
+        const savedAlarms = await this.alarmRepository.createAlarms(userId, createAlarmsDto)
+
+        return savedAlarms.map(alarm => {
+            return { id: alarm.id, time: alarm.time }
+        })
     }
 
     async updateAlarm(userId: string, alarmId: string, updateAlarmDto: UpdateAlarmDto): Promise<Alarm> {

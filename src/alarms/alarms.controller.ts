@@ -3,6 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Alarm } from 'src/entity/alarm.entity';
 import { AlarmsService } from './alarms.service';
 import { CreateAlarmsDto, UpdateAlarmDto } from './dto/create.alarm.dto';
+import { BaseAlarm } from './interface/alarm.interface';
 
 
 @ApiTags('Alarm API')
@@ -11,7 +12,7 @@ export class AlarmsController {
     constructor(private readonly alarmService: AlarmsService) { }
     @Post('alarms')
     @ApiOperation({ summary: '알람 생성 API', description: '알람을 여러개 생성한다.' })
-    async create(@Param('userId') userId: string, @Body() createAlarmDto: CreateAlarmsDto): Promise<Alarm[]> {
+    async create(@Param('userId') userId: string, @Body() createAlarmDto: CreateAlarmsDto): Promise<BaseAlarm[]> {
         return await this.alarmService.createAlarms(userId, createAlarmDto)
     }
 

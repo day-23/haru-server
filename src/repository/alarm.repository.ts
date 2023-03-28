@@ -5,7 +5,7 @@ import { BaseAlarm } from "src/alarms/interface/alarm.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { User } from "src/entity/user.entity";
 import { CreateAlarmByTimeDto } from "src/todos/dto/create.todo.dto";
-import { Repository } from "typeorm";
+import { QueryRunner, Repository } from "typeorm";
 
 
 export class AlarmRepository {
@@ -30,13 +30,17 @@ export class AlarmRepository {
 
 
     /* 알람 여러개를 한번에 추가 */
-    async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto): Promise<Alarm[]> {
-        const { scheduleId, times }  = createAlarmsDto
+    async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto, queryRunner?: QueryRunner): Promise<Alarm[]> {
+        const { todoId, scheduleId, times }  = createAlarmsDto
+        const alarmRepository = queryRunner ? queryRunner.manager.getRepository(Alarm) : this.repository;
+        
+        const taskId = todoId || scheduleId
+
         const newAlarms = times.map(time => {
-            return this.repository.create({ user: { id: userId }, schedule: { id: scheduleId }, time});
+            return alarmRepository.create({ user: { id: userId }, schedule: { id: taskId }, time});
         })
 
-        const savedAlarms = await this.repository.save(newAlarms);
+        const savedAlarms = await alarmRepository.save(newAlarms);
         return savedAlarms;
     }
 
