@@ -26,11 +26,6 @@ export class TagsService {
         return this.tagRepository.findAllTagsByUserId(userId);
     }
 
-    // async getOneTag(tagId: string): Promise<Tag> {
-    //     return this.tagRepository.findOne(tagId);
-    // }
-
-
     async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
         return this.tagRepository.updateTagsOrder(userId, updateTagsOrderDto);
     }

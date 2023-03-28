@@ -12,49 +12,51 @@ export class TagRepository {
 
     async saveTag(userId: string, createTagDto: CreateTagDto) : Promise<Tag> {
         const { content } = createTagDto;
-        const existingTag = await this.repository.findOne({ where: { user: { id: userId }, content } });
+
+        const [existingTag, nextTagOrder] = await Promise.all([
+            this.repository.findOne({ where: { user: { id: userId }, content } }),
+            this.findNextTagOrder(userId)
+        ]) 
+
         if (existingTag) {
             throw new ConflictException(`Tag with this user already exists`);
         }
-        //find max tagOrder by where user.id = userId
-        const nextTagOrder = await this.repository.createQueryBuilder('tag')
-                .select('MAX(tag.tagOrder)', 'maxOrder')
-                .where('tag.user = :userId', { userId })
-                .getRawOne()
-        
-        const newTag = this.repository.create({ user : {id : userId}, content, tagOrder : nextTagOrder.maxOrder + 1})
+        const newTag = this.repository.create({ user : {id : userId}, content, tagOrder : nextTagOrder + 1})
         return await this.repository.save(newTag);
     }
 
-
     /* 태그를 한번에 여러개 생성하는 코드 */
-    async saveTags(userId: string, createTagsDto: CreateTagsDto) {
-        // let { nextTagOrder } = await this.userService.findOne(userId);
+    async saveTags(userId: string, createTagsDto: CreateTagsDto) : Promise<BaseTag[]> {
+        const [existingTags, nextTagOrder] = await Promise.all([
+            this.repository.find({ where: { user: { id: userId }, content: In(createTagsDto.contents) } }),
+            this.findNextTagOrder(userId)
+        ])
         
-        const existingTags = await this.repository.find({
-            where: {
-                user: { id: userId },
-                content: In(createTagsDto.contents)
-            }
-        });
-
         const newTags = createTagsDto.contents
             .filter(content => !existingTags.some(tag => tag.content.toUpperCase() === content.toUpperCase()))
-            .map(content => {
-                const newTag = new Tag({
-                    // user: userId,
-                    content,
-                    // tagOrder : nextTagOrder++
-                });
-                return newTag;
-            });
+            .map((content, index) => this.repository.create({
+                user: { id: userId },
+                content,
+                tagOrder: nextTagOrder + index
+              }));
 
-        // const [createdTags, updateUser] = await Promise.all([
-        //     this.repository.save(newTags),
-        //     // this.userService.updateUser(userId, {nextTagOrder})
-        // ]) 
+        const createdTags = await this.repository.save(newTags)
 
-        // return [...createdTags, ...existingTags];
+        const tags = [...createdTags, ...existingTags].sort((a, b) => a.tagOrder - b.tagOrder);
+        return tags.map(({ id, content, isSelected, tagOrder }) => ({
+            id,
+            content,
+            isSelected,
+            tagOrder
+        }));
+    }
+
+    async findNextTagOrder(userId: string): Promise<number> {
+        const nextTagOrder = await this.repository.createQueryBuilder('tag')
+            .select('MAX(tag.tagOrder)', 'maxOrder')
+            .where('tag.user = :userId', { userId })
+            .getRawOne()
+        return nextTagOrder.maxOrder + 1;
     }
 
     async findAllTagsByUserId(userId: string): Promise<BaseTag[]> {
