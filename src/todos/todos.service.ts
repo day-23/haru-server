@@ -36,13 +36,10 @@ export class TodosService {
             const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
             const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag }, queryRunner);
 
-            const savedTags = tags.length > 0 ? await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner) : [];
-
-            if (savedTags.length > 0) {
-                await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
-            }
-
-            const savedSubTodos = subTodos.length > 0 ? await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner) : [];
+            const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
+            await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
+            
+            const savedSubTodos =  await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);
 
             await queryRunner.commitTransaction();
             return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);            

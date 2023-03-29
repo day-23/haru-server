@@ -15,10 +15,14 @@ export class TagsService {
     }
 
     async createTags(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner):Promise<BaseTag[]>{
+        if(createTagsDto.contents.length === 0) return [];
+        
         return await this.tagRepository.saveTags(userId, createTagsDto, queryRunner);
     }
 
     async createTagsOrderedByInput(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner):Promise<BaseTag[]>{
+        if(createTagsDto.contents.length === 0) return [];
+
         return await this.tagRepository.saveTagsOrderedByInput(userId, createTagsDto, queryRunner);
     }
 

@@ -35,6 +35,8 @@ export class TodoRepository {
 
     /* create todoTags */
     async createTodoTags(todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
+        if(tagIds.length === 0) return [];
+
         const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
 
         // in todoTags, group by tag_id and get max value per tag_id
@@ -70,6 +72,8 @@ export class TodoRepository {
 
     /* create subTodos */
     async createSubTodos(todoId: string, contents: string[], queryRunner? : QueryRunner): Promise<Subtodo[]> {
+        if(contents.length === 0) return [];
+
         const subTodoRepository = queryRunner ? queryRunner.manager.getRepository(Subtodo) : this.subTodoRepository;
 
         const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
