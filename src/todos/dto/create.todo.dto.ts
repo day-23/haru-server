@@ -1,12 +1,6 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
-import { Alarm } from "src/entity/alarm.entity";
-import { Subtodo } from "src/entity/subtodo.entity";
-import { TodoTags } from "src/entity/todo-tags.entity";
-import { Tag } from "src/entity/tag.entity";
-import { Todo } from "src/entity/todo.entity";
-import { User } from "src/entity/user.entity";
 
 export class BaseTodoDto {
     @ApiProperty({ description: '오늘 할일인지 체크' })
@@ -90,7 +84,3 @@ export class UpdateSubTodosDtoWhenUpdateTodo{
     @IsBoolean({each : true})
     subTodosCompleted: boolean[];
 }
-
-
-
-

@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CreateScheduleDto } from 'src/schedules/dto/create.schedule.dto';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
 import { TodoRepository } from 'src/todos/todo.repository';
@@ -165,8 +164,14 @@ export class TodosService {
         return this.todoRepository.updateSubTodo(userId, subTodoId, updateSubTodoDto)
     }
 
+    /* Todo 삭제 - 스케줄을 지우면 알아서 지워짐 */
     async deleteTodo(userId: string, todoId: string): Promise<void> {
-        return await this.todoRepository.delete(userId, todoId);
+        //get existing todo by todoId
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        if(!existingTodo) throw new HttpException({message: 'Todo not found',},HttpStatus.NOT_FOUND);
+        const {schedule} = existingTodo
+        const { id: scheduleId } = schedule
+        return await this.scheduleService.deleteSchedule(userId, scheduleId);
     }
 
     async deleteSubTodoOfTodo(userId: string,

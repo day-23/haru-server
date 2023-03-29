@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
-import { Alarm } from 'src/entity/alarm.entity';
 import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
 import { ScheduleRepository } from 'src/schedules/schedule.repository';
@@ -111,16 +110,9 @@ export class ScheduleService {
         return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     }
 
-
-    // async createAlarmToSchedule(userId: string, scheduleId: string, dto: CreateAlarmByTimeDto): Promise<CreateAlarmToScheduleResponse>  {
-    //     return this.scheduleRepository.createAlarmToSchedule(userId, scheduleId, dto)
-    // }
-
-
     // async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
     //     return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
     // }
 
-  
 
 }

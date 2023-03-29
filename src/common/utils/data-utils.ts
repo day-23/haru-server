@@ -99,35 +99,3 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
 
     return result;
 }
-
-
-
-
-
-
-export function mapTagWithTodos(tagWithTodos) {
-    return tagWithTodos.map((tagWithTodo) => {
-      return {
-        id: tagWithTodo.tag.id,
-        content: tagWithTodo.tag.content,
-      };
-    });
-  }
-  
-// Use the mapTagWithTodos function in the main function to transform the todos array
-export function transformTodosAddTags(todos) {
-    /* todoRepeat Parsing */
-    const ret = todos.map(({ todoRepeat, todayTodoOrder, ...todo }) => {
-        return {
-            ...todo,
-            repeatOption: todoRepeat?.repeatOption ?? null,
-            repeatValue: todoRepeat?.repeatValue ?? null,
-            todoOrder : todo?.todoOrder ?? todayTodoOrder
-        }
-    })
-
-    return ret.map(({ tagWithTodos, ...todo }) => ({
-      ...todo,
-      tags: mapTagWithTodos(tagWithTodos),
-    }));
-}
