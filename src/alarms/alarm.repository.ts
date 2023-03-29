@@ -76,15 +76,22 @@ export class AlarmRepository {
         const alarmRepository = queryRunner ? queryRunner.manager.getRepository(Alarm) : this.repository;
 
         const existingAlarms = await alarmRepository.find({ where: { schedule: { id: taskId }, user: { id: userId } } });
-        if (existingAlarms.length > 0) {
+        
+        if (existingAlarms.length > 0 && existingAlarms.length !== times.length) {
             await alarmRepository.delete({ schedule: { id: taskId }, user: { id: userId } });
         }
-
-        if(times.length === 0) return []
-        const newAlarms = times.map(time => {
-            return alarmRepository.create({ user: { id: userId }, schedule: { id: taskId }, time});
-        }
-        )
+    
+        if (times.length === 0) return [];
+    
+        const newAlarms = times.map((time, index) => {
+            if (index < existingAlarms.length) {
+                existingAlarms[index].time = time;
+                return existingAlarms[index];
+            } else {
+                return alarmRepository.create({ user: { id: userId }, schedule: { id: taskId }, time });
+            }
+        });
+    
         const savedAlarms = await alarmRepository.save(newAlarms);
         return savedAlarms;
     }
