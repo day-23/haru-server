@@ -117,8 +117,8 @@ export class ScheduleService {
             //새로 생성된 스케줄
             const [ret, first, second] = await Promise.all([
                 this.createSchedule(userId, createScheduleDto, queryRunner),
-                this.scheduleRepository.updateSchedulePartial(scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
-                this.scheduleRepository.updateSchedulePartial(scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
+                this.scheduleRepository.updateSchedulePartial(userId, scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
+                this.scheduleRepository.updateSchedulePartial(userId, scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
             ])
             await queryRunner.commitTransaction();
             return ret
