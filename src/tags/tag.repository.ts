@@ -53,6 +53,43 @@ export class TagRepository {
         }));
     }
 
+    async saveTagsOrderedByInput(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner): Promise<BaseTag[]> {
+        const [existingTags, nextTagOrder] = await Promise.all([
+            this.repository.find({ where: { user: { id: userId }, content: In(createTagsDto.contents) } }),
+            this.findNextTagOrder(userId),
+        ]);
+    
+        const tagsRepository = queryRunner ? queryRunner.manager.getRepository(Tag) : this.repository;
+    
+        const newTags = createTagsDto.contents
+            .filter((content) => !existingTags.some((tag) => tag.content.toUpperCase() === content.toUpperCase()))
+            .map((content, index) =>
+                tagsRepository.create({
+                    user: { id: userId },
+                    content,
+                    tagOrder: nextTagOrder + index,
+                }),
+            );
+    
+        const createdTags = await tagsRepository.save(newTags);
+    
+        // Create a mapping between content strings and tags
+        const contentTagMap = new Map<string, BaseTag>();
+        for (const tag of [...createdTags, ...existingTags]) {
+            contentTagMap.set(tag.content, {
+                id: tag.id,
+                content: tag.content,
+                isSelected: tag.isSelected,
+                tagOrder: tag.tagOrder,
+            });
+        }
+    
+        // Reconstruct the tags array based on the original order of createTagsDto.contents
+        const orderedTags: BaseTag[] = createTagsDto.contents.map((content) => contentTagMap.get(content));
+    
+        return orderedTags;
+    }
+
     async findNextTagOrder(userId: string): Promise<number> {
         const nextTagOrder = await this.repository.createQueryBuilder('tag')
             .select('MAX(tag.tagOrder)', 'maxOrder')

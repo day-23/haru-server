@@ -15,7 +15,7 @@ export class TagsService {
     }
 
     async createTags(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner):Promise<BaseTag[]>{
-        return await this.tagRepository.saveTags(userId, createTagsDto, queryRunner);
+        return await this.tagRepository.saveTagsOrderedByInput(userId, createTagsDto, queryRunner);
     }
 
     async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<BaseTag> {

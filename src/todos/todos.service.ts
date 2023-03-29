@@ -37,6 +37,8 @@ export class TodosService {
             const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag }, queryRunner);
 
             const savedTags = tags.length > 0 ? await this.tagService.createTags(userId, { contents: tags }, queryRunner) : [];
+            console.log(savedTags, tags)
+
             if (savedTags.length > 0) {
                 await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
             }
