@@ -2,21 +2,22 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
+import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
-import { CreateScheduleWithoutAlarmsDto } from "src/schedules/dto/create.schedule.dto";
+import { CreateScheduleWithoutAlarmsDto, UpdateScheduleDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
 import { GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 
-import { QueryRunner, Repository } from "typeorm";
+import { Between, QueryRunner, Repository } from "typeorm";
 
 export class ScheduleRepository {
     constructor(
         @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
+        @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
     ) { }
 
     private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.isAllDay', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.repeatOption', 'schedule.repeatValue', 'schedule.createdAt', 'schedule.updatedAt']
     private alarmProperties = ['alarm.id', 'alarm.time']
     private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
-
 
     async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner : QueryRunner) {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
@@ -40,6 +41,16 @@ export class ScheduleRepository {
     async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
         return this.createOrUpdateSchedule(userId, scheduleId, createScheduleDto, queryRunner);
     }
+
+    /* 스케줄 내용 일부 업데이트 */
+    async updateSchedulePartial(schedule: Schedule, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner: QueryRunner): Promise<Schedule> {
+        const {id, ...scheduleData} = schedule;
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const updatedSchedule = scheduleRepository.create({...scheduleData, ...updateSchedulePartialDto});
+        const savedSchedule = await scheduleRepository.save(updatedSchedule);
+        return savedSchedule;
+    }
+
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
         return await this.repository.createQueryBuilder('schedule')
@@ -113,5 +124,19 @@ export class ScheduleRepository {
             .addOrderBy('schedule.createdAt', 'ASC')
             .take(50)
             .getMany()
+    }
+
+    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto){
+        const {startDate, endDate } = datePaginationDto;
+        const holidays = await this.holidayRepository.find({where: {date: Between(startDate, endDate)}})
+
+        return {
+            data: holidays,
+            pagination: {
+                totalItems: holidays.length,
+                startDate,
+                endDate
+            },
+        };
     }
 }

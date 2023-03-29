@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDate, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
 export class CreateScheduleDto {
@@ -51,8 +51,17 @@ export class CreateScheduleDto {
     alarms: Date[];
 }
 
+export class UpdateScheduleBySplitDto extends CreateScheduleDto{
+    @ApiProperty({ description: '변하는 날짜, 해당 날짜 기준으로 스플릿됨'})
+    @IsDate()
+    @Transform(({ value }) => new Date(value))
+    changedDate: Date;
+}
+
 export class CreateScheduleWithoutAlarmsDto extends OmitType(CreateScheduleDto, ['alarms']) {}
 
+/* repeatStart, repeatEnd 바꾸기 위함 */
+export class UpdateSchedulePartialDto extends PartialType(OmitType(CreateScheduleDto, ['alarms'])){}
 
 export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
     @IsDefined()

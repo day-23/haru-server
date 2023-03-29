@@ -4,7 +4,7 @@ import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
 import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { CreateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto, UpdateScheduleBySplitDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
 
@@ -98,6 +98,49 @@ export class ScheduleService {
         }
     }
 
+    async updateScheduleBySplit(userId: string, scheduleId: string, updateScheduleBySplitDto: UpdateScheduleBySplitDto, queryRunner?: QueryRunner): Promise<ScheduleResponse> {
+        //find schedule by scheduleId, if not find then throw error
+        const { changedDate, ...createScheduleDto} = updateScheduleBySplitDto
+
+        const scheduleToUpdate = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+        if (!scheduleToUpdate) {
+            throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
+        }
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+        try {
+            // Start the transaction
+            await queryRunner.startTransaction();
+            
+            //새로 생성된 스케줄
+            const [ret, first, second] = await Promise.all([
+                this.createSchedule(userId, createScheduleDto, queryRunner),
+                this.scheduleRepository.updateSchedulePartial(scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
+                this.scheduleRepository.updateSchedulePartial(scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
+            ])
+            await queryRunner.commitTransaction();
+            return ret
+        }
+        catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        }
+        finally {
+            // Release the query runner if it was created in this function
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
+        }
+    }
+
     async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
         return this.scheduleRepository.deleteSchedule(userId, scheduleId);
     }
@@ -110,9 +153,8 @@ export class ScheduleService {
         return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     }
 
-    // async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
-    //     return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
-    // }
-
+    async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
+    }
 
 }
