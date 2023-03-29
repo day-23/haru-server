@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateBaseTodoDto, CreateTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from "src/todos/dto/create.todo.dto";
+import { CreateBaseTodoDto, CreateTodoDto, UpdateBaseTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from "src/todos/dto/create.todo.dto";
 import { EntityManager, In, QueryRunner, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
@@ -80,14 +80,14 @@ export class TodoRepository {
     }
     
     /* update todo */
-    async updateTodo(userId: string, todoId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner?: QueryRunner): Promise<Todo> {
+    async updateTodo(userId: string, todoId: string, updateBaseTodoDto: UpdateBaseTodoDto, queryRunner?: QueryRunner): Promise<Todo> {
         const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
 
         // Find existing todo and update with new data
         const existingTodo = await todoRepository.findOne({ where : { id: todoId, user: { id: userId } }});
         if(!existingTodo) throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
 
-        const updateTodo = todoRepository.create({ ...existingTodo, ...createBaseTodoDto });
+        const updateTodo = todoRepository.create({ ...existingTodo, ...updateBaseTodoDto });
         return await todoRepository.save(updateTodo);
     }
 

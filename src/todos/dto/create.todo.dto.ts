@@ -12,7 +12,12 @@ export class BaseTodoDto {
     flag: boolean;
 }
 
-export class CreateBaseTodoDto extends BaseTodoDto {
+export class CreateBaseTodoDto extends BaseTodoDto {}
+
+export class UpdateBaseTodoDto extends BaseTodoDto {
+    @ApiProperty({ description: '할일 완료 여부' })
+    @IsBoolean()
+    completed: boolean;
 }
 
 export class CreateTodoDto extends BaseTodoDto {

@@ -66,7 +66,7 @@ export class TodosService {
 
         const {schedule} = existingTodo
         const { id: scheduleId } = schedule
-        const { todayTodo, flag, tags, subTodos, subTodosCompleted, endDate , ...createScheduleDto } = updateTodoDto
+        const { todayTodo, flag, tags, completed, subTodos, subTodosCompleted, endDate , ...createScheduleDto } = updateTodoDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
@@ -76,7 +76,7 @@ export class TodosService {
             // Start the transaction
             await queryRunner.startTransaction();
             const updatedSchedule = await this.scheduleService.updateSchedule(userId, scheduleId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
-            const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, flag }, queryRunner);
+            const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, completed, flag }, queryRunner);
             const updatedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
             await this.todoRepository.updateTodoTags(userId, todoId, updatedTags.map(tag => tag.id), queryRunner);
 

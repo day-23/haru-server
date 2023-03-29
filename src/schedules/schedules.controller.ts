@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
-import { CreateScheduleDto, UpdateScheduleDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleService } from './schedules.service';
 
@@ -23,6 +23,15 @@ export class ScheduleController {
         @Param('scheduleId') scheduleId: string,
         @Body() schedule: CreateScheduleDto) : Promise<ScheduleResponse>{
         return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
+    }
+
+    @Patch(':scheduleId/split')
+    @ApiOperation({ summary: '반복되는 스케줄 중 하나만 수정하여 split함', description: '스케줄를 수정한다.' })
+    async updateScheduleBySplit(@Param('userId') userId: string,
+        @Param('scheduleId') scheduleId: string, 
+        @Body() updateScheduleBySplitDto: UpdateScheduleBySplitDto) : Promise<ScheduleResponse>{
+            console.log('here??')
+        return this.scheduleService.updateScheduleBySplit(userId, scheduleId, updateScheduleBySplitDto);
     }
 
     @Delete(':scheduleId')
@@ -49,19 +58,11 @@ export class ScheduleController {
         return this.scheduleService.getSchedulesBySearch(userId, content)
     }
 
-
-    // @PaginatedResponse()
-    // @Get('holidays/date')
-    // @ApiOperation({ summary: '공휴일을 날짜 파라미터로 조회 API', description: '공휴일을를 조회한다.' })
-    // @ApiCreatedResponse({
-    //     description: '공휴일을 페이지네이션 방식으로 조회한다.'
-    // })
-    // @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    // @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    // @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
-    // async getHolidaysByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
-    //     return await this.scheduleService.getHolidaysByDate(userId, datePaginationDto);
-    // }
-
-
+    @Get('holidays/date')
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
+    @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
+    async getHolidaysByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
+        return await this.scheduleService.getHolidaysByDate(userId, datePaginationDto);
+    }
 }
