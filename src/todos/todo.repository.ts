@@ -26,11 +26,11 @@ export class TodoRepository {
     
 
     /* update todoTags */
-    async updateTodoTags(todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]> {
+    async updateTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]> {
         const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
 
         // Fetch existing todoTags
-        const existingTodoTags = await todoTagsRepository.find({ where: { todo: { id: todoId } } , relations: ['tag'] });
+        const existingTodoTags = await todoTagsRepository.find({ where: { todo: { id: todoId } }, relations: ['tag'] });
 
         // Find tagIds to be deleted and new tagIds to be created
         const existingTagIds = existingTodoTags.map(todoTag => todoTag.tag.id);
@@ -41,16 +41,14 @@ export class TodoRepository {
         if (tagIdsToDelete.length > 0) {
             await todoTagsRepository.delete({ todo: { id: todoId }, tag: { id: In(tagIdsToDelete) } });
         }
-        
+
         // Create new todoTags
-        const createdTodoTags = await this.createTodoTags(todoId, newTagIds, queryRunner);
+        const createdTodoTags = await this.createTodoTags(userId, todoId, newTagIds, queryRunner);
 
         // Merge existing and new todoTags, excluding the deleted ones
         const updatedTodoTags = existingTodoTags.filter(todoTag => !tagIdsToDelete.includes(todoTag.tag.id)).concat(createdTodoTags);
         return updatedTodoTags;
     }
-
-
 
     /* create subTodos */
     async updateSubTodos(todoId: string, updateSubTodoDto: UpdateSubTodosDtoWhenUpdateTodo, queryRunner? : QueryRunner): Promise<Subtodo[]> {
@@ -93,14 +91,13 @@ export class TodoRepository {
         return await todoRepository.save(updateTodo);
     }
 
-    
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
         return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule'] });
     }
 
     /* create todoTags */
-    async createTodoTags(todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
+    async createTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
         if(tagIds.length === 0) return [];
 
         const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
@@ -120,7 +117,7 @@ export class TodoRepository {
         }, {})
 
         const todoTagsEntities = tagIds.map(tagId => {
-            return todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
+            return todoTagsRepository.create({user: {id:userId}, todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
         })
 
         return await todoTagsRepository.save(todoTagsEntities);
@@ -221,101 +218,75 @@ export class TodoRepository {
 
     async getFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const flaggedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 1')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
-        // const ret = transformTodosAddTags(flaggedTodos)
-        return null
+        return todosParseToTodoResponse(flaggedTodos)
     }
 
     async getTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const taggedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.Repeat', 'repeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
-            .andWhere('tagwithtodo.id is not null')
-            .andWhere('todo.completed = 0')
+            .andWhere('todoTags.id is not null')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
-        // return transformTodosAddTags(taggedTodos)
-        return null
+
+        return todosParseToTodoResponse(taggedTodos)
     }
+
 
     async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const unTaggedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
-            .andWhere('(todo.id NOT IN (select distinct(todo_id) from tag_with_todo where tag_with_todo.user_id = :userId))', { userId })
+            .andWhere('(todo.id NOT IN (select distinct(todo_id) from todo_tags where todo_tags.user_id = :userId))', { userId })
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
-        // return transformTodosAddTags(unTaggedTodos)
-        return null
+        return todosParseToTodoResponse(unTaggedTodos)
     }
 
     async getCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const completedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
             .orderBy('todo.todoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
-        // return transformTodosAddTags(completedTodos)
-        return null
+        return todosParseToTodoResponse(completedTodos)
     }
 
     /* 오늘의 할일 */
@@ -323,76 +294,56 @@ export class TodoRepository {
         const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
 
         const flaggedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-                .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 1')
-            .andWhere('(todo.todayTodo = 1 OR todo.endDate <= :endDate)', { endDate: endDate.toISOString() })
+            .andWhere('(todo.todayTodo = 1 OR schedule.repeat_start <= :endDate)', { endDate: endDate.toISOString() })
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todayTodoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
-            .orderBy('todo.todayTodoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
-
-
+        
         const todayTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 1')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todayTodoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
-            .orderBy('todo.todayTodoOrder', 'ASC')
-            .addOrderBy('subtodo.subTodoOrder', 'ASC')
+            .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
         const endDatedTodos = await this.repository.createQueryBuilder('todo')
-            .leftJoinAndSelect('todo.subTodos', 'subtodo')
-            .leftJoinAndSelect('todo.alarms', 'alarm')
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('todo.todoRepeat', 'todorepeat')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 0')
             .andWhere('todo.completed = 0')
-            .andWhere('todo.endDate <= :endDate', { endDate: endDate.toISOString() })
+            .andWhere('schedule.repeat_start <= :endDate', { endDate: endDate.toISOString() })
             .take(LIMIT_DATA_LENGTH)
-            // .select(this.todoProperties)
-            // .addSelect(this.subTodoProperties)
-            // .addSelect(this.alarmProperties)
-            // .addSelect(this.tagWithTodoProperties)
-            // .addSelect(this.tagProperties)
-            // .addSelect(this.todoRepeatProperties)
-            .orderBy('todo.endDate', 'DESC')
+            .orderBy('schedule.repeatStart', 'DESC')
             .getMany()
 
         return {
-            // data: {
-            //     flaggedTodos: transformTodosAddTags(flaggedTodos),
-            //     todayTodos: transformTodosAddTags(todayTodos),
-            //     endDatedTodos: transformTodosAddTags(endDatedTodos)
-            // }
-            data : null
+            data: {
+                flaggedTodos: todosParseToTodoResponse(flaggedTodos),
+                todayTodos: todosParseToTodoResponse(todayTodos),
+                endDatedTodos: todosParseToTodoResponse(endDatedTodos)
+            }
         }
     }
 
@@ -495,97 +446,32 @@ export class TodoRepository {
     /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         const { tagId } = getByTagDto
-
-        const LIMIT = 50
-        const [ret, retCompleted] = await Promise.all([
-            this.entityManager.query(`
-            WITH dt AS (
-                SELECT todo.id id
-                FROM tag_with_todo twt
-                JOIN todo ON twt.todo_id = todo.id
-                WHERE twt.tag_id = ?
-                AND todo.user_id = ?
-                LIMIT ?
-            )
-            SELECT 
-                todo.id as "todo_id",
-                todo.content as "todo_content",
-                todo.memo as "todo_memo",
-                todo.today_todo as "todo_todayTodo",
-                todo.flag as "todo_flag",
-                todo_repeat.repeat_option as "todo_repeatOption",
-                todo_repeat.repeat_value as "todo_repeatValue",
-                todo.is_selected_end_date_time as "todo_isSelectedEndDateTime",
-                todo.end_date as "todo_endDate",
-                todo.completed as "todo_completed",
-                todo.created_At as "todo_created_At",
-                todo.updated_At as "todo_updated_At",
-                twt.todo_order as "todo_order",
-                alarm.id as "alarm_id",
-                alarm.time as "alarm_time",
-                sub_todo.id as "subTodo_id",
-                sub_todo.content as "subTodo_content",
-                sub_todo.completed as "subTodo_completed",
-                sub_todo.sub_todo_order as "subTodo_order",
-                tag.id as "tag_id",
-                tag.content as "tag_content"
-            FROM dt
-            JOIN todo ON dt.id = todo.id
-            LEFT JOIN tag_with_todo twt ON dt.id = twt.todo_id
-            LEFT JOIN tag ON twt.tag_id = tag.id
-            LEFT JOIN alarm ON dt.id = alarm.todo_id
-            LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
-            LEFT JOIN todo_repeat ON dt.id = todo_repeat.todo_id
-            WHERE todo.completed = 0
-            ORDER BY twt.todo_order ASC, subTodo_order ASC
-        `, [tagId, userId, LIMIT]),
-            this.entityManager.query(`
-            WITH dt AS (
-                SELECT todo.id id
-                FROM tag_with_todo twt
-                JOIN todo ON twt.todo_id = todo.id
-                WHERE twt.tag_id = ?
-                AND todo.user_id = ?
-                LIMIT ?
-            )
-            SELECT 
-                todo.id as "todo_id",
-                todo.content as "todo_content",
-                todo.memo as "todo_memo",
-                todo.today_todo as "todo_todayTodo",
-                todo.flag as "todo_flag",
-                todo_repeat.repeat_option as "todo_repeatOption",
-                todo_repeat.repeat_value as "todo_repeatValue",
-                todo.is_selected_end_date_time as "todo_isSelectedEndDateTime",
-                todo.end_date as "todo_endDate",
-                todo.completed as "todo_completed",
-                todo.created_At as "todo_created_At",
-                todo.updated_At as "todo_updated_At",
-                twt.todo_order as "todo_order",
-                alarm.id as "alarm_id",
-                alarm.time as "alarm_time",
-                sub_todo.id as "subTodo_id",
-                sub_todo.content as "subTodo_content",
-                sub_todo.completed as "subTodo_completed",
-                sub_todo.sub_todo_order as "subTodo_order",
-                tag.id as "tag_id",
-                tag.content as "tag_content"
-            FROM dt
-            JOIN todo ON dt.id = todo.id
-            LEFT JOIN tag_with_todo twt ON dt.id = twt.todo_id
-            LEFT JOIN tag ON twt.tag_id = tag.id
-            LEFT JOIN alarm ON dt.id = alarm.todo_id
-            LEFT JOIN sub_todo ON dt.id = sub_todo.todo_id
-            LEFT JOIN todo_repeat ON dt.id = todo_repeat.todo_id
-            WHERE todo.completed = 1
-            ORDER BY twt.todo_order ASC, subTodo_order ASC
-        `, [tagId, userId, LIMIT])
-        ])
-
+        const todos = await this.repository.createQueryBuilder('todo')
+            .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
+            .where('todo.user = :userId', { userId })
+            .andWhere(qb => {
+                const subQuery = qb.subQuery()
+                    .select('todoTag.todo')
+                    .from('todo_tags', 'todoTag')
+                    .leftJoin('todoTag.tag', 'tag')
+                    .where('tag.id = :tagId', { tagId })
+                    .getQuery();
+                return 'todo.id IN ' + subQuery;
+            })
+            .getMany()
+    
+        const parsedTodos = todosParseToTodoResponse(todos)
+        const unCompleted = parsedTodos.filter(todo => !todo.completed);
+        const completed = parsedTodos.filter(todo => todo.completed);
+        
         return {
             data: {
-                todos: formattedTodoDataFromTagRawQuery(ret, tagId),
-                completedTodos: formattedTodoDataFromTagRawQuery(retCompleted, tagId)
+                todos: unCompleted,
+                completedTodos: completed
             }
         }
     }
@@ -636,22 +522,6 @@ export class TodoRepository {
             );
         }
     }
-
-
-    async delete(userId: string, todoId: string): Promise<void> {
-        const result = await this.repository.delete({
-            user: { id: userId },
-            id: todoId
-        });
-
-        if (result.affected === 0) {
-            throw new HttpException(
-                `No todo with ID ${todoId} and user with ID ${userId} was found`,
-                HttpStatus.NOT_FOUND,
-            );
-        }
-    }
-
 
     /* todo flag 변경할 때만 사용 */
     async updateTodoFlag(userId: string, todoId: string, flag: boolean) {
@@ -808,10 +678,7 @@ export class TodoRepository {
     /* 투두에서 서브 투두를 지우는 함수 */
     async deleteSubTodoOfTodo(userId: string,
         todoId: string, subTodoId: string): Promise<void> {
-        const result = await this.subTodoRepository.delete({
-            id: subTodoId,
-            // user: { id: userId },
-        })
+        const result = await this.subTodoRepository.delete({id: subTodoId})
 
         if (result.affected === 0) {
             throw new HttpException(

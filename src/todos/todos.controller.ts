@@ -44,8 +44,6 @@ export class TodosController {
         return await this.todoService.getTodayTodos(userId, todayTodoDto);
     }
 
-
-    @PaginatedResponse()
     @Get('todos/main/flag')
     @ApiOperation({ summary: '투두 메인 데이터에서 중요한 투두만 조회', description: '투두 메인 데이터 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
@@ -53,7 +51,6 @@ export class TodosController {
         return await this.todoService.getFlaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/tag')
     @ApiOperation({ summary: '투두 메인 데이터에서 태그가 달린 데이터만 조회', description: '투두 메인 데이터 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
@@ -61,7 +58,6 @@ export class TodosController {
         return await this.todoService.getTaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/untag')
     @ApiOperation({ summary: '투두 메인 데이터에서 태그가 없는 데이터만 조회', description: '투두 메인 데이터 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
@@ -69,7 +65,6 @@ export class TodosController {
         return await this.todoService.getUnTaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/completed')
     @ApiOperation({ summary: '투두 메인 데이터에서 완료된 투두만 조회', description: '투두 메인 데이터 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
