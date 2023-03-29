@@ -4,12 +4,14 @@ import { Post } from './post.entity';
 import { User } from './user.entity';
 
 @Entity()
-export class PostLike extends BaseEntity {
+export class Liked extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+    /* 댓글 : 사용자 = N : 1 */
+    @ManyToOne(() => User, (user) => user.id)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
 
     /* 다른 엔터티들간의 관계 */
     /* 댓글 : 게시글 = N : 1 */
@@ -18,12 +20,10 @@ export class PostLike extends BaseEntity {
     post: Post;
 
     /* 댓글 : 사진 = N : 1 */
-    @ManyToOne(() => Image, (postImage) => postImage.id)
+    @ManyToOne(() => Image, (postImage) => postImage.likes)
     @JoinColumn({ name: 'post_image_id' })
     postImage: Image;
 
-    /* 댓글 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.id)
-    @JoinColumn({ name: 'user_id' })
-    user: User;
+    @CreateDateColumn()
+    createdAt: Date;
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CommentRepository } from 'src/repository/comment.repository';
+import { CommentRepository } from 'src/comments/comment.repository';
 import { CreateCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
 import { CommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse } from './interface/comment.interface';
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { User } from 'src/entity/user.entity';
-import { UserRepository } from 'src/repository/user.repository';
+import { UserRepository } from 'src/users/user.repository';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 
 
@@ -32,10 +32,4 @@ export class UserService {
     async deleteUser(id: string): Promise<void> {
         return await this.userRepository.delete(id);
     }
-
-    async updateNextOrder(userId: string, fieldName: string, addNum : number): Promise<User> {
-        return await this.userRepository.updateNextOrder(userId, fieldName, addNum)
-    }
-
-
 }

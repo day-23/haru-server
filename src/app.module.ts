@@ -3,11 +3,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { typeORMConfig } from './configs/typeorm.config';
+import { typeORMConfig } from './common/configs/typeorm.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
-import { AwsService } from './aws/aws.service';
 import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TodosModule } from './todos/todos.module';
@@ -15,13 +14,9 @@ import { TagsModule } from './tags/tags.module';
 import { AlarmsModule } from './alarms/alarms.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { CategoriesModule } from './categories/categories.module';
-import { PostService } from './posts/posts.service';
 import { PostsModule } from './posts/posts.module';
-import { CommentsController } from './comments/comments.controller';
-import { CommentsService } from './comments/comments.service';
 import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
-import { AwsModule } from './aws/aws.module';
 
 @Module({
     imports: [
@@ -38,13 +33,10 @@ import { AwsModule } from './aws/aws.module';
 
         /* TypeOrm */
         TypeOrmModule.forRoot(typeORMConfig),
-        UsersModule,
         AuthModule,
         TodosModule,
         TagsModule,
-        AlarmsModule,
         SchedulesModule,
-        CategoriesModule,
         PostsModule,
         CommentsModule,
         FollowsModule,

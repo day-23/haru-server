@@ -8,21 +8,6 @@ export class Comment extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
-    content: string;
-
-    @Column()
-    x: number;
-
-    @Column()
-    y: number;
-
-    @CreateDateColumn()
-    createdAt: Date;
-
-    @UpdateDateColumn()
-    updatedAt: Date;
-
     /* 다른 엔터티들간의 관계 */
     /* 댓글 : 게시글 = N : 1 */
     @ManyToOne(() => Post, (post) => post.id)
@@ -38,4 +23,23 @@ export class Comment extends BaseEntity {
     @ManyToOne(() => User, (user) => user.id)
     @JoinColumn({ name: 'user_id' })
     user: User;
+
+    @Column()
+    content: string;
+
+    @Column()
+    x: number;
+
+    @Column()
+    y: number;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+        
+    /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
+    @DeleteDateColumn()
+    deletedAt?: Date | null;
 }

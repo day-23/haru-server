@@ -1,30 +1,18 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlarmsService } from 'src/alarms/alarms.service';
-import { AwsModule } from 'src/aws/aws.module';
-import { AwsService } from 'src/aws/aws.service';
-import { Alarm } from 'src/entity/alarm.entity';
-import { Image } from 'src/entity/image.entity';
-import { SubTodo } from 'src/entity/sub-todo.entity';
-import { TagWithTodo } from 'src/entity/tag-with-todo.entity';
-import { Tag } from 'src/entity/tag.entity';
-import { TodoRepeat } from 'src/entity/todo-repeat.entity';
+import { Subtodo } from 'src/entity/subtodo.entity';
 import { Todo } from 'src/entity/todo.entity';
-import { User } from 'src/entity/user.entity';
-import { AlarmRepository } from 'src/repository/alarm.repository';
-import { TagRepository } from 'src/repository/tag.repository';
-import { TodoRepository } from 'src/repository/todo.repository';
-import { UserRepository } from 'src/repository/user.repository';
-import { TagsService } from 'src/tags/tags.service';
-import { UserService } from 'src/users/users.service';
+import { TodoRepository } from 'src/todos/todo.repository';
 import { TodosController } from './todos.controller';
 import { TodosService } from './todos.service';
+import { TagsModule } from 'src/tags/tags.module';
+import { SchedulesModule } from 'src/schedules/schedules.module';
+import { TodoTags } from 'src/entity/todo-tags.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Todo, User, SubTodo, Tag, TagWithTodo, Alarm, TodoRepeat])],
+    imports: [SchedulesModule, TagsModule, TypeOrmModule.forFeature([Todo, Subtodo, TodoTags])],
     controllers: [TodosController],
-    providers: [TodosService, TodoRepository, 
-                UserService, UserRepository, 
-                TagsService, TagRepository, AlarmsService, AlarmRepository]
+    providers: [TodosService, TodoRepository],
+    exports: [TodosService]
 })
 export class TodosModule { }

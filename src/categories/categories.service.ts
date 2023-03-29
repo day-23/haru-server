@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Category } from 'src/entity/category.entity';
-import { CategoryRepository } from 'src/repository/category.repository';
+import { CategoryRepository } from 'src/categories/category.repository';
 import { CreateCategoriesDto, CreateCategoryDto, DeleteCategoriesDto, UpdateCategoriesOrderDto, UpdateCategoryDto } from './dto/create.category.dto';
 import { BaseCategory } from './interface/category.interface';
 
@@ -15,10 +15,7 @@ export class CategoriesService {
     async getCategoryById(userId : string, categoryId : string): Promise<Category>{
         return await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId)
     }
-    
-    async createCategories(userId: string, createTagDto: CreateCategoriesDto) {
-        return await this.categoryRepository.createCategories(userId, createTagDto)
-    }
+
     
     async getCategoriesByUserId(userId: string): Promise<BaseCategory[]>  {
         return await this.categoryRepository.findAllCategoriesByUserId(userId)

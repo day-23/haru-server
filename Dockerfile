@@ -3,9 +3,16 @@ RUN mkdir -p /var/app
 
 ENV NODE_OPTIONS="--max-old-space-size=1536"
 
+
+ENV NODE_OPTIONS="--max-old-space-size=1536"
+
 WORKDIR /var/app
 COPY . .
 
+RUN apt-get update && \
+    apt-get install -y jq
+
+RUN npm install
 RUN apt-get update && \
     apt-get install -y jq
 

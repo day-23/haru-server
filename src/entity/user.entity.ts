@@ -15,14 +15,14 @@ import {
 import { Alarm } from './alarm.entity';
 import { Comment } from './comment.entity';
 import { Follow } from './follow.entity';
-import { PostLike } from './post-like.entity';
+import { Liked } from './liked.entity';
 import { Post } from './post.entity';
 import { Category } from './category.entity';
-import { Schedule } from './schedule.entity';
-import { TagWithTodo } from './tag-with-todo.entity';
+import { TodoTags } from './todo-tags.entity';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 import { Image } from './image.entity';
+import { Schedule } from './schedule.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -60,15 +60,6 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
-    @Column({ default: -1 })
-    nextTodoOrder: number
-
-    @Column({ default: -1 })
-    nextTagOrder: number
-
-    @Column({ default: -1 })
-    nextCategoryOrder: number
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -94,15 +85,19 @@ export class User extends BaseEntity {
     following: Follow[];
 
     /* 사용자 : 게시글  -  1:N  */
-    @OneToMany(() => Post, (post) => post.id)
+    @OneToMany(() => Post, (post) => post.user)
     post_id: Post[];
 
     /* 사용자 : 댓글 - 1:N */
-    @OneToMany(() => Comment, (comment) => comment.id)
+    @OneToMany(() => Comment, (comment) => comment.user)
     comment_id: Comment[];
 
-    /* 사용자 : 투두  -  1:N  */
-    @OneToMany(() => Todo, (todo) => todo.user)
+    /* 사용자 : Task  -  1:N  */
+    @OneToMany(() => Schedule, (schedules) => schedules.user)
+    schedules: Schedule[];
+
+    /* 사용자 : Task  -  1:N  */
+    @OneToMany(() => Todo, (todos) => todos.user)
     todos: Todo[];
 
     /* 사용자 : 서브투두 -  1:N  */
@@ -117,18 +112,14 @@ export class User extends BaseEntity {
     @OneToMany(() => Category, (category) => category.user)
     categories: Category[];
 
-    /* 사용자 : 스케줄 -  1:N  */
-    @OneToMany(() => Tag, (schedule) => schedule.user)
-    schedules: Schedule[];
-
-    @OneToMany(() => TagWithTodo, (tagwithtodo) => tagwithtodo.user)
-    tagWithTodos: TagWithTodo[]
+    @OneToMany(() => TodoTags, (todoTags) => todoTags.user)
+    todoTags: TodoTags[]
 
     /* 사용자 : 알람 - 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.user)
     alarms: Alarms[];
 
     /* 사용자 : 좋아요 - 1:N */
-    @OneToMany(() => PostLike, (postlike) => postlike.id)
-    postLike: PostLike[];
+    @OneToMany(() => Liked, (postlike) => postlike.user)
+    postLike: Liked[];
 }

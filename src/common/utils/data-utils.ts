@@ -1,6 +1,6 @@
-import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
-import { Schedule } from "src/entity/schedule.entity";
-import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
+// import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
+// import { Schedule } from "src/entity/schedule.entity";
+// import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { TodoResponse } from "src/todos/interface/todo.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
@@ -51,8 +51,9 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
                 flag: item.todo_flag ? true : false,
                 repeatOption: item.todo_repeatOption,
                 repeatValue: item.todo_repeatValue,
-                isSelectedEndDateTime: item.todo_isSelectedEndDateTime ? true : false,
+                isAllDay: item.todo_isAllDay ? true : false,
                 endDate: item.todo_endDate,
+                folded: item.todo_folded,
                 repeatEnd : item.todo_repeatEnd,
                 completed : item.todo_completed ? true : false,
                 createdAt: item.todo_created_At,
@@ -68,10 +69,10 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
             }
 
             if (item.alarm_id) {
-                newItem.alarms.push({
-                    id: item.alarm_id,
-                    time: item.alarm_time,
-                });
+                // newItem.alarms.push({
+                //     id: item.alarm_id,
+                //     time: item.alarm_time,
+                // });
             }
 
             if (item.subTodo_id) {
@@ -97,47 +98,4 @@ export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): To
     result.sort((a, b) => a.todoOrder - b.todoOrder)
 
     return result;
-}
-
-
-
-
-
-
-export function mapTagWithTodos(tagWithTodos) {
-    return tagWithTodos.map((tagWithTodo) => {
-      return {
-        id: tagWithTodo.tag.id,
-        content: tagWithTodo.tag.content,
-      };
-    });
-  }
-  
-// Use the mapTagWithTodos function in the main function to transform the todos array
-export function transformTodosAddTags(todos) {
-    /* todoRepeat Parsing */
-    const ret = todos.map(({ todoRepeat, todayTodoOrder, ...todo }) => {
-        return {
-            ...todo,
-            repeatOption: todoRepeat?.repeatOption ?? null,
-            repeatValue: todoRepeat?.repeatValue ?? null,
-            todoOrder : todo?.todoOrder ?? todayTodoOrder
-        }
-    })
-
-    return ret.map(({ tagWithTodos, ...todo }) => ({
-      ...todo,
-      tags: mapTagWithTodos(tagWithTodos),
-    }));
-}
-  
-export function parseRepeatFromSchedule(schedules){
-    const ret = schedules.map(({scheduleRepeat, ...schedule}) => {
-        return {
-            ...schedule,
-            repeatOption : scheduleRepeat?.repeatOption ?? null,
-            repeatValue : scheduleRepeat?.repeatValue ?? null,
-        }
-    })
-    return ret;
 }

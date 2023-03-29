@@ -3,15 +3,12 @@ import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { swaggerGetTodosByPagination, swaggerTodoCreateExample } from 'src/common/swagger/todo.example';
-import { Todo } from 'src/entity/todo.entity';
-import { CreateTagDto } from 'src/tags/dto/create.tag.dto';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
-import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
-import { CreateAlarmByTimeDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
+import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, GetTodosResponse, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
 import { TodosService } from './todos.service';
 
 
@@ -23,9 +20,6 @@ export class TodosController {
     @PaginatedResponse()
     @Get('todos/all')
     @ApiOperation({ summary: '전체 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두 페이지네이션 방식으로 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
     async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto){
@@ -35,9 +29,6 @@ export class TodosController {
     @PaginatedResponse()
     @Get('todos/main')
     @ApiOperation({ summary: '투두 메인 데이터 조회', description: '투두 메인 데이터 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     async getTodosForMain(@Param('userId') userId : string): Promise<GetTodosForMain> {
         return await this.todoService.getTodosForMain(userId);
@@ -47,68 +38,43 @@ export class TodosController {
     @PaginatedResponse()
     @Get('todos/today')
     @ApiOperation({ summary: '오늘의 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두 페이지네이션 방식으로 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
     async getTodayTodos(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
         return await this.todoService.getTodayTodos(userId, todayTodoDto);
     }
 
-
-    @PaginatedResponse()
     @Get('todos/main/flag')
     @ApiOperation({ summary: '투두 메인 데이터에서 중요한 투두만 조회', description: '투두 메인 데이터 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getFlaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getFlaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getFlaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/tag')
     @ApiOperation({ summary: '투두 메인 데이터에서 태그가 달린 데이터만 조회', description: '투두 메인 데이터 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getTaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getTaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getTaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/untag')
     @ApiOperation({ summary: '투두 메인 데이터에서 태그가 없는 데이터만 조회', description: '투두 메인 데이터 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getUnTaggedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getUnTaggedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getUnTaggedTodosForMain(userId);
     }
 
-    @PaginatedResponse()
     @Get('todos/main/completed')
     @ApiOperation({ summary: '투두 메인 데이터에서 완료된 투두만 조회', description: '투두 메인 데이터 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두리스트 메인에 쓰는 데이터를 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getCompletedTodosForMain(@Param('userId') userId : string): Promise<GetTodosResponse> {
+    async getCompletedTodosForMain(@Param('userId') userId : string): Promise<TodoResponse[]> {
         return await this.todoService.getCompletedTodosForMain(userId);
     }
 
     @PaginatedResponse()
     @Get('todos')
     @ApiOperation({ summary: '투두 페이지네이션 전체 조회 API', description: '투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두 페이지네이션 방식으로 조회한다.', schema: {
-            example: swaggerGetTodosByPagination
-        }
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
@@ -120,11 +86,6 @@ export class TodosController {
     @PaginatedResponse()
     @Get('todos/completed')
     @ApiOperation({ summary: '완료된 투두 페이지네이션 전체 조회 API', description: '투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두 페이지네이션 방식으로 조회한다.', schema: {
-            example: swaggerGetTodosByPagination
-        }
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
@@ -135,12 +96,7 @@ export class TodosController {
 
     @PaginatedResponse()
     @Get('todos/date')
-    @ApiOperation({ summary: '투두 날짜 파라미터로 조회 API', description: '투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '투두 페이지네이션 방식으로 조회한다.', schema: {
-            example: swaggerGetTodosByPagination
-        }
-    })
+    @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
     @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
@@ -151,9 +107,6 @@ export class TodosController {
     @PaginatedResponse()
     @Get('todos/tag')
     @ApiOperation({ summary: '태그 별로 투두 조회 API', description: '태그별로 투두를 조회한다.' })
-    @ApiCreatedResponse({
-        description: '태그 별로 투두를 페이지네이션 방식으로 조회한다.'
-    })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'tagId', required: true, description: '조회하고자 하는 태그의 Id' })
     async getTodosByTag(@Param('userId') userId, @Query() getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
@@ -169,11 +122,6 @@ export class TodosController {
 
     @Post()
     @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
-    @ApiCreatedResponse({
-        description: '투두를 생성한다.', schema: {
-            example: swaggerTodoCreateExample
-        }
-    })
     async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<TodoResponse> {
         console.log(createTodoDto)
         return await this.todoService.createTodo(userId, createTodoDto)
@@ -181,13 +129,10 @@ export class TodosController {
 
     @Put(':todoId')
     @ApiOperation({ summary: '투두 본체 내용 수정 API', description: '투두를 수정한다.' })
-    @ApiCreatedResponse({
-        description: '투두를 수정한다.'
-    })
     async update(@Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() todo: CreateTodoDto): Promise<TodoResponse> {
-        return this.todoService.updateTodo(userId, todoId, todo);
+        @Body() updateTodoDto: UpdateTodoDto) {
+        return this.todoService.updateTodo(userId, todoId, updateTodoDto);
     }
 
 
@@ -196,9 +141,9 @@ export class TodosController {
     async updateTodoFlag(
         @Param('userId') userId: string,
         @Param('todoId') todoId: string,
-        @Body() updateTodoDto: UpdateTodoDto
+        @Body() updateTodoDto: Partial<BaseTodoDto>
     ) {
-        return this.todoService.updateTodoFlag(userId, todoId, updateTodoDto)
+        return this.todoService.updateTodoFlag(userId, todoId, updateTodoDto.flag)
     }
 
 
@@ -270,9 +215,6 @@ export class TodosController {
 
     @Delete(':todoId')
     @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })
-    @ApiCreatedResponse({
-        description: '투두를 삭제한다.'
-    })
     async delete(@Param('userId') userId: string,
         @Param('todoId') todoId: string): Promise<void> {
         return this.todoService.deleteTodo(userId, todoId);
@@ -280,9 +222,6 @@ export class TodosController {
 
     @Delete(':todoId/subtodo/:subTodoId')
     @ApiOperation({ summary: '투두의 서브 투두를 삭제하는 API', description: '투두의 서브 투두를 삭제한다.' })
-    @ApiCreatedResponse({
-        description: '투두의 서브 투두를 삭제한다.'
-    })
     async deleteSubTodoOfTodo(@Param('userId') userId: string,
         @Param('todoId') todoId: string, @Param('subTodoId') subTodoId: string): Promise<void> {
         return this.todoService.deleteSubTodoOfTodo(userId, todoId, subTodoId);

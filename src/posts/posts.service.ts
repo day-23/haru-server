@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { PostRepository } from 'src/repository/post.repository';
+import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
 import { PostCreateResponse } from './interface/post.interface';

@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiProperty, PartialType } from "@nestjs/swagger";
+import { ApiProperty, OmitType, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
@@ -16,13 +16,19 @@ export class CreateScheduleDto {
     @IsString()
     memo: string;
 
-    @ApiProperty({ description: '중요한 할일인지 체크' })
-    @IsBoolean()
-    flag: boolean;
-
     @ApiProperty({ description: '일정이 시간까지 포함인지 여부' })
     @IsBoolean()
-    timeOption: boolean;
+    isAllDay: boolean;
+
+    @ApiProperty({ description: '반복 시작'})
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    repeatStart: Date;
+
+    @ApiProperty({ description: '반복 끝'})
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    repeatEnd: Date;
 
     /* 반복 설정 */
     @ApiProperty({ description: 'schedule 반복 주기 : 일, 주, 월, 년 등, 정해야함', nullable: true })
@@ -35,16 +41,6 @@ export class CreateScheduleDto {
     @IsOptional() /* nullable */
     repeatValue: string;
 
-    @ApiProperty({ description: '반복 시작'})
-    @IsOptional()
-    @Transform(({ value }) => new Date(value))
-    repeatStart: Date;
-
-    @ApiProperty({ description: '반복 끝'})
-    @IsOptional()
-    @Transform(({ value }) => new Date(value))
-    repeatEnd: Date;
-
     @ApiProperty({ description: 'category id' })
     @IsOptional()
     @IsString()
@@ -52,8 +48,10 @@ export class CreateScheduleDto {
 
     @ApiProperty({ description: 'alarms 시간들' })
     @IsString({ each: true })
-    alarms: string[];
+    alarms: Date[];
 }
+
+export class CreateScheduleWithoutAlarmsDto extends OmitType(CreateScheduleDto, ['alarms']) {}
 
 
 export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
@@ -64,8 +62,7 @@ export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
 
     @IsDefined()
     @IsOptional()
-    @IsString({ each: true })
-    alarms?: string[];
+    alarms?: Date[];
 
     // validation function to check if category or alarms are not undefined
     validateFields() {

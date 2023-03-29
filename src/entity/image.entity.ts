@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
-import { PostLike } from './post-like.entity';
+import { Liked } from './liked.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
 
@@ -37,10 +37,12 @@ export class Image extends BaseEntity {
     comment: Comment[];
 
     /* 사진 : 좋아요 = 1:N */
-    @OneToMany(() => PostLike, (postlike) => postlike.id)
-    postlike: PostLike[];
-
+    @OneToMany(() => Liked, (like) => like.postImage)
+    likes: Liked[];
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }
