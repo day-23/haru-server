@@ -79,6 +79,8 @@ export class AlarmRepository {
         if (existingAlarms.length > 0) {
             await alarmRepository.delete({ schedule: { id: taskId }, user: { id: userId } });
         }
+
+        if(times.length === 0) return []
         const newAlarms = times.map(time => {
             return alarmRepository.create({ user: { id: userId }, schedule: { id: taskId }, time});
         }

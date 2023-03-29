@@ -66,7 +66,7 @@ export class ScheduleService {
         if (!scheduleToUpdate) {
             throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
         }
-
+        
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
@@ -75,13 +75,9 @@ export class ScheduleService {
             await queryRunner.startTransaction();
 
             const category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
-
             const updatedSchedule = await this.scheduleRepository.updateSchedule(userId, scheduleId, schedule, queryRunner);
+            const savedAlarms = await this.alarmRepository.updateAlarms(userId, { scheduleId: updatedSchedule.id, times: alarms }, queryRunner);
 
-            let savedAlarms: Alarm[] = []
-            if (alarms.length > 0) {
-                savedAlarms = await this.alarmRepository.updateAlarms(userId, { scheduleId: updatedSchedule.id, times: alarms }, queryRunner);
-            }
             await queryRunner.commitTransaction();
             return parseScheduleResponse(updatedSchedule, category, savedAlarms)
         }
