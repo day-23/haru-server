@@ -33,6 +33,7 @@ import { FollowsModule } from './follows/follows.module';
 
         /* TypeOrm */
         TypeOrmModule.forRoot(typeORMConfig),
+        UsersModule,
         AuthModule,
         TodosModule,
         TagsModule,
