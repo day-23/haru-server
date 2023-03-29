@@ -17,22 +17,28 @@ export class ScheduleRepository {
     private alarmProperties = ['alarm.id', 'alarm.time']
     private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
 
+
+    async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner : QueryRunner) {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const { categoryId } = createScheduleDto;
+        let newSchedule = null;
+        if(scheduleId){
+            newSchedule = scheduleRepository.create({id : scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
+        }else{
+            newSchedule = scheduleRepository.create({user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
+        }
+        const savedSchedule = await scheduleRepository.save(newSchedule);
+        return savedSchedule;
+    }
+
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
     async createSchedule(userId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
-        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const { categoryId } = createScheduleDto
-
-        const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId } })
-        return savedSchedule
+        return this.createOrUpdateSchedule(userId, null, createScheduleDto, queryRunner);
     }
 
     /* 스케줄 내용 업데이트 */
     async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
-        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const { categoryId } = createScheduleDto
-
-        const savedSchedule = await scheduleRepository.save({ ...createScheduleDto, user: { id: userId }, category: { id: categoryId }, id: scheduleId })
-        return savedSchedule
+        return this.createOrUpdateSchedule(userId, scheduleId, createScheduleDto, queryRunner);
     }
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {

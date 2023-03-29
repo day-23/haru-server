@@ -22,11 +22,6 @@ export class ScheduleService {
         const { alarms, ...schedule } = createScheduleDto
         const { categoryId } = schedule
 
-        let category = null;
-        if (categoryId) {
-            category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
-        }
-
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
@@ -35,16 +30,15 @@ export class ScheduleService {
             if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
-            const newSchedule = await this.scheduleRepository.createSchedule(userId, schedule, queryRunner);
 
-            let savedAlarms: Alarm[] = []
-            if (alarms.length > 0) {
-                savedAlarms = await this.alarmRepository.createAlarms(userId, { scheduleId: newSchedule.id, times: alarms }, queryRunner);
-            }
+            const category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
+            const newSchedule = await this.scheduleRepository.createSchedule(userId, schedule, queryRunner);
+            const savedAlarms = await this.alarmRepository.createAlarms(userId, { scheduleId: newSchedule.id, times: alarms }, queryRunner);
 
             if (shouldReleaseQueryRunner) {
                 await queryRunner.commitTransaction();
             }
+
             return parseScheduleResponse(newSchedule, category, savedAlarms)
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -68,11 +62,6 @@ export class ScheduleService {
         const { alarms, ...schedule } = createScheduleDto
         const { categoryId } = schedule
 
-        let category = null;
-        if (categoryId) {
-            category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
-        }
-
         const scheduleToUpdate = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         if (!scheduleToUpdate) {
             throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
@@ -84,6 +73,9 @@ export class ScheduleService {
         try {
             // Start the transaction
             await queryRunner.startTransaction();
+
+            const category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
+
             const updatedSchedule = await this.scheduleRepository.updateSchedule(userId, scheduleId, schedule, queryRunner);
 
             let savedAlarms: Alarm[] = []

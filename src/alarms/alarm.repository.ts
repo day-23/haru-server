@@ -29,6 +29,8 @@ export class AlarmRepository {
     /* 알람 여러개를 한번에 추가 */
     async createAlarms(userId: string, createAlarmsDto: CreateAlarmsDto, queryRunner?: QueryRunner): Promise<Alarm[]> {
         const { todoId, scheduleId, times }  = createAlarmsDto
+        if(times.length === 0) return []
+
         const alarmRepository = queryRunner ? queryRunner.manager.getRepository(Alarm) : this.repository;
         
         const taskId = todoId || scheduleId

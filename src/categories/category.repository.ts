@@ -46,7 +46,8 @@ export class CategoryRepository {
     }
 
     async findCategoryByUserAndCategoryId(userId: string, categoryId: string): Promise<Category> {
-        const existingCategory = await this.repository.findOne({ where: { id: categoryId } });
+        if(!categoryId) return null
+        const existingCategory = await this.repository.findOne({ where: { id: categoryId, user: { id: userId } }});
 
         if (!existingCategory) {
             throw new HttpException(
