@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from "src/tags/dto/create.tag.dto";
 import { BaseTag } from "src/tags/interface/tag.interface";
-import { In, Repository } from "typeorm";
+import { In, QueryRunner, Repository } from "typeorm";
 
 
 export class TagRepository {
@@ -26,21 +26,23 @@ export class TagRepository {
     }
 
     /* 태그를 한번에 여러개 생성하는 코드 */
-    async saveTags(userId: string, createTagsDto: CreateTagsDto) : Promise<BaseTag[]> {
+    async saveTags(userId: string, createTagsDto: CreateTagsDto, queryRunner? : QueryRunner) : Promise<BaseTag[]> {
         const [existingTags, nextTagOrder] = await Promise.all([
             this.repository.find({ where: { user: { id: userId }, content: In(createTagsDto.contents) } }),
             this.findNextTagOrder(userId)
         ])
+
+        const tagsRepository = queryRunner ? queryRunner.manager.getRepository(Tag) : this.repository;
         
         const newTags = createTagsDto.contents
             .filter(content => !existingTags.some(tag => tag.content.toUpperCase() === content.toUpperCase()))
-            .map((content, index) => this.repository.create({
+            .map((content, index) => tagsRepository.create({
                 user: { id: userId },
                 content,
                 tagOrder: nextTagOrder + index
               }));
 
-        const createdTags = await this.repository.save(newTags)
+        const createdTags = await tagsRepository.save(newTags)
 
         const tags = [...createdTags, ...existingTags].sort((a, b) => a.tagOrder - b.tagOrder);
         return tags.map(({ id, content, isSelected, tagOrder }) => ({

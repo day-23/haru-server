@@ -25,9 +25,6 @@ export class ScheduleService {
         let category = null;
         if (categoryId) {
             category = await this.categoryRepository.findCategoryByUserAndCategoryId(userId, categoryId);
-        } else {
-            // throw new BadRequestException(`categoryId is required`);
-            
         }
 
         // Create a new queryRunner if one was not provided
@@ -35,14 +32,19 @@ export class ScheduleService {
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
         try {
             // Start the transaction
-            await queryRunner.startTransaction();
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
             const newSchedule = await this.scheduleRepository.createSchedule(userId, schedule, queryRunner);
 
             let savedAlarms: Alarm[] = []
             if (alarms.length > 0) {
                 savedAlarms = await this.alarmRepository.createAlarms(userId, { scheduleId: newSchedule.id, times: alarms }, queryRunner);
             }
-            await queryRunner.commitTransaction();
+
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.commitTransaction();
+            }
             return parseScheduleResponse(newSchedule, category, savedAlarms)
         } catch (error) {
             await queryRunner.rollbackTransaction();

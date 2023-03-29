@@ -5,6 +5,7 @@ import { CreateScheduleDto } from 'src/schedules/dto/create.schedule.dto';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
 import { TodoRepository } from 'src/todos/todo.repository';
+import { DataSource, QueryRunner } from 'typeorm';
 import { NotRepeatTodoCompleteDto } from './dto/complete.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
@@ -17,25 +18,48 @@ import { parseTodoResponse } from './todo.util';
 export class TodosService {
     constructor(private readonly todoRepository: TodoRepository,
         private readonly scheduleService: ScheduleService,
-        private readonly tagService: TagsService
+        private readonly tagService: TagsService,
+        private dataSource: DataSource
         ) { }
 
 
-    async createTodo(userId: string, createTodoDto: CreateTodoDto): Promise<TodoResponse> {
+    async createTodo(userId: string, createTodoDto: CreateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const { todayTodo, flag, tags, subTodos, endDate, ...createScheduleDto } = createTodoDto
-        
-        const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null });
-        
-        const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag });
 
-        const savedTags = tags.length > 0 ? await this.tagService.createTags(userId, { contents: tags }) : [];
-        if (savedTags.length > 0) {
-            await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id));
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            await queryRunner.startTransaction();
+            const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
+            const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag }, queryRunner);
+
+            const savedTags = tags.length > 0 ? await this.tagService.createTags(userId, { contents: tags }, queryRunner) : [];
+            if (savedTags.length > 0) {
+                await this.todoRepository.createTodoTags(savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
+            }
+
+            const savedSubTodos = subTodos.length > 0 ? await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner) : [];
+
+            await queryRunner.commitTransaction();
+            return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);            
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            // Release the query runner if it was created in this function
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
         }
-
-        const savedSubTodos = subTodos.length > 0 ? await this.todoRepository.createSubTodos(savedTodo.id, subTodos) : [];
-
-        return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);
     }
     
     async getTodosForMain(userId : string): Promise<GetTodosForMain> {

@@ -4,7 +4,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
-import { DataSource, EntityManager, In, Repository } from "typeorm";
+import { DataSource, EntityManager, In, QueryRunner, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
@@ -34,7 +34,9 @@ export class TodoRepository {
     private todoRepeatProperties = ['todorepeat.id', 'todorepeat.repeatOption', 'todorepeat.repeatValue']
 
     /* create todoTags */
-    async createTodoTags(todoId: string, tagIds: string[]): Promise<TodoTags[]> {
+    async createTodoTags(todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
+        const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
+
         // in todoTags, group by tag_id and get max value per tag_id
         const maxTodoOrderPerTagId = await this.todoTagsRepository.createQueryBuilder('todoTags')
             .select('MAX(todoTags.todoOrder)', 'maxTodoOrder')
@@ -50,27 +52,31 @@ export class TodoRepository {
         }, {})
 
         const todoTagsEntities = tagIds.map(tagId => {
-            return this.todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
+            return todoTagsRepository.create({ todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
         })
 
-        return await this.todoTagsRepository.save(todoTagsEntities);
+        return await todoTagsRepository.save(todoTagsEntities);
     }
 
     /* 투두 생성 함수 */
-    async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto): Promise<Todo> {
+    async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner? : QueryRunner): Promise<Todo> {
+        const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
+    
         //find next todo order and today todo order by Promise.all
         const nextTodoOrder = await this.findNextTodoOrder(userId)
-        const todo = this.repository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
-        return await this.repository.save(todo);
+        const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
+        return await todoRepository.save(todo);
     }
 
     /* create subTodos */
-    async createSubTodos(todoId: string, contents: string[]): Promise<Subtodo[]> {
+    async createSubTodos(todoId: string, contents: string[], queryRunner? : QueryRunner): Promise<Subtodo[]> {
+        const subTodoRepository = queryRunner ? queryRunner.manager.getRepository(Subtodo) : this.subTodoRepository;
+
         const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
         const subTodoEntities = contents.map((content, index) => {
-            return this.subTodoRepository.create({content, todo: { id: todoId }, subTodoOrder: nextSubTodoOrder + index})
+            return subTodoRepository.create({content, todo: { id: todoId }, subTodoOrder: nextSubTodoOrder + index})
         })
-        return await this.subTodoRepository.save(subTodoEntities);
+        return await subTodoRepository.save(subTodoEntities);
     }
 
     async findNextSubTodoOrder(todoId: string): Promise<number> {

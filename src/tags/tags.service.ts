@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Tag } from 'src/entity/tag.entity';
 import { TagRepository } from 'src/tags/tag.repository';
+import { QueryRunner } from 'typeorm';
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from './dto/create.tag.dto';
 import { BaseTag } from './interface/tag.interface';
 
@@ -13,14 +14,15 @@ export class TagsService {
         return {id, content, isSelected, tagOrder}
     }
 
+    async createTags(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner):Promise<BaseTag[]>{
+        return await this.tagRepository.saveTags(userId, createTagsDto, queryRunner);
+    }
+
     async updateTag(userId: string, tagId: string , updateTagDto: UpdateTagDto): Promise<BaseTag> {
         const {id, content, isSelected, tagOrder} = await this.tagRepository.updateTag(userId, tagId, updateTagDto);
         return {id, content, isSelected, tagOrder}
     }
 
-    async createTags(userId: string, createTagsDto: CreateTagsDto):Promise<BaseTag[]>{
-        return await this.tagRepository.saveTags(userId, createTagsDto);
-    }
 
     async getTagsByUserId(userId: string): Promise<BaseTag[]> {
         return this.tagRepository.findAllTagsByUserId(userId);
