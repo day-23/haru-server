@@ -59,6 +59,48 @@ export class TodosService {
             }
         }
     }
+
+    async updateTodo(userId: string, todoId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner) {
+        //get existing todo by todoId
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        if(!existingTodo) throw new HttpException({message: 'Todo not found',},HttpStatus.NOT_FOUND);
+
+        const {schedule} = existingTodo
+        const { id: scheduleId } = schedule
+        const { todayTodo, flag, tags, subTodos, subTodosCompleted, endDate , ...createScheduleDto } = updateTodoDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            await queryRunner.startTransaction();
+            const updatedSchedule = await this.scheduleService.updateSchedule(userId, scheduleId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
+            const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, flag }, queryRunner);
+            const updatedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
+            await this.todoRepository.updateTodoTags(todoId, updatedTags.map(tag => tag.id), queryRunner);
+
+            const updatedSubTodos = await this.todoRepository.updateSubTodos(todoId, {contents : subTodos, subTodosCompleted }, queryRunner);
+
+            await queryRunner.commitTransaction();
+            return parseTodoResponse(updatedSchedule, updatedTodo, updatedTags, updatedSubTodos);
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            // Release the query runner if it was created in this function
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
+        }
+    }
     
     async getTodosForMain(userId : string): Promise<GetTodosForMain> {
         return await this.todoRepository.findTodosForMain(userId);
@@ -109,9 +151,7 @@ export class TodosService {
         return await this.todoRepository.findTodosBySearch(userId, content)
     }
 
-    async updateTodo(userId: string, todoId: string, todo: CreateTodoDto) {
-        // return await this.todoRepository.updateTodo(userId, todoId, todo);
-    }
+
 
     async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto) : Promise<void> {
         return this.todoRepository.updateTodoToComplete(userId, todoId, notRepeatTodoCompleteDto)
@@ -134,15 +174,14 @@ export class TodosService {
         return await this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
 
-    async updateTodoFlag(userId: string,todoId: string, updateTodoDto: UpdateTodoDto) {
-        const { flag } = updateTodoDto
+    async updateTodoFlag(userId: string,todoId: string, flag: boolean) {
         if(flag === null){
             throw new HttpException(
                 'flag must be a boolean value',
                 HttpStatus.BAD_REQUEST,
             );
         }
-        return await this.todoRepository.updateTodoFlag(userId, todoId, {flag})
+        return await this.todoRepository.updateTodoFlag(userId, todoId, flag)
     }
 
     /* 드래그앤드랍 오더링 */

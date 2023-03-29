@@ -2,7 +2,7 @@ import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto, updateTodoFromDto } from "src/todos/dto/create.todo.dto";
+import { CreateBaseTodoDto, CreateTodoDto, UpdateSubTodosDtoWhenUpdateTodo, UpdateTodoDto } from "src/todos/dto/create.todo.dto";
 import { UserService } from "src/users/users.service";
 import { DataSource, EntityManager, In, QueryRunner, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
@@ -12,11 +12,11 @@ import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/make
 import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { formattedTodoDataFromTagRawQuery, transformTodosAddTags } from "src/common/utils/data-utils";
-import { CreateSubTodoDto, CreateSubTodosDto, UpdateSubTodoDto } from "src/todos/dto/create.subtodo.dto";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
+import { UpdateSubTodoDto } from "./dto/create.subtodo.dto";
 
 export class TodoRepository {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
@@ -32,6 +32,81 @@ export class TodoRepository {
     private tagWithTodoProperties = ['tagwithtodo.id']
     private tagProperties = ['tag.id', 'tag.content']
     private todoRepeatProperties = ['todorepeat.id', 'todorepeat.repeatOption', 'todorepeat.repeatValue']
+
+    
+    /* update todoTags */
+    async updateTodoTags(todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]> {
+        const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
+
+        // Fetch existing todoTags
+        const existingTodoTags = await todoTagsRepository.find({ where: { todo: { id: todoId } } , relations: ['tag'] });
+
+        // Find tagIds to be deleted and new tagIds to be created
+        const existingTagIds = existingTodoTags.map(todoTag => todoTag.tag.id);
+        const tagIdsToDelete = existingTagIds.filter(tagId => !tagIds.includes(tagId));
+        const newTagIds = tagIds.filter(tagId => !existingTagIds.includes(tagId));
+
+        // Delete todoTags to be removed
+        if (tagIdsToDelete.length > 0) {
+            await todoTagsRepository.delete({ todo: { id: todoId }, tag: { id: In(tagIdsToDelete) } });
+        }
+        
+        // Create new todoTags
+        const createdTodoTags = await this.createTodoTags(todoId, newTagIds, queryRunner);
+
+        // Merge existing and new todoTags, excluding the deleted ones
+        const updatedTodoTags = existingTodoTags.filter(todoTag => !tagIdsToDelete.includes(todoTag.tag.id)).concat(createdTodoTags);
+        return updatedTodoTags;
+    }
+
+
+
+    /* create subTodos */
+    async updateSubTodos(todoId: string, updateSubTodoDto: UpdateSubTodosDtoWhenUpdateTodo, queryRunner? : QueryRunner): Promise<Subtodo[]> {
+        const subTodoRepository = queryRunner ? queryRunner.manager.getRepository(Subtodo) : this.subTodoRepository;
+        const existingSubTodos = await subTodoRepository.find({ where: { todo: { id: todoId } }});
+
+        const {contents, subTodosCompleted} = updateSubTodoDto;
+
+        if (existingSubTodos.length > 0 && existingSubTodos.length !== contents.length) {
+            await subTodoRepository.delete({ todo: { id: todoId }});
+        }
+    
+        if (contents.length === 0) return [];
+
+        const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
+
+        const newSubTodos = contents.map((content, index) => {
+            if (index < existingSubTodos.length) {
+                existingSubTodos[index].content = content;
+                existingSubTodos[index].subTodoOrder = nextSubTodoOrder + index;
+                existingSubTodos[index].completed = subTodosCompleted[index];
+                return existingSubTodos[index];
+            } else {
+                return subTodoRepository.create({ todo: { id: todoId }, content, subTodoOrder: nextSubTodoOrder + index, completed: subTodosCompleted[index] });
+            }
+        });
+        
+        return await subTodoRepository.save(newSubTodos);
+    }
+    
+    /* update todo */
+    async updateTodo(userId: string, todoId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner?: QueryRunner): Promise<Todo> {
+        const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
+
+        // Find existing todo and update with new data
+        const existingTodo = await todoRepository.findOne({ where : { id: todoId, user: { id: userId } }});
+        if(!existingTodo) throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
+
+        const updateTodo = todoRepository.create({ ...existingTodo, ...createBaseTodoDto });
+        return await todoRepository.save(updateTodo);
+    }
+
+    
+    // todo find by todoId
+    async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
+        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule'] });
+    }
 
     /* create todoTags */
     async createTodoTags(todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
@@ -568,67 +643,6 @@ export class TodoRepository {
         return transformTodosAddTags(todos)
     }
 
-
-
-    async updateTodo(userId: string, todoId: string, todoDto: CreateTodoDto) {
-        const existingTodo = await this.repository
-            .createQueryBuilder("todo")
-            .leftJoinAndSelect("todo.subTodos", "subtodo")
-            .leftJoinAndSelect('todo.tagWithTodos', 'tagwithtodo')
-            .leftJoinAndSelect('tagwithtodo.tag', 'tag')
-            .where("todo.id = :id", { id: todoId })
-            .select(['todo.id', 'todo.content', 'todo.memo', 'todo.todayTodo', 'todo.flag', 'todo.repeatEnd', 'todo.isSelectedEndDateTime', 'todo.endDate', 'todo.todoOrder', 'todo.completed', 'todo.createdAt', 'todo.updatedAt', 'todo.today_todo_order'])
-            .addSelect(this.subTodoProperties)
-            .addSelect(['tagwithtodo.id', 'tagwithtodo.todoOrder'])
-            .addSelect(['tag.id', 'tag.content', 'tag.nextTagWithTodoOrder'])
-            .orderBy("subtodo.subTodoOrder", "ASC")
-            .getOne();
-
-        if (!existingTodo) {
-            throw new HttpException(
-                'Todo not found',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-
-        const queryRunner = this.repository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            // const [tags, deleted] = await Promise.all([
-                // this.tagsService.createTags(userId, { contents: todoDto.tags }),
-            //     this.repository.delete({ id: todoId })
-            // ]);
-            // const todoEntity = updateTodoFromDto(existingTodo, todoDto, userId, tags)
-
-            // await Promise.all([
-            //     ...tags.map((tag) =>
-            //         queryRunner.manager.update(
-            //             Tag,
-            //             { id: tag.id },
-            //             // { nextTagWithTodoOrder: tag.nextTagWithTodoOrder - 1 },
-            //         ),
-            //     ),
-            //     queryRunner.manager.save(Todo, todoEntity),
-            // ]);
-            await queryRunner.commitTransaction();
-
-            // return savedTodoJsonToTodoResponse(todoEntity);
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.FORBIDDEN,
-            );
-        } finally {
-            await queryRunner.release();
-        }
-    }
-
     async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo> {
         const existingSubTodo = await this.subTodoRepository.findOne({ where: { id: subTodoId } });
 
@@ -674,7 +688,7 @@ export class TodoRepository {
 
 
     /* todo flag 변경할 때만 사용 */
-    async updateTodoFlag(userId: string, todoId: string, updateTodoDto: UpdateTodoDto) {
+    async updateTodoFlag(userId: string, todoId: string, flag: boolean) {
         const existingTodo = await this.repository.findOne({ where: { id: todoId } });
 
         if (!existingTodo) {
@@ -686,7 +700,7 @@ export class TodoRepository {
         try {
             const updatedTodo = new Todo({
                 ...existingTodo,
-                flag: updateTodoDto.flag
+                flag
             });
             await this.repository.save(updatedTodo);
         } catch (error) {

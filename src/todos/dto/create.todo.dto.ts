@@ -71,43 +71,26 @@ export class CreateTodoDto extends BaseTodoDto {
     alarms: Date[];
 }
 
-export class UpdateTodoDto extends PartialType(CreateTodoDto) { }
+export class UpdateTodoDto extends CreateTodoDto { 
+    @ApiProperty({ description: '할일 완료 여부' })
+    @IsBoolean()
+    completed: boolean;
 
-
-export function updateTodoFromDto(existingTodo: Todo, todoDto: CreateTodoDto, userId: string, tags: Tag[]): Todo {
-    const existingTagIds = []
-    const existingTagIdsAndTodoOrderDic = {}
-
-    // existingTodo.tagWithTodos.map((tagWithTodo) => {
-    //     const tagId = tagWithTodo.tag.id
-    //     existingTagIds.push(tagId)
-    //     existingTagIdsAndTodoOrderDic[tagId] = tagWithTodo.todoOrder
-    // })
-
-    const user = new User({ id: userId })
-    const todo = new Todo();
-    todo.id = existingTodo.id;
-    // todo.content = todoDto.content;
-    // todo.memo = todoDto.memo;
-    // todo.todayTodo = todoDto.todayTodo;
-    // todo.flag = todoDto.flag;
-    // todo.isSelectedEndDateTime = todoDto.isSelectedEndDateTime;
-    // todo.endDate = todoDto.endDate;
-    // todo.repeatEnd = todoDto.repeatEnd;
-    todo.subTodos = todoDto.subTodos.map((content, subTodoOrder) => new Subtodo({ content, subTodoOrder, completed: existingTodo.subTodos[subTodoOrder].completed }));
-    // todo.alarms = todoDto.alarms.map(time => new Alarm({ user, time }));
-    // todo.tagWithTodos = tags.map(tag => {
-    //     if (existingTagIds.includes(tag.id)) {
-    //         return new TodoTags({ user, todo, tag, todoOrder: existingTagIdsAndTodoOrderDic[tag.id] })
-    //     } else {
-    //         // return new TodoTags({ user, todo, tag, todoOrder: tag.nextTagWithTodoOrder })
-    //     }
-    // })
-    // todo.repeat = new Repetition({ todo, repeatOption: todoDto.repeatOption, repeatValue: todoDto.repeatValue })
-    // todo.user = user;
-    todo.todoOrder = existingTodo.todoOrder
-    todo.todayTodoOrder = existingTodo.todayTodoOrder
-    return todo;
+    @ApiProperty({ description: '하위항목 완료 여부' })
+    @IsBoolean({each : true})
+    subTodosCompleted: boolean[];
 }
+
+export class UpdateSubTodosDtoWhenUpdateTodo{
+    @ApiProperty({ description: 'subTodos의 내용들' })
+    @IsString({ each: true })
+    contents: string[];
+
+    @ApiProperty({ description: '하위항목 완료 여부' })
+    @IsBoolean({each : true})
+    subTodosCompleted: boolean[];
+}
+
+
 
 
