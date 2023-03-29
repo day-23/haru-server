@@ -60,8 +60,10 @@ export class TagRepository {
         ]);
     
         const tagsRepository = queryRunner ? queryRunner.manager.getRepository(Tag) : this.repository;
-    
-        const newTags = createTagsDto.contents
+        
+        const contents = [...new Set(createTagsDto.contents)]
+
+        const newTags = contents
             .filter((content) => !existingTags.some((tag) => tag.content.toUpperCase() === content.toUpperCase()))
             .map((content, index) =>
                 tagsRepository.create({
@@ -85,8 +87,7 @@ export class TagRepository {
         }
     
         // Reconstruct the tags array based on the original order of createTagsDto.contents
-        const orderedTags: BaseTag[] = createTagsDto.contents.map((content) => contentTagMap.get(content));
-    
+        const orderedTags: BaseTag[] = contents.map((content) => contentTagMap.get(content));
         return orderedTags;
     }
 
