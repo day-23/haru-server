@@ -42,6 +42,7 @@ export class UserController {
     @ApiOperation({ summary: '회원가입 API', description: '유저를 생성한다.' })
     @ApiCreatedResponse({ description: '유저를 생성한다.', type: User })
     async signUp(@Body() createUserDto: CreateUserDto): Promise<User> {
+        console.log('signUp Route')
         return await this.userService.createUser(createUserDto)
     }
 
