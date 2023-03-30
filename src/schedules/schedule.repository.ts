@@ -56,6 +56,7 @@ export class ScheduleRepository {
             .leftJoinAndSelect('schedule.category', 'category')
             .where('schedule.id = :scheduleId', { scheduleId })
             .andWhere('schedule.user = :userId', { userId })
+            // .andWhere('schedule.todo_id is null')
             .select(this.scheduleProperties)
             .addSelect(this.alarmProperties)
             .addSelect(this.categoryProperties)
@@ -85,21 +86,36 @@ export class ScheduleRepository {
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')
             .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.todo', 'todo')
             .where('schedule.user = :userId', { userId })
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
+            .andWhere('todo.id is null')
             .setParameters({ startDate, endDate })
             .select(this.scheduleProperties)
             .addSelect(this.alarmProperties)
+            .addSelect(['todo.id'])
             .addSelect(this.categoryProperties)
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
             .addOrderBy('schedule.created_at', 'ASC')
             .getManyAndCount()
 
+        
+
+        console.log(schedules)
+        const ret = []
+        schedules.forEach(({todo, ...schedule })=> 
+        {
+            if(!todo){
+                ret.push({...schedule})
+            }
+        }
+        )
+        
         return {
-            data: schedules,
+            data: ret,
             pagination: {
-                totalItems: count,
+                totalItems: ret.length,
                 startDate,
                 endDate
             },

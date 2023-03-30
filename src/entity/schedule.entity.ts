@@ -15,7 +15,9 @@ export class Schedule extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @OneToOne(() => Todo, (todo) => todo.schedule)
+    @OneToOne(() => Todo, (todo) => todo.schedule, { cascade: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'todo_id' })
+    @Index({ unique: true })
     todo: Todo
 
     /* 스케줄인 경우(todoId == null) category를 갖기 위함 */
