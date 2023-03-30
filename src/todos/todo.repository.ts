@@ -16,12 +16,12 @@ import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { UpdateSubTodoDto } from "./dto/create.subtodo.dto";
 import { todosParseToTodoResponse } from "./todo.util";
+import { TodoRepositoryInterface } from "./interface/todo.repository.interface";
 
-export class TodoRepository {
+export class TodoRepository implements TodoRepositoryInterface {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
         @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>,
-        @InjectEntityManager() private readonly entityManager: EntityManager,
     ) { }
     
 
@@ -93,7 +93,9 @@ export class TodoRepository {
 
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
-        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule'] });
+        //get all relations
+        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
+        
     }
 
     /* create todoTags */
@@ -180,7 +182,7 @@ export class TodoRepository {
     async findTodosAll(userId: string, todayTodoDto: TodayTodoDto) {
         const [mainTodos, todayTodos] = await Promise.all([
             this.findTodosForMain(userId),
-            this.getTodayTodos(userId, todayTodoDto)
+            this.findTodayTodos(userId, todayTodoDto)
         ])
 
         return {
@@ -200,10 +202,10 @@ export class TodoRepository {
     async findTodosForMain(userId: string): Promise<GetTodosForMain> {
         // /* subtodo, tag 조인, 페이지네이션 */
         const [flaggedTodos, taggedTodos, untaggedTodos, completedTodos] = await Promise.all([
-            this.getFlaggedTodosForMain(userId),
-            this.getTaggedTodosForMain(userId),
+            this.findFlaggedTodosForMain(userId),
+            this.findTaggedTodosForMain(userId),
             this.getUnTaggedTodosForMain(userId),
-            this.getCompletedTodosForMain(userId)
+            this.findCompletedTodosForMain(userId)
         ])
 
         return {
@@ -216,7 +218,7 @@ export class TodoRepository {
         };
     }
 
-    async getFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
+    async findFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const flaggedTodos = await this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
@@ -234,7 +236,7 @@ export class TodoRepository {
         return todosParseToTodoResponse(flaggedTodos)
     }
 
-    async getTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
+    async findTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const taggedTodos = await this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
@@ -251,7 +253,6 @@ export class TodoRepository {
 
         return todosParseToTodoResponse(taggedTodos)
     }
-
 
     async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const unTaggedTodos = await this.repository.createQueryBuilder('todo')
@@ -272,7 +273,7 @@ export class TodoRepository {
         return todosParseToTodoResponse(unTaggedTodos)
     }
 
-    async getCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
+    async findCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const completedTodos = await this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
@@ -290,7 +291,7 @@ export class TodoRepository {
     }
 
     /* 오늘의 할일 */
-    async getTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse> {
+    async findTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse> {
         const endDate = fromYYYYMMDDAddOneDayToDate(date.endDate)
 
         const flaggedTodos = await this.repository.createQueryBuilder('todo')
@@ -366,6 +367,7 @@ export class TodoRepository {
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
             .addOrderBy('schedule.created_at', 'ASC')
+            .orderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
             
         return {
@@ -524,7 +526,7 @@ export class TodoRepository {
     }
 
     /* todo flag 변경할 때만 사용 */
-    async updateTodoFlag(userId: string, todoId: string, flag: boolean) {
+    async updateTodoFlag(userId: string, todoId: string, flag: boolean) : Promise<void> {
         const existingTodo = await this.repository.findOne({ where: { id: todoId } });
 
         if (!existingTodo) {
@@ -550,10 +552,8 @@ export class TodoRepository {
         }
     }
 
-
-
     /* 드래그앤드랍 오더링 */
-    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) :Promise<void> {
         const { todoIds } = updateTodosOrderDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
@@ -577,10 +577,8 @@ export class TodoRepository {
         }
     }
 
-
-
     /* 드래그앤드랍 투데이 투두 오더링 */
-    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) :Promise<void> {
         const { todoIds } = updateTodosOrderDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();
         await queryRunner.connect();
@@ -605,7 +603,7 @@ export class TodoRepository {
     }
 
     /* 태그별 투두 오더링 */
-    async updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto) {
+    async updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto):Promise<void> {
         const { todoIds, tagId } = updateTodosInTagOrderDto
 
         const queryRunner = this.repository.manager.connection.createQueryRunner();
@@ -630,7 +628,7 @@ export class TodoRepository {
     }
 
 
-    async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto) {
+    async updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto):Promise<void> {
         const { subTodoIds } = updateSubTodosOrderDto
 
         const queryRunner = this.repository.manager.connection.createQueryRunner();
@@ -653,15 +651,20 @@ export class TodoRepository {
 
 
     /* 투두 완료처리 */
-    async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto): Promise<void> {
-        const queryRunner = this.repository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
+    async updateTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
+        const shouldReleaseQueryRunner = !queryRunner;
+        const todoRepository = queryRunner.manager.getRepository(Todo);
+        const subtodoRepository = queryRunner.manager.getRepository(Subtodo);
 
+        if (shouldReleaseQueryRunner) {
+            queryRunner = queryRunner.manager.connection.createQueryRunner();
+            await queryRunner.connect();
+        }
+        await queryRunner.startTransaction();
         try {
             await Promise.all([
-                queryRunner.manager.update(Todo, { id: todoId }, notRepeatTodoCompleteDto),
-                queryRunner.manager.update(Subtodo, { todo: todoId }, notRepeatTodoCompleteDto),
+                todoRepository.update({ id: todoId }, notRepeatTodoCompleteDto),
+                subtodoRepository.update({ todo: { id: todoId } }, notRepeatTodoCompleteDto),
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();
@@ -671,7 +674,9 @@ export class TodoRepository {
             throw err;
         } finally {
             // Release query runner
-            await queryRunner.release();
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
         }
     }
 
@@ -689,7 +694,7 @@ export class TodoRepository {
     }
 
     /* 반복된 투두 완료 처리 */
-    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto) {
+    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto):Promise<void> {
 
         const { endDate } = createTodoDto
         const queryRunner = this.repository.manager.connection.createQueryRunner();
@@ -715,4 +720,5 @@ export class TodoRepository {
             await queryRunner.release();
         }
     }
+
 }

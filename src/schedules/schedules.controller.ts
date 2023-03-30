@@ -30,7 +30,6 @@ export class ScheduleController {
     async updateScheduleBySplit(@Param('userId') userId: string,
         @Param('scheduleId') scheduleId: string, 
         @Body() updateScheduleBySplitDto: UpdateScheduleBySplitDto) : Promise<ScheduleResponse>{
-            console.log('here??')
         return this.scheduleService.updateScheduleBySplit(userId, scheduleId, updateScheduleBySplitDto);
     }
 

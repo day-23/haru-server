@@ -10,6 +10,11 @@ export class BaseTodoDto {
     @ApiProperty({ description: '중요한 할일인지 체크' })
     @IsBoolean()
     flag: boolean;
+
+    @ApiProperty({ description: '완료인지 여부' })
+    @IsOptional()
+    @IsBoolean()
+    completed: boolean;
 }
 
 export class CreateBaseTodoDto extends BaseTodoDto {}

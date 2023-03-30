@@ -4,9 +4,10 @@ import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
 import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { CreateScheduleDto, UpdateScheduleBySplitDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
+import { Schedule } from 'src/entity/schedule.entity';
 
 
 @Injectable()
@@ -98,6 +99,15 @@ export class ScheduleService {
         }
     }
 
+    async updateSchedulePartialAndCreateNewSchedule(userId : string, schedule: Schedule, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
+        const {id, ...scheduleData} = schedule
+        return await this.scheduleRepository.updateSchedulePartial(userId, scheduleData, updateSchedulePartialDto, queryRunner)
+    }
+
+    async updateSchedulePartialAndSave(userId : string, schedule: Schedule, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
+        return await this.scheduleRepository.updateSchedulePartial(userId, schedule, updateSchedulePartialDto, queryRunner)
+    }
+
     async updateScheduleBySplit(userId: string, scheduleId: string, updateScheduleBySplitDto: UpdateScheduleBySplitDto, queryRunner?: QueryRunner): Promise<ScheduleResponse> {
         //find schedule by scheduleId, if not find then throw error
         const { changedDate, ...createScheduleDto} = updateScheduleBySplitDto
@@ -117,8 +127,8 @@ export class ScheduleService {
             //새로 생성된 스케줄
             const [ret, first, second] = await Promise.all([
                 this.createSchedule(userId, createScheduleDto, queryRunner),
-                this.scheduleRepository.updateSchedulePartial(userId, scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
-                this.scheduleRepository.updateSchedulePartial(userId, scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
+                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
+                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
             ])
             await queryRunner.commitTransaction();
             return ret

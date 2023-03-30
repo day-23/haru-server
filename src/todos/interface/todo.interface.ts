@@ -25,6 +25,19 @@ export interface GetTodosForMain {
     }
 }
 
+export interface GetAllTodosResponse {
+    data: {
+        flaggedTodos: TodoResponse[],
+        taggedTodos: TodoResponse[],
+        untaggedTodos: TodoResponse[],
+        completedTodos: TodoResponse[],
+        todayTodos: TodoResponse[]
+        todayFlaggedTodos: TodoResponse[]
+        endDatedTodos: TodoResponse[]
+    }
+}
+
+
 export interface GetTodosPaginationResponse {
     data: TodoResponse[],
     pagination: Pagination
