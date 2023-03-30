@@ -19,7 +19,7 @@ export class ScheduleRepository {
     private alarmProperties = ['alarm.id', 'alarm.time']
     private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
 
-    async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner : QueryRunner) {
+    async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner? : QueryRunner) {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
         const { categoryId } = createScheduleDto;
         let newSchedule = null;
@@ -33,24 +33,22 @@ export class ScheduleRepository {
     }
 
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
-    async createSchedule(userId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
+    async createSchedule(userId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner): Promise<Schedule> {
         return this.createOrUpdateSchedule(userId, null, createScheduleDto, queryRunner);
     }
 
     /* 스케줄 내용 업데이트 */
-    async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner: QueryRunner): Promise<Schedule> {
+    async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner): Promise<Schedule> {
         return this.createOrUpdateSchedule(userId, scheduleId, createScheduleDto, queryRunner);
     }
 
     /* 스케줄 내용 일부 업데이트 */
-    async updateSchedulePartial(userId : string, schedule: Schedule, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner: QueryRunner): Promise<Schedule> {
-        const {id, ...scheduleData} = schedule;
+    async updateSchedulePartial(userId : string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const updatedSchedule = scheduleRepository.create({...scheduleData, ...updateSchedulePartialDto, user : {id:userId}});
+        const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto, user : {id:userId}});
         const savedSchedule = await scheduleRepository.save(updatedSchedule);
         return savedSchedule;
     }
-
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
         return await this.repository.createQueryBuilder('schedule')
