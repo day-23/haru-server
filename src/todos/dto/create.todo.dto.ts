@@ -11,6 +11,11 @@ export class BaseTodoDto {
     @IsBoolean()
     flag: boolean;
 
+    @ApiProperty({ description: '중요한 할일인지 체크' })
+    @IsOptional()
+    @IsBoolean()
+    folded: boolean;
+
     @ApiProperty({ description: '완료인지 여부' })
     @IsOptional()
     @IsBoolean()

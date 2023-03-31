@@ -26,6 +26,8 @@ export class ScheduleRepository {
             newSchedule = scheduleRepository.create({user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
         }
         const savedSchedule = await scheduleRepository.save(newSchedule);
+
+        console.log(savedSchedule)
         return savedSchedule;
     }
 
@@ -43,8 +45,10 @@ export class ScheduleRepository {
     async updateSchedulePartial(userId : string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
-        console.log("스케줄 업데이트 -------------------------------")
-        const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto, user : {id:userId}});
+        console.log(schedule)
+        console.log("스케줄 업데이트 ---------------문제----------------")
+        // const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto, user : {id:userId}});
+        const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto});
         const savedSchedule = await scheduleRepository.save(updatedSchedule);
         return savedSchedule;
     }
