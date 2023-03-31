@@ -4,7 +4,7 @@ import { TodoTags } from 'src/entity/todo-tags.entity';
 import { QueryRunner } from 'typeorm';
 import { CreateBaseTodoDto, CreateTodoDto, UpdateBaseTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from '../dto/create.todo.dto';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
-import { GetAllTodosResponse, GetTodayTodosResponse, GetTodosForMain, GetTodosPaginationResponse, GetTodosResponseByDate, GetTodosResponseByTag, TodoResponse } from './todo.interface';
+import { GetAllTodosResponse, GetTodayTodosResponse, GetTodosForMain, GetTodosPaginationResponse, GetTodosResponseByDate, GetTodosResponseByTag, TodoResponse } from './todo.return.interface';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { GetByTagDto } from '../dto/geybytag.todo.dto';
 import { UpdateSubTodoDto } from '../dto/create.subtodo.dto';

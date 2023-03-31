@@ -28,3 +28,14 @@ export function parseScheduleResponse(newSchedule: Schedule, category: Category,
     };
     return response;
 }
+
+
+export function schedulesParseToSchedulesResponse(schedules: Schedule[]) : ScheduleResponse[] {
+    const schedulesResponse: ScheduleResponse[] = [];
+    schedules.forEach((schedule) => {
+        const { category, alarms } = schedule;
+        const scheduleResponse = parseScheduleResponse(schedule, category, alarms);
+        schedulesResponse.push(scheduleResponse);
+    })
+    return schedulesResponse;
+}
