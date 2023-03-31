@@ -209,12 +209,7 @@ export class TodosService implements TodoServiceInterface {
 
     /* Todo 삭제 - 스케줄을 지우면 알아서 지워짐 */
     async deleteTodo(userId: string, todoId: string): Promise<void> {
-        //get existing todo by todoId
-        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        if (!existingTodo) throw new HttpException({ message: 'Todo not found', }, HttpStatus.NOT_FOUND);
-        const { schedule } = existingTodo
-        const { id: scheduleId } = schedule
-        return await this.scheduleService.deleteSchedule(userId, scheduleId);
+        return await this.todoRepository.deleteTodoById(userId, todoId)
     }
 
     async deleteSubTodoOfTodo(userId: string,
@@ -229,7 +224,7 @@ export class TodosService implements TodoServiceInterface {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        return await this.todoRepository.updateTodoFlag(userId, todoId, flag)
+        await this.todoRepository.updateTodo(userId, todoId, {flag})
     }
 
     async updateTodoFolded(userId: string, todoId: string, folded: boolean): Promise<void> {
@@ -239,7 +234,7 @@ export class TodosService implements TodoServiceInterface {
                 HttpStatus.BAD_REQUEST,
             );
         }
-        return await this.todoRepository.updateTodoFolded(userId, todoId, folded)
+        await this.todoRepository.updateTodo(userId, todoId, {folded})
     }
 
     /* 드래그앤드랍 오더링 */

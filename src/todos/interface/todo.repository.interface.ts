@@ -2,7 +2,7 @@ import { Todo } from 'src/entity/todo.entity';
 import { Subtodo } from 'src/entity/subtodo.entity';
 import { TodoTags } from 'src/entity/todo-tags.entity';
 import { QueryRunner } from 'typeorm';
-import { CreateBaseTodoDto, CreateTodoDto, UpdateBaseTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from '../dto/create.todo.dto';
+import { BaseTodoDto, CreateBaseTodoDto, CreateTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from '../dto/create.todo.dto';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { GetAllTodosResponse, GetTodayTodosResponse, GetTodosForMain, GetTodosPaginationResponse, GetTodosResponseByDate, GetTodosResponseByTag, TodoResponse } from './todo.return.interface';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -18,12 +18,11 @@ export interface TodoRepositoryInterface {
     createSubTodos(todoId: string, contents: string[], queryRunner?: QueryRunner): Promise<Subtodo[]>;
 
     /* update */
-    updateTodo(userId: string, todoId: string, updateBaseTodoDto: UpdateBaseTodoDto, queryRunner?: QueryRunner): Promise<Todo>;
+    updateTodo(userId: string, todoId: string, updateBaseTodoDto: Partial<BaseTodoDto>, queryRunner?: QueryRunner): Promise<Todo>;
     updateTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]>;
     updateSubTodos(todoId: string, updateSubTodoDto: UpdateSubTodosDtoWhenUpdateTodo, queryRunner?: QueryRunner): Promise<Subtodo[]>;
     updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo>
 
-    updateTodoFlag(userId: string, todoId: string, flag: boolean): Promise<void>
     updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void>
     updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void>
     updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto): Promise<void>
