@@ -24,11 +24,7 @@ export class BaseTodoDto {
 
 export class CreateBaseTodoDto extends BaseTodoDto {}
 
-export class UpdateBaseTodoDto extends BaseTodoDto {
-    @ApiProperty({ description: '할일 완료 여부' })
-    @IsBoolean()
-    completed: boolean;
-}
+
 
 export class CreateTodoDto extends BaseTodoDto {
     @ApiProperty({ description: 'todo 내용' })
@@ -80,13 +76,15 @@ export class CreateTodoDto extends BaseTodoDto {
     alarms: Date[];
 }
 
-export class UpdateTodoDto extends CreateTodoDto { 
+export class UpdateTodoDto extends CreateTodoDto {
     @ApiProperty({ description: '할일 완료 여부' })
+    @IsOptional()
     @IsBoolean()
     completed: boolean;
 
     @ApiProperty({ description: '하위항목 완료 여부' })
-    @IsBoolean({each : true})
+    @IsOptional()
+    @IsBoolean({ each: true })
     subTodosCompleted: boolean[];
 }
 

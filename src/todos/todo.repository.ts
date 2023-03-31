@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
-import { CreateBaseTodoDto, CreateTodoDto, UpdateBaseTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from "src/todos/dto/create.todo.dto";
+import { BaseTodoDto, CreateBaseTodoDto, CreateTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from "src/todos/dto/create.todo.dto";
 import { DataSource, EntityManager, In, QueryRunner, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
@@ -79,20 +79,19 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
     
     /* update todo */
-    async updateTodo(userId: string, todoId: string, updateBaseTodoDto: UpdateBaseTodoDto, queryRunner?: QueryRunner): Promise<Todo> {
+    async updateTodo(userId: string, todoId: string, baseTodoDto: Partial<BaseTodoDto>, queryRunner?: QueryRunner): Promise<Todo> {
         const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
 
         // Find existing todo and update with new data
         const existingTodo = await todoRepository.findOne({ where : { id: todoId, user: { id: userId } }});
         if(!existingTodo) throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
 
-        const updateTodo = todoRepository.create({ ...existingTodo, ...updateBaseTodoDto });
+        const updateTodo = todoRepository.create({ ...existingTodo, ...baseTodoDto });
         return await todoRepository.save(updateTodo);
     }
 
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
-        //get all relations
         return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
     }
 
@@ -524,61 +523,6 @@ export class TodoRepository implements TodoRepositoryInterface {
         }
     }
 
-    /* todo flag 변경할 때만 사용 */
-    async updateTodoFlag(userId: string, todoId: string, flag: boolean) : Promise<void> {
-        const existingTodo = await this.repository.findOne({ where: { id: todoId } });
-
-        if (!existingTodo) {
-            throw new HttpException(
-                'Todo not found',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-        try {
-            const updatedTodo = new Todo({
-                ...existingTodo,
-                flag
-            });
-            await this.repository.save(updatedTodo);
-        } catch (error) {
-            throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
-    }
-
-
-    /* todo flag 변경할 때만 사용 */
-    async updateTodoFolded(userId: string, todoId: string, folded: boolean) : Promise<void> {
-        const existingTodo = await this.repository.findOne({ where: { id: todoId } });
-
-        if (!existingTodo) {
-            throw new HttpException(
-                'Todo not found',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-        try {
-            const updatedTodo = new Todo({
-                ...existingTodo,
-                folded
-            });
-            await this.repository.save(updatedTodo);
-        } catch (error) {
-            throw new HttpException(
-                {
-                    message: 'SQL error',
-                    error: error.sqlMessage,
-                },
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
-    }
-
     /* 드래그앤드랍 오더링 */
     async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) :Promise<void> {
         const { todoIds } = updateTodosOrderDto
@@ -706,6 +650,18 @@ export class TodoRepository implements TodoRepositoryInterface {
             if (shouldReleaseQueryRunner) {
                 await queryRunner.release();
             }
+        }
+    }
+
+    //deleteTodo by todo Id
+    async deleteTodoById(userId: string, todoId: string): Promise<void> {
+        const result = await this.repository.delete({ id: todoId });
+
+        if (result.affected === 0) {
+            throw new HttpException(
+                `No todo with ID ${todoId} associated with user with ID ${userId} was found`,
+                HttpStatus.NOT_FOUND,
+            );
         }
     }
 
