@@ -23,7 +23,6 @@ export class TodoRepository implements TodoRepositoryInterface {
         @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>,
         private readonly dataSource : DataSource
     ) { }
-    
 
     /* update todoTags */
     async updateTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]> {
@@ -692,34 +691,6 @@ export class TodoRepository implements TodoRepositoryInterface {
                 `No subTodo with ID ${subTodoId} associated with todo with ID ${todoId} and user with ID ${userId} was found`,
                 HttpStatus.NOT_FOUND,
             );
-        }
-    }
-
-    /* 반복된 투두 완료 처리 */
-    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto):Promise<void> {
-
-        const { endDate } = createTodoDto
-        const queryRunner = this.repository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            const promises: Promise<any>[] = [queryRunner.manager.update(Todo, { id: todoId }, { completed: true }),
-            queryRunner.manager.update(Subtodo, { todo: todoId }, { completed: true })]
-            if (endDate) {
-                // promises.push(this.createTodo(userId, createTodoDto))
-            }
-            const [updateTodo, updateSubTodo, createNewTodo] = await Promise.all(promises);
-            // Commit transaction
-            await queryRunner.commitTransaction();
-            return createNewTodo
-        } catch (err) {
-            // Rollback transaction on error
-            await queryRunner.rollbackTransaction();
-            throw err;
-        } finally {
-            // Release query runner
-            await queryRunner.release();
         }
     }
 

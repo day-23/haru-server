@@ -155,10 +155,6 @@ export class TodosService implements TodoServiceInterface {
         return this.todoRepository.updateUnRepeatTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }
 
-    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto): Promise<void> {
-        return this.todoRepository.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
-    }
-
     /* 리팩토링 필요 */
     async updateRepeatTodoToCompleteBySplit(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);

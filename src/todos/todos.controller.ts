@@ -204,14 +204,8 @@ export class TodosController {
     }
 
     @Patch('complete/todo/:todoId/repeat')
-    @ApiOperation({summary: '반복 투두 완료 API', description: '투두를 완료한다'})
-    async completeRepeatTodo(@Param('userId') userId : string, @Param('todoId') todoId : string, @Body() createTodoDto : CreateTodoDto){
-        return this.todoService.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
-    }
-
-    @Patch('complete/todo/:todoId/repeat/split')
     @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
-    async updateScheduleBySplit(@Param('userId') userId: string,
+    async updateRepeatTodoToComplete(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
         @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
         return this.todoService.updateRepeatTodoToCompleteBySplit(userId, todoId, repeatTodoCompleteBySplitDto);

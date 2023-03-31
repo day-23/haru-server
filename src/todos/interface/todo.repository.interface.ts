@@ -29,7 +29,6 @@ export interface TodoRepositoryInterface {
     updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto): Promise<void>
     updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto): Promise<void>
     updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto): Promise<void>
-    updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto): Promise<void>
 
     /* read */
     findTodosAll(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse>;

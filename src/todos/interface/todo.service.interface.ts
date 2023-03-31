@@ -31,7 +31,6 @@ export interface TodoServiceInterface {
     /* update */
     updateTodo(userId: string, todoId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse>
     updateUnRepeatTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void>
-    updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto): Promise<void>
     updateRepeatTodoToCompleteBySplit(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>
     updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo>
     updateTodoFlag(userId: string, todoId: string, flag: boolean): Promise<void>
