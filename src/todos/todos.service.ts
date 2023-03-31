@@ -34,7 +34,7 @@ export class TodosService implements TodoServiceInterface {
             // Start the transaction
             await queryRunner.startTransaction();
             const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
-            const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag, completed }, queryRunner);
+            const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag, completed, folded:false }, queryRunner);
 
             const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
             await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
@@ -77,7 +77,7 @@ export class TodosService implements TodoServiceInterface {
             // Start the transaction
             await queryRunner.startTransaction();
             const updatedSchedule = await this.scheduleService.updateSchedule(userId, scheduleId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
-            const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, completed, flag }, queryRunner);
+            const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, completed, flag, folded:false }, queryRunner);
             const updatedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
             await this.todoRepository.updateTodoTags(userId, todoId, updatedTags.map(tag => tag.id), queryRunner);
 
@@ -156,7 +156,7 @@ export class TodosService implements TodoServiceInterface {
     }
 
     /* 리팩토링 필요 */
-    async updateRepeatTodoToCompleteBySplit(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
+    async updateRepeatTodoToComplete(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { completedDate } = repeatTodoCompleteBySplitDto
 
@@ -175,8 +175,9 @@ export class TodosService implements TodoServiceInterface {
             const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
 
             /* 기존 애를 변경 */
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
+            const ret = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
 
+            console.log(ret)
             /* 완료한 애를 하나 만듦 */
             const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
             await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
@@ -185,7 +186,6 @@ export class TodosService implements TodoServiceInterface {
             await this.createTodo(userId, createTodoDto, queryRunner)
 
             return completedTodo
-
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -230,6 +230,16 @@ export class TodosService implements TodoServiceInterface {
             );
         }
         return await this.todoRepository.updateTodoFlag(userId, todoId, flag)
+    }
+
+    async updateTodoFolded(userId: string, todoId: string, folded: boolean): Promise<void> {
+        if (folded === null) {
+            throw new HttpException(
+                'folded must be a boolean value',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
+        return await this.todoRepository.updateTodoFolded(userId, todoId, folded)
     }
 
     /* 드래그앤드랍 오더링 */

@@ -8,6 +8,7 @@ import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto }
 import { ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
 import { Schedule } from 'src/entity/schedule.entity';
+import { getDatePlusMinusOneDay } from 'src/common/makeDate';
 
 
 @Injectable()
@@ -117,6 +118,8 @@ export class ScheduleService {
             throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
         }
 
+        const {plusOneDay, minusOneDay} = getDatePlusMinusOneDay(changedDate)
+
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
@@ -126,9 +129,9 @@ export class ScheduleService {
             
             //새로 생성된 스케줄
             const [ret, first, second] = await Promise.all([
-                this.createSchedule(userId, createScheduleDto, queryRunner),
-                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatEnd : changedDate}, queryRunner),
-                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatStart : changedDate}, queryRunner)
+                this.updateSchedule(userId, scheduleId,  createScheduleDto, queryRunner),
+                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatEnd : minusOneDay}, queryRunner),
+                this.updateSchedulePartialAndCreateNewSchedule(userId, scheduleToUpdate, {repeatStart : plusOneDay}, queryRunner)
             ])
             await queryRunner.commitTransaction();
             return ret

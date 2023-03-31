@@ -143,6 +143,16 @@ export class TodosController {
         return this.todoService.updateTodoFlag(userId, todoId, updateTodoDto.flag)
     }
 
+    @Patch('folded/:todoId')
+    @ApiOperation({ summary: '투두 folded 업데이트', description: '투두의 folded만 변경한다.' })
+    async updateTodoFolded(
+        @Param('userId') userId: string,
+        @Param('todoId') todoId: string,
+        @Body() updateTodoDto: Partial<BaseTodoDto>
+    ) {
+        return this.todoService.updateTodoFolded(userId, todoId, updateTodoDto.folded)
+    }
+
     @Patch('order/todos')
     @ApiOperation({ summary: '투두 메인화면 정렬 API', description: '메인 화면에서 드래그앤드랍시 투두를 정렬한다.' })
     async orderTodos(
@@ -208,7 +218,7 @@ export class TodosController {
     async updateRepeatTodoToComplete(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
         @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
-        return this.todoService.updateRepeatTodoToCompleteBySplit(userId, todoId, repeatTodoCompleteBySplitDto);
+        return this.todoService.updateRepeatTodoToComplete(userId, todoId, repeatTodoCompleteBySplitDto);
     }
 
     @Delete(':todoId')
