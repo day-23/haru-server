@@ -76,7 +76,6 @@ export class ScheduleRepository {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
-
         //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
                     .leftJoinAndSelect('schedule.todo', 'todo')

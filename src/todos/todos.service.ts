@@ -11,7 +11,7 @@ import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.to
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
-import { parseTodoResponse } from './todo.util';
+import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
 
 @Injectable()
 export class TodosService {
@@ -157,6 +157,7 @@ export class TodosService {
         return this.todoRepository.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
     }
 
+    /* 리팩토링 필요 */
     async updateRepeatTodoToCompleteBySplit(userId : string, todoId : string, repeatTodoCompleteBySplitDto : RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { completedDate } = repeatTodoCompleteBySplitDto
@@ -165,34 +166,43 @@ export class TodosService {
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
 
-        const {id, user , schedule, ...todoData} = existingTodo
+        const { id, user, schedule, ...todoData } = existingTodo
 
-        console.log(schedule, todoData)
+        try {
+             // Start the transaction
+             if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
 
-        const createTodoDto :CreateTodoDto = {
-            ...todoData,
-            content : schedule.content,
-            memo : schedule.memo,
-            isAllDay : schedule.isAllDay,
-            repeatOption : schedule.repeatOption,
-            repeatValue : schedule.repeatValue,
-            endDate: completedDate,
-            repeatEnd : schedule.repeatEnd,
-            subTodos: todoData.subTodos.map(subTodo => subTodo.content),
-            tags: todoData.todoTags.map(todoTag => todoTag.tag.content),
-            alarms : []
+            const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
+
+            /* 기존 애를 변경 */
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
+
+            /* 완료한 애를 하나 만듦 */
+            const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
+            await this.todoRepository.updateTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
+
+            createTodoDto.endDate = completedDate
+            await this.createTodo(userId, createTodoDto, queryRunner)
+
+            return completedTodo
+
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
         }
-        /* 기존 애를 변경 */
-        await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate})
-        
-        /* 완료한 애를 하나 만듦 */
-        const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
-        await this.todoRepository.updateTodoToComplete(completedTodo.id, {completed : true}, queryRunner)
-
-        createTodoDto.endDate = completedDate
-        await this.createTodo(userId, createTodoDto, queryRunner)
-
-        return completedTodo
     }
 
     async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto) {

@@ -1,8 +1,10 @@
+import { Schedule } from "src/entity/schedule.entity";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { Tag } from "src/entity/tag.entity";
 import { Todo } from "src/entity/todo.entity";
 import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
+import { CreateTodoDto } from "./dto/create.todo.dto";
 import { BaseSubTodo, TodoResponse } from "./interface/todo.interface";
 
 export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo, savedTags:BaseTag[], savedSubTodos: Subtodo[]): TodoResponse {
@@ -56,4 +58,22 @@ export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
         return parseTodoResponse(scheduleResponse, todo, todo.todoTags.map(todoTag => todoTag.tag), todo.subTodos)
     })
     return todoResponses;
+}
+
+export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto{
+    const { id, user, schedule, ...todoData } = existingTodo
+    const createTodoDto: CreateTodoDto = {
+        ...todoData,
+        content: schedule.content,
+        memo: schedule.memo,
+        isAllDay: schedule.isAllDay,
+        repeatOption: schedule.repeatOption,
+        repeatValue: schedule.repeatValue,
+        endDate: schedule.repeatStart,
+        repeatEnd: schedule.repeatEnd,
+        subTodos: todoData.subTodos.map(subTodo => subTodo.content),
+        tags: todoData.todoTags.map(todoTag => todoTag.tag.content),
+        alarms: []
+    }
+    return createTodoDto
 }
