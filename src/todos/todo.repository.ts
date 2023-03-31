@@ -11,7 +11,7 @@ import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse } from "src/todos/interface/todo.interface";
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse, GetAllTodosResponse } from "src/todos/interface/todo.return.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { UpdateSubTodoDto } from "./dto/create.subtodo.dto";
@@ -95,7 +95,6 @@ export class TodoRepository implements TodoRepositoryInterface {
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
         //get all relations
         return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
-        
     }
 
     /* create todoTags */
@@ -179,7 +178,7 @@ export class TodoRepository implements TodoRepositoryInterface {
 
 
     /* 투두 메인화면 + 투데이 투두 */
-    async findTodosAll(userId: string, todayTodoDto: TodayTodoDto) {
+    async findTodosAll(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
         const [mainTodos, todayTodos] = await Promise.all([
             this.findTodosForMain(userId),
             this.findTodayTodos(userId, todayTodoDto)

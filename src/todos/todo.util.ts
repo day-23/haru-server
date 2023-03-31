@@ -5,7 +5,7 @@ import { Todo } from "src/entity/todo.entity";
 import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
 import { CreateTodoDto } from "./dto/create.todo.dto";
-import { BaseSubTodo, TodoResponse } from "./interface/todo.interface";
+import { BaseSubTodo, TodoResponse } from "./interface/todo.return.interface";
 
 export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo, savedTags:BaseTag[], savedSubTodos: Subtodo[]): TodoResponse {
     //savedTags parse to BaseTagForTodoResponse

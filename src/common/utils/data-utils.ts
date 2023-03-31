@@ -1,7 +1,7 @@
 // import { BaseAlarm } from "src/alarms/interface/CreateAlarmToScheduleResponse.interface";
 // import { Schedule } from "src/entity/schedule.entity";
 // import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
-import { TodoResponse } from "src/todos/interface/todo.interface";
+import { TodoResponse } from "src/todos/interface/todo.return.interface";
 
 /* 태그별 투두 raw query 데이터 파싱 함수 */
 export const formattedTodoDataFromTagRawQuery = (data: any[], tagId: string): TodoResponse[] => {

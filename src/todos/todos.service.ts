@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Subtodo } from 'src/entity/subtodo.entity';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
 import { TodoRepository } from 'src/todos/todo.repository';
@@ -10,16 +11,17 @@ import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
+import { TodoServiceInterface } from './interface/todo.service.interface';
 import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
 
 @Injectable()
-export class TodosService {
+export class TodosService implements TodoServiceInterface {
     constructor(private readonly todoRepository: TodoRepository,
         private readonly scheduleService: ScheduleService,
         private readonly tagService: TagsService,
         private dataSource: DataSource
-        ) { }
+    ) { }
 
     async createTodo(userId: string, createTodoDto: CreateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const { todayTodo, flag, completed, tags, subTodos, endDate, ...createScheduleDto } = createTodoDto
@@ -36,11 +38,11 @@ export class TodosService {
 
             const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
             await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
-            
-            const savedSubTodos =  await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);
+
+            const savedSubTodos = await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);
 
             await queryRunner.commitTransaction();
-            return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);            
+            return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -58,14 +60,14 @@ export class TodosService {
         }
     }
 
-    async updateTodo(userId: string, todoId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner) {
+    async updateTodo(userId: string, todoId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         //get existing todo by todoId
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        if(!existingTodo) throw new HttpException({message: 'Todo not found',},HttpStatus.NOT_FOUND);
+        if (!existingTodo) throw new HttpException({ message: 'Todo not found', }, HttpStatus.NOT_FOUND);
 
-        const {schedule} = existingTodo
+        const { schedule } = existingTodo
         const { id: scheduleId } = schedule
-        const { todayTodo, flag, tags, completed, subTodos, subTodosCompleted, endDate , ...createScheduleDto } = updateTodoDto
+        const { todayTodo, flag, tags, completed, subTodos, subTodosCompleted, endDate, ...createScheduleDto } = updateTodoDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
@@ -79,7 +81,7 @@ export class TodosService {
             const updatedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
             await this.todoRepository.updateTodoTags(userId, todoId, updatedTags.map(tag => tag.id), queryRunner);
 
-            const updatedSubTodos = await this.todoRepository.updateSubTodos(todoId, {contents : subTodos, subTodosCompleted }, queryRunner);
+            const updatedSubTodos = await this.todoRepository.updateSubTodos(todoId, { contents: subTodos, subTodosCompleted }, queryRunner);
 
             await queryRunner.commitTransaction();
             return parseTodoResponse(updatedSchedule, updatedTodo, updatedTags, updatedSubTodos);
@@ -99,28 +101,28 @@ export class TodosService {
             }
         }
     }
-    
-    async getTodosForMain(userId : string): Promise<GetTodosForMain> {
+
+    async getTodosForMain(userId: string): Promise<GetTodosForMain> {
         return await this.todoRepository.findTodosForMain(userId);
     }
 
-    async getFlaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
+    async getFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findFlaggedTodosForMain(userId);
     }
 
-    async getTaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
+    async getTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findTaggedTodosForMain(userId);
     }
 
-    async getUnTaggedTodosForMain(userId : string): Promise<TodoResponse[]> {
+    async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         return await this.todoRepository.getUnTaggedTodosForMain(userId);
     }
 
-    async getCompletedTodosForMain(userId : string): Promise<TodoResponse[]> {
+    async getCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
         return await this.todoRepository.findCompletedTodosForMain(userId);
     }
 
-    async getAllTodos(userId: string, todayTodoDto: TodayTodoDto){
+    async getAllTodos(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
         return await this.todoRepository.findTodosAll(userId, todayTodoDto)
     }
 
@@ -128,11 +130,11 @@ export class TodosService {
         return await this.todoRepository.findByDate(userId, datePaginationDto)
     }
 
-    async getTodosByPagination(userId: string, paginationDto: PaginationDto ) : Promise<GetTodosPaginationResponse> {
+    async getTodosByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findByPagination(userId, paginationDto)
     }
 
-    async getCompletedTodosByPagination(userId: string, paginationDto: PaginationDto ) : Promise<GetTodosPaginationResponse> {
+    async getCompletedTodosByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findCompletedTodoByPagination(userId, paginationDto)
     }
 
@@ -140,7 +142,7 @@ export class TodosService {
         return await this.todoRepository.findByTagId(userId, getByTagDto)
     }
 
-    async getTodayTodos(userId : string, todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
+    async getTodayTodos(userId: string, todayTodoDto: TodayTodoDto): Promise<GetTodayTodosResponse> {
         return await this.todoRepository.findTodayTodos(userId, todayTodoDto);
     }
 
@@ -149,16 +151,16 @@ export class TodosService {
         return await this.todoRepository.findTodosBySearch(userId, content)
     }
 
-    async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? :QueryRunner) : Promise<void> {
+    async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void> {
         return this.todoRepository.updateTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }
 
-    async updateRepeatTodoToComplete(userId : string, todoId : string, createTodoDto : CreateTodoDto){
+    async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto): Promise<void> {
         return this.todoRepository.updateRepeatTodoToComplete(userId, todoId, createTodoDto)
     }
 
     /* 리팩토링 필요 */
-    async updateRepeatTodoToCompleteBySplit(userId : string, todoId : string, repeatTodoCompleteBySplitDto : RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>{
+    async updateRepeatTodoToCompleteBySplit(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { completedDate } = repeatTodoCompleteBySplitDto
 
@@ -169,8 +171,8 @@ export class TodosService {
         const { id, user, schedule, ...todoData } = existingTodo
 
         try {
-             // Start the transaction
-             if (!queryRunner.isTransactionActive) {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
 
@@ -205,7 +207,7 @@ export class TodosService {
         }
     }
 
-    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto) {
+    async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo> {
         return this.todoRepository.updateSubTodo(userId, subTodoId, updateSubTodoDto)
     }
 
@@ -213,8 +215,8 @@ export class TodosService {
     async deleteTodo(userId: string, todoId: string): Promise<void> {
         //get existing todo by todoId
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        if(!existingTodo) throw new HttpException({message: 'Todo not found',},HttpStatus.NOT_FOUND);
-        const {schedule} = existingTodo
+        if (!existingTodo) throw new HttpException({ message: 'Todo not found', }, HttpStatus.NOT_FOUND);
+        const { schedule } = existingTodo
         const { id: scheduleId } = schedule
         return await this.scheduleService.deleteSchedule(userId, scheduleId);
     }
@@ -224,8 +226,8 @@ export class TodosService {
         return await this.todoRepository.deleteSubTodoOfTodo(userId, todoId, subTodoId);
     }
 
-    async updateTodoFlag(userId: string,todoId: string, flag: boolean) {
-        if(flag === null){
+    async updateTodoFlag(userId: string, todoId: string, flag: boolean): Promise<void> {
+        if (flag === null) {
             throw new HttpException(
                 'flag must be a boolean value',
                 HttpStatus.BAD_REQUEST,
@@ -235,19 +237,19 @@ export class TodosService {
     }
 
     /* 드래그앤드랍 오더링 */
-    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+    async updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void> {
         return this.todoRepository.updateTodosOrder(userId, updateTodosOrderDto)
     }
 
-    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto) {
+    async updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void> {
         return this.todoRepository.updateTodayTodosOrder(userId, updateTodosOrderDto)
     }
 
-    async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto) {
+    async updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto): Promise<void> {
         return this.todoRepository.updateTodosOrderInTag(userId, updateTodosOrderDto)
     }
 
-    async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto) {
+    async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto): Promise<void> {
         return this.todoRepository.updateSubTodosOrder(userId, updateTodosOrderDto)
     }
 }

@@ -17,7 +17,7 @@ export class CreateTagsDto {
     contents: string[];
 }
 
-export class UpdateTagsOrderDto{
+export class UpdateTagsOrderDto {
     @ApiProperty({ example: "['TagId1', 'TagId2', 'TagId3',]", description: 'Tag 순서 수정을 위한 TagId 리스트' })
     @IsString({ each: true })
     tagIds: string[];
@@ -28,15 +28,15 @@ export class UpdateTagsOrderDto{
 }
 
 /* tag 단일 업데이트 DTO */
-export class UpdateTagDto extends PartialType(CreateTagDto) { 
+export class UpdateTagDto extends PartialType(CreateTagDto) {
     @IsOptional()
     @IsBoolean()
-    isSelected : boolean;
+    isSelected: boolean;
 }
 
 /* tag delete DTO */
 export class DeleteTagsDto {
     @ApiProperty({ example: "['tagId1', 'tagId2', 'tagId3',]", description: 'tag 삭제를 위한 tagId 리스트' })
-    @IsString({each:true})
+    @IsString({ each: true })
     tagIds: string[];
 }

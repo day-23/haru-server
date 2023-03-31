@@ -1,5 +1,5 @@
 import { Todo } from "src/entity/todo.entity";
-import { TodoResponse } from "./interface/todo.interface";
+import { TodoResponse } from "./interface/todo.return.interface";
 
 export function savedTodoJsonToTodoResponse(savedTodo: Todo): TodoResponse {
     return null

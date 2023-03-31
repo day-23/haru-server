@@ -8,7 +8,7 @@ import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse } from './interface/todo.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
 import { TodosService } from './todos.service';
 
 
@@ -22,7 +22,7 @@ export class TodosController {
     @ApiOperation({ summary: '전체 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto){
+    async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
         return await this.todoService.getAllTodos(userId, todayTodoDto);
     }
 
