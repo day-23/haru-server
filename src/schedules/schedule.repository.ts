@@ -8,16 +8,13 @@ import { CreateScheduleWithoutAlarmsDto, UpdateScheduleDto, UpdateSchedulePartia
 import { GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 
 import { Between, QueryRunner, Repository } from "typeorm";
+import { schedulesParseToSchedulesResponse } from "./schedule.util";
 
 export class ScheduleRepository {
     constructor(
         @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
         @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
     ) { }
-
-    private scheduleProperties = ['schedule.id', 'schedule.content', 'schedule.memo', 'schedule.isAllDay', 'schedule.repeatStart', 'schedule.repeatEnd', 'schedule.repeatOption', 'schedule.repeatValue', 'schedule.createdAt', 'schedule.updatedAt']
-    private alarmProperties = ['alarm.id', 'alarm.time']
-    private categoryProperties = ['category.id', 'category.content', 'category.color', 'category.isSelected']
 
     async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner? : QueryRunner) {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
@@ -56,10 +53,6 @@ export class ScheduleRepository {
             .leftJoinAndSelect('schedule.category', 'category')
             .where('schedule.id = :scheduleId', { scheduleId })
             .andWhere('schedule.user = :userId', { userId })
-            // .andWhere('schedule.todo_id is null')
-            .select(this.scheduleProperties)
-            .addSelect(this.alarmProperties)
-            .addSelect(this.categoryProperties)
             .getOne()
     }
 
@@ -83,39 +76,25 @@ export class ScheduleRepository {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
+
+        //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
-            .leftJoinAndSelect('schedule.category', 'category')
-            .leftJoinAndSelect('schedule.alarms', 'alarm')
-            .leftJoinAndSelect('schedule.todo', 'todo')
-            .where('schedule.user = :userId', { userId })
-            .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
-            .andWhere('todo.id is null')
-            .setParameters({ startDate, endDate })
-            .select(this.scheduleProperties)
-            .addSelect(this.alarmProperties)
-            .addSelect(['todo.id'])
-            .addSelect(this.categoryProperties)
-            .orderBy('schedule.repeat_start', 'ASC')
-            .addOrderBy('schedule.repeat_end', 'DESC')
-            .addOrderBy('schedule.created_at', 'ASC')
-            .getManyAndCount()
-
-        
-
-        console.log(schedules)
-        const ret = []
-        schedules.forEach(({todo, ...schedule })=> 
-        {
-            if(!todo){
-                ret.push({...schedule})
-            }
-        }
-        )
-        
+                    .leftJoinAndSelect('schedule.todo', 'todo')
+                    .leftJoinAndSelect('schedule.category', 'category')
+                    .leftJoinAndSelect('schedule.alarms', 'alarm')
+                    .where('schedule.user = :userId', { userId })
+                    .andWhere('schedule.todo_id IS NULL')
+                    .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+                    .setParameters({ startDate, endDate })
+                    .orderBy('schedule.repeat_start', 'ASC')
+                    .addOrderBy('schedule.repeat_end', 'DESC')
+                    .addOrderBy('schedule.created_at', 'ASC')
+                    .getManyAndCount()
+    
         return {
-            data: ret,
+            data: schedulesParseToSchedulesResponse(schedules),
             pagination: {
-                totalItems: ret.length,
+                totalItems: count,
                 startDate,
                 endDate
             },
@@ -130,9 +109,6 @@ export class ScheduleRepository {
             .where('schedule.user = :userId', { userId })
             .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
-            .select(this.scheduleProperties)
-            .addSelect(this.alarmProperties)
-            .addSelect(this.categoryProperties)
             .orderBy('schedule.repeatStart', 'ASC')
             .addOrderBy('schedule.repeatEnd', 'DESC')
             .addOrderBy('schedule.createdAt', 'ASC')
