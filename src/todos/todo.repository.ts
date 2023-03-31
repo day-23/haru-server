@@ -3,13 +3,12 @@ import { InjectEntityManager, InjectRepository } from "@nestjs/typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Todo } from "src/entity/todo.entity";
 import { CreateBaseTodoDto, CreateTodoDto, UpdateBaseTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from "src/todos/dto/create.todo.dto";
-import { EntityManager, In, QueryRunner, Repository } from "typeorm";
+import { DataSource, EntityManager, In, QueryRunner, Repository } from "typeorm";
 import { Subtodo } from "src/entity/subtodo.entity";
 import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
-import { formattedTodoDataFromTagRawQuery } from "src/common/utils/data-utils";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse, GetAllTodosResponse } from "src/todos/interface/todo.return.interface";
 import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
@@ -22,6 +21,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
         @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
         @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>,
+        private readonly dataSource : DataSource
     ) { }
     
 
@@ -650,12 +650,12 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
 
 
-    /* 투두 완료처리 */
-    async updateTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
+    /* 미반복 투두 완료처리 */
+    async updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
         const shouldReleaseQueryRunner = !queryRunner;
 
         if (shouldReleaseQueryRunner) {
-            queryRunner = queryRunner.manager.connection.createQueryRunner();
+            queryRunner = this.dataSource.createQueryRunner();
             await queryRunner.connect();
         }
 

@@ -151,8 +151,8 @@ export class TodosService implements TodoServiceInterface {
         return await this.todoRepository.findTodosBySearch(userId, content)
     }
 
-    async updateTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void> {
-        return this.todoRepository.updateTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
+    async updateUnRepeatTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void> {
+        return this.todoRepository.updateUnRepeatTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }
 
     async updateRepeatTodoToComplete(userId: string, todoId: string, createTodoDto: CreateTodoDto): Promise<void> {
@@ -183,7 +183,7 @@ export class TodosService implements TodoServiceInterface {
 
             /* 완료한 애를 하나 만듦 */
             const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
-            await this.todoRepository.updateTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
+            await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
 
             createTodoDto.endDate = completedDate
             await this.createTodo(userId, createTodoDto, queryRunner)
