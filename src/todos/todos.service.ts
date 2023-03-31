@@ -175,8 +175,10 @@ export class TodosService implements TodoServiceInterface {
             const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
 
             /* 기존 애를 변경 */
+            console.log("here", schedule)
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
 
+            console.log("here", schedule)
             /* 완료한 애를 하나 만듦 */
             const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
             await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)

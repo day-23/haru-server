@@ -19,3 +19,14 @@ export function fromYYYYMMDDAddOneDayToDate(dateString: string): Date {
 
     return date;
 }
+
+
+export function getDatePlusMinusOneDay(date: Date): {minusOneDay:Date, plusOneDay:Date }{
+    //minuse one day from changedDate and return to another variable , and changeDate has original date
+    const minusOneDay = new Date(date)
+    minusOneDay.setDate(minusOneDay.getDate() - 1)
+    //add One Day to changedDate and return to another variable, and changedDate has original date
+    const plusOneDay = new Date(date)
+    plusOneDay.setDate(plusOneDay.getDate() + 1)
+    return {minusOneDay, plusOneDay};
+}
