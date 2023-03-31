@@ -1,6 +1,4 @@
-import { Schedule } from "src/entity/schedule.entity";
 import { Subtodo } from "src/entity/subtodo.entity";
-import { Tag } from "src/entity/tag.entity";
 import { Todo } from "src/entity/todo.entity";
 import { ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interface";

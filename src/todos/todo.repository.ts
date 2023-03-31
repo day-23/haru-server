@@ -244,6 +244,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
             .andWhere('todo.flag = 0')
+            .andWhere('todo.completed = 0')
             .andWhere('todoTags.id is not null')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
@@ -652,13 +653,15 @@ export class TodoRepository implements TodoRepositoryInterface {
     /* 투두 완료처리 */
     async updateTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
         const shouldReleaseQueryRunner = !queryRunner;
-        const todoRepository = queryRunner.manager.getRepository(Todo);
-        const subtodoRepository = queryRunner.manager.getRepository(Subtodo);
 
         if (shouldReleaseQueryRunner) {
             queryRunner = queryRunner.manager.connection.createQueryRunner();
             await queryRunner.connect();
         }
+
+        const todoRepository = queryRunner.manager.getRepository(Todo);
+        const subtodoRepository = queryRunner.manager.getRepository(Subtodo);
+
         await queryRunner.startTransaction();
         try {
             await Promise.all([
