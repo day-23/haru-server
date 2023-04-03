@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Inject, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
@@ -9,13 +9,13 @@ import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
-import { TodosService } from './todos.service';
+import { TodosServiceInterface } from './interface/todo.service.interface';
 
 
 @Controller('todo/:userId')
 @ApiTags('Todo API')
 export class TodosController {
-    constructor(private readonly todoService: TodosService) {}
+    constructor(@Inject('TodosServiceInterface') private readonly todoService: TodosServiceInterface) {}
     
     @PaginatedResponse()
     @Get('todos/all')

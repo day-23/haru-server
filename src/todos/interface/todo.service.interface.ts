@@ -10,7 +10,7 @@ import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto }
 import { GetAllTodosResponse, GetTodayTodosResponse, GetTodosForMain, GetTodosPaginationResponse, GetTodosResponseByDate, GetTodosResponseByTag, TodoResponse } from "./todo.return.interface"
 
 
-export interface TodoServiceInterface {
+export interface TodosServiceInterface {
     /* create */
     createTodo(userId: string, createTodoDto: CreateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse>
 

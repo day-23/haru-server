@@ -201,7 +201,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         const [flaggedTodos, taggedTodos, untaggedTodos, completedTodos] = await Promise.all([
             this.findFlaggedTodosForMain(userId),
             this.findTaggedTodosForMain(userId),
-            this.getUnTaggedTodosForMain(userId),
+            this.findUnTaggedTodosForMain(userId),
             this.findCompletedTodosForMain(userId)
         ])
 
@@ -252,7 +252,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         return todosParseToTodoResponse(taggedTodos)
     }
 
-    async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
+    async findUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
         const unTaggedTodos = await this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
