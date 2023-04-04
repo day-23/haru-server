@@ -129,7 +129,10 @@ export class TodoRepository implements TodoRepositoryInterface {
         //find next todo order and today todo order by Promise.all
         const nextTodoOrder = await this.findNextTodoOrder(userId)
         const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
-        return await todoRepository.save(todo);
+        const savedTodo = await todoRepository.save(todo);
+        
+        console.log('repository, createdTodo' , savedTodo)
+        return savedTodo
     }
 
     /* create subTodos */

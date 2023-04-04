@@ -13,5 +13,12 @@ export class RepeatTodoCompleteBySplitDto{
     @ApiProperty({ description: '변하는 날짜, 해당 날짜 기준으로 스플릿됨'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
-    completedDate: Date;
+    endDate: Date;
+}
+
+export class RepeatTodoCompleteBackBySplitDto{
+    @ApiProperty({ description: '변하는 날짜, 해당 날짜 기준으로 스플릿됨'})
+    @IsDate()
+    @Transform(({ value }) => new Date(value))
+    repeatEnd: Date;
 }

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Subtodo } from 'src/entity/subtodo.entity';
+import { Todo } from 'src/entity/todo.entity';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
 import { TodoRepository } from 'src/todos/todo.repository';
@@ -158,9 +159,9 @@ export class TodosService implements TodosServiceInterface {
     }
 
     /* 리팩토링 필요 */
-    async updateRepeatTodoToComplete(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
+    async updateRepeatTodoToCompleteFront(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        const { completedDate } = repeatTodoCompleteBySplitDto
+        const { endDate } = repeatTodoCompleteBySplitDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
@@ -177,17 +178,14 @@ export class TodosService implements TodosServiceInterface {
             const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
 
             /* 기존 애를 변경 */
-            const ret = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
-
-            console.log(ret)
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate })
+            
             /* 완료한 애를 하나 만듦 */
+            createTodoDto.repeatEnd = schedule.repeatStart
             const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
             await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
 
-            createTodoDto.endDate = completedDate
-            await this.createTodo(userId, createTodoDto, queryRunner)
-
-            return completedTodo
+            await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
