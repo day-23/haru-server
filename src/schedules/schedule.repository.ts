@@ -16,18 +16,17 @@ export class ScheduleRepository {
         @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
     ) { }
 
-    async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner? : QueryRunner) {
+    async createOrUpdateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner) {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const { categoryId } = createScheduleDto;
+        const { categoryId, parent } = createScheduleDto;
+
         let newSchedule = null;
-        if(scheduleId){
-            newSchedule = scheduleRepository.create({id : scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
-        }else{
-            newSchedule = scheduleRepository.create({user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
+        if (scheduleId) {
+            newSchedule = scheduleRepository.create({ id: scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
+        } else {
+            newSchedule = scheduleRepository.create({ user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
         }
         const savedSchedule = await scheduleRepository.save(newSchedule);
-
-        console.log(savedSchedule)
         return savedSchedule;
     }
 
@@ -42,13 +41,13 @@ export class ScheduleRepository {
     }
 
     /* 스케줄 내용 일부 업데이트 */
-    async updateSchedulePartial(userId : string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
+    async updateSchedulePartial(userId: string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
-        console.log(schedule)
-        console.log("스케줄 업데이트 ---------------문제----------------")
-        // const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto, user : {id:userId}});
-        const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto});
+        // get parent from schedule or updateSchedulePartialDto or null
+        const parent = schedule?.parent?.id || updateSchedulePartialDto?.parent || null;
+
+        const updatedSchedule = scheduleRepository.create({ ...schedule, ...updateSchedulePartialDto, parent: { id: parent } });
         const savedSchedule = await scheduleRepository.save(updatedSchedule);
         return savedSchedule;
     }
@@ -75,27 +74,27 @@ export class ScheduleRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
-    }    
+    }
 
     /* 스케줄 데이터 불러오기 order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) : Promise<GetSchedulesResponseByDate> {
+    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetSchedulesResponseByDate> {
         const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
         const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
 
         //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
-                    .leftJoinAndSelect('schedule.todo', 'todo')
-                    .leftJoinAndSelect('schedule.category', 'category')
-                    .leftJoinAndSelect('schedule.alarms', 'alarm')
-                    .where('schedule.user = :userId', { userId })
-                    .andWhere('schedule.todo_id IS NULL')
-                    .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
-                    .setParameters({ startDate, endDate })
-                    .orderBy('schedule.repeat_start', 'ASC')
-                    .addOrderBy('schedule.repeat_end', 'DESC')
-                    .addOrderBy('schedule.created_at', 'ASC')
-                    .getManyAndCount()
-    
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('schedule.todo_id IS NULL')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
+            .orderBy('schedule.repeat_start', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
+            .getManyAndCount()
+
         return {
             data: schedulesParseToSchedulesResponse(schedules),
             pagination: {
@@ -107,7 +106,7 @@ export class ScheduleRepository {
     }
 
     /* 스케줄 검색 */
-    async findSchedulesBySearch(userId: string, content: string) : Promise<ScheduleResponse[]>{
+    async findSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]> {
         return await this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')
             .leftJoinAndSelect('schedule.alarms', 'alarm')
@@ -121,9 +120,9 @@ export class ScheduleRepository {
             .getMany()
     }
 
-    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto){
-        const {startDate, endDate } = datePaginationDto;
-        const holidays = await this.holidayRepository.find({where: {date: Between(startDate, endDate)}})
+    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        const { startDate, endDate } = datePaginationDto;
+        const holidays = await this.holidayRepository.find({ where: { date: Between(startDate, endDate) } })
 
         return {
             data: holidays,

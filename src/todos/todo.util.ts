@@ -64,7 +64,6 @@ export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto
         ...todoData,
         content: schedule.content,
         memo: schedule.memo,
-        parent : todoData.parent ? todoData.parent.id : null,
         isAllDay: schedule.isAllDay,
         repeatOption: schedule.repeatOption,
         repeatValue: schedule.repeatValue,
@@ -72,7 +71,8 @@ export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto
         repeatEnd: schedule.repeatEnd,
         subTodos: todoData.subTodos.map(subTodo => subTodo.content),
         tags: todoData.todoTags.map(todoTag => todoTag.tag.content),
-        alarms: []
+        alarms: [],
+        parent : schedule.parent ? schedule.parent.id : null
     }
     return createTodoDto
 }

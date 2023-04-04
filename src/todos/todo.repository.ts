@@ -86,19 +86,14 @@ export class TodoRepository implements TodoRepositoryInterface {
         const existingTodo = await todoRepository.findOne({ where : { id: todoId, user: { id: userId } }});
         if(!existingTodo) throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
 
-        const {parent} = baseTodoDto
-        let parentTodo = null
-        if (parent) {
-            parentTodo = new Todo({id : parent})
-        }
         
-        const updateTodo = todoRepository.create({ ...existingTodo, ...baseTodoDto, parent: parentTodo });
+        const updateTodo = todoRepository.create({ ...existingTodo, ...baseTodoDto });
         return await todoRepository.save(updateTodo);
     }
 
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
-        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag', 'parent'] });
+        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
     }
 
     /* create todoTags */
@@ -132,15 +127,10 @@ export class TodoRepository implements TodoRepositoryInterface {
     async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner? : QueryRunner): Promise<Todo> {
         const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
 
-        const { parent } = createBaseTodoDto
-        let parentTodo = null
-        if (parent) {
-            parentTodo = new Todo({ id: parent })
-        }
-
+        
         //find next todo order and today todo order by Promise.all
         const nextTodoOrder = await this.findNextTodoOrder(userId)
-        const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder, parent:parentTodo });
+        const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
         const savedTodo = await todoRepository.save(todo);
         
         console.log('repository, createdTodo' , savedTodo)
@@ -377,9 +367,9 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('schedule.repeat_start IS NOT NULL')
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
-            .orderBy('schedule.repeat_start', 'ASC')
+            // .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
-            .addOrderBy('schedule.created_at', 'ASC')
+            // .addOrderBy('schedule.created_at', 'ASC')
             .orderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
             

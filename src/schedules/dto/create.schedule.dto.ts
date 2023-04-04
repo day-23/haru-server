@@ -49,6 +49,11 @@ export class CreateScheduleDto {
     @ApiProperty({ description: 'alarms 시간들' })
     @IsString({ each: true })
     alarms: Date[];
+
+    @ApiProperty({ description: '부모 id' })
+    @IsOptional()
+    @IsString()
+    parent: string;
 }
 
 export class UpdateScheduleBySplitDto extends CreateScheduleDto{
@@ -72,11 +77,4 @@ export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
     @IsDefined()
     @IsOptional()
     alarms?: Date[];
-
-    // validation function to check if category or alarms are not undefined
-    validateFields() {
-        if (this.category !== undefined || (this.alarms && this.alarms.length > 0)) {
-            throw new BadRequestException('Category and alarms fields cannot be updated in this API');
-        }
-    }
 }
