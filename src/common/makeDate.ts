@@ -30,3 +30,9 @@ export function getDatePlusMinusOneDay(date: Date): {minusOneDay:Date, plusOneDa
     plusOneDay.setDate(plusOneDay.getDate() + 1)
     return {minusOneDay, plusOneDay};
 }
+
+export function getMinusOneDay(date : Date){
+    const minusOneDay = new Date(date)
+    minusOneDay.setDate(minusOneDay.getDate() - 1)
+    return minusOneDay;
+}

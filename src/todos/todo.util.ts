@@ -64,6 +64,7 @@ export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto
         ...todoData,
         content: schedule.content,
         memo: schedule.memo,
+        parent : todoData.parent ? todoData.parent.id : null,
         isAllDay: schedule.isAllDay,
         repeatOption: schedule.repeatOption,
         repeatValue: schedule.repeatValue,

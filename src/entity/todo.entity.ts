@@ -48,8 +48,8 @@ export class Todo extends BaseEntity {
     @OneToOne(() => Schedule, (schedule) => schedule.todo)
     schedule: Schedule
 
-    @ManyToOne(() => Todo, { nullable: true })
-    @JoinColumn({ name: 'parent_id' })
+    @ManyToOne(() => Todo, { nullable: true , onDelete: "SET NULL" })
+    @JoinColumn({ name: 'parent_id' }, )
     parent: Todo;
 
     /* 투두 : 사용자 = N:1 */

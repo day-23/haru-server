@@ -2,7 +2,7 @@ import { DatePaginationDto, TodayTodoDto } from "src/common/dto/date-pagination.
 import { PaginationDto } from "src/common/dto/pagination.dto"
 import { Subtodo } from "src/entity/subtodo.entity"
 import { QueryRunner } from "typeorm"
-import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto } from "../dto/complete.todo.dto"
+import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto, RepeatTodoCompleteMiddleBySplitDto } from "../dto/complete.todo.dto"
 import { UpdateSubTodoDto } from "../dto/create.subtodo.dto"
 import { CreateTodoDto, UpdateTodoDto } from "../dto/create.todo.dto"
 import { GetByTagDto } from "../dto/geybytag.todo.dto"
@@ -31,10 +31,11 @@ export interface TodosServiceInterface {
     /* update */
     updateTodo(userId: string, todoId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse>
     updateUnRepeatTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void>
-    // updateRepeatTodoToComplete(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>
+
+    /* 투두 완료 API */
     updateRepeatTodoToCompleteFront(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<void>
-    // updateRepeatTodoToCompleteMiddle(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>
-    // updateRepeatTodoToCompleteBack(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse>
+    updateRepeatTodoToCompleteMiddle(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteMiddleBySplitDto, queryRunner?: QueryRunner): Promise<void>
+    updateRepeatTodoToCompleteBack(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<void>
     
     updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo>
     updateTodoFlag(userId: string, todoId: string, flag: boolean): Promise<void>

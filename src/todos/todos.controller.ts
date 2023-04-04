@@ -3,7 +3,7 @@ import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto } from './dto/complete.todo.dto';
+import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto, RepeatTodoCompleteMiddleBySplitDto } from './dto/complete.todo.dto';
 import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -221,29 +221,21 @@ export class TodosController {
         return this.todoService.updateRepeatTodoToCompleteFront(userId, todoId, repeatTodoCompleteBySplitDto);
     }
 
-    // @Patch('complete/todo/:todoId/repeat/front')
-    // @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
-    // async updateRepeatTodoToCompleteFront(@Param('userId') userId: string,
-    //     @Param('todoId') todoId : string,
-    //     @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
-    //     return this.todoService.updateRepeatTodoToComplete(userId, todoId, repeatTodoCompleteBySplitDto);
-    // }
+    @Patch('complete/todo/:todoId/repeat/middle')
+    @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
+    async updateRepeatTodoToCompleteMiddle(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteMiddleBySplitDto: RepeatTodoCompleteMiddleBySplitDto){
+        return this.todoService.updateRepeatTodoToCompleteMiddle(userId, todoId, repeatTodoCompleteMiddleBySplitDto);
+    }
 
-    // @Patch('complete/todo/:todoId/repeat/middle')
-    // @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
-    // async updateRepeatTodoToCompleteMiddle(@Param('userId') userId: string,
-    //     @Param('todoId') todoId : string,
-    //     @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
-    //     return this.todoService.updateRepeatTodoToComplete(userId, todoId, repeatTodoCompleteBySplitDto);
-    // }
-
-    // @Patch('complete/todo/:todoId/repeat/back')
-    // @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
-    // async updateRepeatTodoToCompleteBack(@Param('userId') userId: string,
-    //     @Param('todoId') todoId : string,
-    //     @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
-    //     return this.todoService.updateRepeatTodoToComplete(userId, todoId, repeatTodoCompleteBySplitDto);
-    // }
+    @Patch('complete/todo/:todoId/repeat/back')
+    @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
+    async updateRepeatTodoToCompleteBack(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
+        return this.todoService.updateRepeatTodoToCompleteBack(userId, todoId, repeatTodoCompleteBySplitDto);
+    }
 
     @Delete(':todoId')
     @ApiOperation({ summary: '투두 삭제 API', description: '투두를 삭제한다.' })

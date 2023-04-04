@@ -20,6 +20,11 @@ export class BaseTodoDto {
     @IsOptional()
     @IsBoolean()
     completed: boolean;
+
+    @ApiProperty({ description: '부모 id' })
+    @IsOptional()
+    @IsString()
+    parent: string;
 }
 
 export class CreateBaseTodoDto extends BaseTodoDto {}

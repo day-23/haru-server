@@ -86,13 +86,19 @@ export class TodoRepository implements TodoRepositoryInterface {
         const existingTodo = await todoRepository.findOne({ where : { id: todoId, user: { id: userId } }});
         if(!existingTodo) throw new HttpException('Todo not found', HttpStatus.NOT_FOUND);
 
-        const updateTodo = todoRepository.create({ ...existingTodo, ...baseTodoDto });
+        const {parent} = baseTodoDto
+        let parentTodo = null
+        if (parent) {
+            parentTodo = new Todo({id : parent})
+        }
+        
+        const updateTodo = todoRepository.create({ ...existingTodo, ...baseTodoDto, parent: parentTodo });
         return await todoRepository.save(updateTodo);
     }
 
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
-        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
+        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag', 'parent'] });
     }
 
     /* create todoTags */
@@ -125,10 +131,16 @@ export class TodoRepository implements TodoRepositoryInterface {
     /* 투두 생성 함수 */
     async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner? : QueryRunner): Promise<Todo> {
         const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
-    
+
+        const { parent } = createBaseTodoDto
+        let parentTodo = null
+        if (parent) {
+            parentTodo = new Todo({ id: parent })
+        }
+
         //find next todo order and today todo order by Promise.all
         const nextTodoOrder = await this.findNextTodoOrder(userId)
-        const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
+        const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder, parent:parentTodo });
         const savedTodo = await todoRepository.save(todo);
         
         console.log('repository, createdTodo' , savedTodo)
