@@ -3,6 +3,8 @@ import { BaseCategory } from "src/categories/interface/category.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
 import { Schedule } from "src/entity/schedule.entity";
+import { TodoResponse } from "src/todos/interface/todo.return.interface";
+import { parseTodoResponse } from "src/todos/todo.util";
 import { ScheduleResponse } from "./interface/schedule.interface";
 
 
@@ -38,4 +40,26 @@ export function schedulesParseToSchedulesResponse(schedules: Schedule[]) : Sched
         schedulesResponse.push(scheduleResponse);
     })
     return schedulesResponse;
+}
+
+
+export function schedulesParseToTodosResponse(schedules: Schedule[]) : TodoResponse[]{
+    const todoResponses : TodoResponse[] = schedules.map(schedule => {
+        const { category, alarms, todo } = schedule;
+        const scheduleResponse = parseScheduleResponse(schedule, category, alarms);
+        return parseTodoResponse(scheduleResponse, todo, todo.todoTags.map(todoTag => todoTag.tag), todo.subTodos);
+    })
+
+    //todoResponse order by endDate
+    todoResponses.sort((a, b) => {
+        if (a.endDate > b.endDate) {
+            return 1;
+        } else if (a.endDate < b.endDate) {
+            return -1;
+        } else {
+            return 0;
+        }
+    })
+    return todoResponses;
+
 }

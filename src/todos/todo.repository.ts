@@ -367,10 +367,10 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('schedule.repeat_start IS NOT NULL')
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
-            // .orderBy('schedule.repeat_start', 'ASC')
-            .addOrderBy('schedule.repeat_end', 'DESC')
+            .orderBy('schedule.repeat_start', 'ASC')
+            // .addOrderBy('schedule.repeat_end', 'DESC')
             // .addOrderBy('schedule.created_at', 'ASC')
-            .orderBy('subTodos.subTodoOrder', 'ASC')
+            // .orderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
             
         return {

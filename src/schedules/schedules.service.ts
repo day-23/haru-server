@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
 import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
-import { ScheduleResponse } from './interface/schedule.interface';
+import { GetSchedulesAndTodosResponseByDate, ScheduleResponse } from './interface/schedule.interface';
 import { parseScheduleResponse } from './schedule.util';
 import { Schedule } from 'src/entity/schedule.entity';
 import { getDatePlusMinusOneDay } from 'src/common/makeDate';
@@ -160,6 +160,10 @@ export class ScheduleService {
 
     async getSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
         return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
+    }
+
+    async getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
+        return await this.scheduleRepository.findSchedulesAndTodosByDate(userId, dateTimePaginationDto)
     }
 
     async getSchedulesBySearch(userId: string, content: string) {

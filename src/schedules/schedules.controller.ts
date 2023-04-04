@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { DatePaginationDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateScheduleDto } from './dto/create.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleService } from './schedules.service';
@@ -49,6 +49,15 @@ export class ScheduleController {
     @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
     async getSchedulesByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
         return await this.scheduleService.getSchedulesByDate(userId, datePaginationDto);
+    }
+
+    @PaginatedResponse()
+    @Post('schedules/date')
+    @ApiOperation({ summary: '스케줄을 날짜 파라미터로 조회 API', description: '스케줄을를 조회한다.' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    async getSchedulesAndTodosByDate(@Param('userId') userId : string, @Body() dateTimePaginationDto: DateTimePaginationDto) {
+        console.log(dateTimePaginationDto)
+        return await this.scheduleService.getSchedulesAndTodosByDate(userId, dateTimePaginationDto);
     }
 
     @Get('search')

@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
+import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pagination.dto";
 import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleWithoutAlarmsDto, UpdateScheduleDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
-import { GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 
 import { Between, QueryRunner, Repository } from "typeorm";
-import { schedulesParseToSchedulesResponse } from "./schedule.util";
+import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
 
 export class ScheduleRepository {
     constructor(
@@ -104,6 +104,60 @@ export class ScheduleRepository {
             },
         };
     }
+
+
+    /* 스케줄 & 투두 데이터 불러오기 */
+    async findSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
+        const { startDate, endDate } = dateTimePaginationDto
+
+        //make query that schedule that is todo_id is null
+        const [datas, count] = await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
+            .orderBy('schedule.repeat_start', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
+            .getManyAndCount()
+
+        const todos = []
+        const schedules = []
+
+        // if todo of data is null, push data to schedules else to todos
+        datas.forEach(data => {
+            console.log(data)
+
+            if (data.todo) {
+                todos.push(data)
+            } else {
+                schedules.push(data)
+            }
+        })
+
+        return {
+            data: {
+                schedules: schedulesParseToSchedulesResponse(schedules),
+                todos: schedulesParseToTodosResponse(todos)
+            },
+            pagination: {
+                totalItems: count,
+                startDate,
+                endDate
+            },
+        };
+    }
+
+    
+
+
+
 
     /* 스케줄 검색 */
     async findSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]> {
