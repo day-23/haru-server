@@ -2,7 +2,7 @@ import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from "src/comm
 import { PaginationDto } from "src/common/dto/pagination.dto"
 import { Subtodo } from "src/entity/subtodo.entity"
 import { QueryRunner } from "typeorm"
-import { NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from "../dto/complete.todo.dto"
+import { NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from "../dto/repeat.todo.dto"
 import { UpdateSubTodoDto } from "../dto/create.subtodo.dto"
 import { CreateTodoDto, UpdateTodoDto } from "../dto/create.todo.dto"
 import { GetByTagDto } from "../dto/geybytag.todo.dto"
@@ -45,6 +45,10 @@ export interface TodosServiceInterface {
     updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void>
     updateTodosOrderInTag(userId: string, updateTodosOrderDto: UpdateTodosInTagOrderDto): Promise<void>
     updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto): Promise<void>
+
+    updateRepeatTodoFront(userId: string, todoId : string, updateRepeatFrontTodoBySplitDto: UpdateRepeatFrontTodoBySplitDto, queryRunner? : QueryRunner) : Promise<void>
+    updateRepeatTodoMiddle(userId: string, todoId : string, updateRepeatMiddleTodoBySplitDto: UpdateRepeatMiddleTodoBySplitDto): Promise<void>
+    updateRepeatTodoBack(userId: string, todoId : string, updateRepeatBackTodoBySplitDto: UpdateRepeatBackTodoBySplitDto): Promise<void>
 
     /* delete */
     deleteTodo(userId: string, todoId: string): Promise<void>

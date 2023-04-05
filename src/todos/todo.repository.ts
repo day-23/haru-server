@@ -11,7 +11,7 @@ import { TodoTags } from "src/entity/todo-tags.entity";
 import { GetByTagDto } from "src/todos/dto/geybytag.todo.dto";
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from "src/todos/dto/order.todo.dto";
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, TodoResponse, GetTodosForMain, GetTodayTodosResponse, GetAllTodosResponse } from "src/todos/interface/todo.return.interface";
-import { NotRepeatTodoCompleteDto } from "src/todos/dto/complete.todo.dto";
+import { NotRepeatTodoCompleteDto } from "src/todos/dto/repeat.todo.dto";
 import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { UpdateSubTodoDto } from "./dto/create.subtodo.dto";
 import { todosParseToTodoResponse } from "./todo.util";
@@ -146,6 +146,19 @@ export class TodoRepository implements TodoRepositoryInterface {
         const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
         const subTodoEntities = contents.map((content, index) => {
             return subTodoRepository.create({content, todo: { id: todoId }, subTodoOrder: nextSubTodoOrder + index})
+        })
+        return await subTodoRepository.save(subTodoEntities);
+    }
+
+    /* create subTodos */
+    async createSubTodosForUpdateBySplit(todoId: string, contents: string[], subTodosCompleted:boolean[], queryRunner? : QueryRunner): Promise<Subtodo[]> {
+        if(contents.length === 0) return [];
+
+        const subTodoRepository = queryRunner ? queryRunner.manager.getRepository(Subtodo) : this.subTodoRepository;
+
+        const nextSubTodoOrder = await this.findNextSubTodoOrder(todoId)
+        const subTodoEntities = contents.map((content, index) => {
+            return subTodoRepository.create({content, todo: { id: todoId }, subTodoOrder: nextSubTodoOrder + index, completed: subTodosCompleted[index]})
         })
         return await subTodoRepository.save(subTodoEntities);
     }
