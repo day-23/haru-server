@@ -179,7 +179,7 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             /* 기존 애를 변경 */
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate })
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
 
             /* 완료한 애를 하나 만듦 */
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
@@ -217,7 +217,7 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) })
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
 
@@ -256,7 +256,7 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
 
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd })
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
 
             await queryRunner.commitTransaction();
@@ -349,14 +349,107 @@ export class TodosService implements TodosServiceInterface {
     }
 
 
+    async deleteRepeatTodoFront(userId: string, todoId: string, repeatSplitFrontDto: RepeatSplitFrontDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { endDate } = repeatSplitFrontDto
 
-    async deleteRepeatTodoFront(userId: string, todoId: string, repeatSplitFrontDto: RepeatSplitFrontDto): Promise<void>{
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
 
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            /* 기존 애를 변경 */
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
     }
-    async deleteRepeatTodoMiddle(userId: string, todoId: string, repeatSplitMiddleDto: RepeatSplitMiddleDto): Promise<void>{
+    async deleteRepeatTodoMiddle(userId: string, todoId: string, repeatSplitMiddleDto: RepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { completedDate, endDate } = repeatSplitMiddleDto
+        const { schedule } = existingTodo
 
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
+            await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
     }
-    async deleteRepeatTodoBack(userId: string, todoId: string, repeatSplitBackDto: RepeatSplitBackDto): Promise<void>{
+    async deleteRepeatTodoBack(userId: string, todoId: string, repeatSplitBackDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { repeatEnd } = repeatSplitBackDto
 
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
     }
 }

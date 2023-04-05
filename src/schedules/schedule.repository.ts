@@ -44,12 +44,46 @@ export class ScheduleRepository {
     async updateSchedulePartial(userId: string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
-        // get parent from schedule or updateSchedulePartialDto or null
-        const parent = schedule?.parent?.id || updateSchedulePartialDto?.parent || null;
+        // if transaction is started don't start transaction
+        // Start transaction if not already started
+        let transactionStarted = false;
+        if (!queryRunner) {
+            queryRunner = this.repository.manager.connection.createQueryRunner();
+            await queryRunner.startTransaction();
+            transactionStarted = true;
+        }
 
-        const updatedSchedule = scheduleRepository.create({ ...schedule, ...updateSchedulePartialDto, parent: { id: parent } });
-        const savedSchedule = await scheduleRepository.save(updatedSchedule);
-        return savedSchedule;
+        try {
+            // Get parent from schedule or updateSchedulePartialDto or null
+            const parent =
+                schedule?.parent?.id || updateSchedulePartialDto?.parent || null;
+
+            const updatedSchedule = scheduleRepository.create({
+                ...schedule,
+                ...updateSchedulePartialDto,
+                parent: { id: parent },
+            });
+            const savedSchedule = await scheduleRepository.save(updatedSchedule);
+
+            // Commit transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.commitTransaction();
+            }
+
+            return savedSchedule;
+        } catch (error) {
+            // Rollback transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.rollbackTransaction();
+            }
+
+            throw error;
+        } finally {
+            // Release query runner if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.release();
+            }
+        }
     }
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
