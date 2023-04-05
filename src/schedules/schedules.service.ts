@@ -110,6 +110,10 @@ export class ScheduleService {
         return await this.scheduleRepository.updateSchedulePartial(userId, schedule, updateSchedulePartialDto, queryRunner)
     }
 
+    async getSchedulesByParent(userId: string, parentId: string) {
+        return await this.scheduleRepository.findSchedulesByParentId(userId, parentId)
+    }
+
     async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
         return this.scheduleRepository.deleteSchedule(userId, scheduleId);
     }
@@ -383,4 +387,16 @@ export class ScheduleService {
             }
         }
     }
+
+    //schedule in scheduleIds 의 parentId 를 nextParentId 로 변경
+    async updateSchedulesParentId(userId : string, scheduleIds :string[], nextParentId : string, queryRunner? : QueryRunner){
+        await this.scheduleRepository.updateSchedulesParentId(userId, scheduleIds, nextParentId, queryRunner);
+    }
+
+    //update schedule parent to null
+    async updateScheduleParentToNull(userId : string, scheduleId : string, queryRunner? : QueryRunner){
+        await this.scheduleRepository.updateScheduleParentToNull(userId, scheduleId, queryRunner);
+    }
+    
+
 }

@@ -272,6 +272,20 @@ export class TodosService implements TodosServiceInterface {
         }
     }
 
+    async updateTodosParentId(userId : string, existingTodo : Todo, queryRunner: QueryRunner){
+        const {schedule} = existingTodo
+        const schedules = await this.scheduleService.getSchedulesByParent(userId, schedule.id)
+
+        if(schedules.length === 0) return
+        const scheduleIds = schedules.map(schedule => schedule.id)
+        const nextParentId = scheduleIds.shift()
+
+        await Promise.all([
+            this.scheduleService.updateSchedulesParentId(userId, scheduleIds, nextParentId, queryRunner),
+            this.scheduleService.updateScheduleParentToNull(userId, nextParentId, queryRunner)
+        ])
+    }
+
     async updateRepeatTodoToCompleteBack(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { schedule } = existingTodo
@@ -507,6 +521,9 @@ export class TodosService implements TodosServiceInterface {
             if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
+
+            // await this.updateTodosParentId(userId, existingTodo, queryRunner)
+
             /* 기존 애를 변경 */
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
 
