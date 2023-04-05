@@ -3,7 +3,7 @@ import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
+import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
 import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -280,7 +280,7 @@ export class TodosController {
     @ApiOperation({ summary: '반복되는 투두 중 중간거 삭제함', description: '투두를 완료한다.' })
     async deleteRepeatTodoMiddle(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
-        @Body() repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto){
+        @Body() repeatTodoCompleteMiddleBySplitDto: DeleteRepeatSplitMiddleDto){
         return this.todoService.deleteRepeatTodoMiddle(userId, todoId, repeatTodoCompleteMiddleBySplitDto);
     }
 

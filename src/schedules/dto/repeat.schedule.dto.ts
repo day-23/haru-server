@@ -40,7 +40,7 @@ export class RepeatScheduleSplitFrontDto{
 }
 
 export class RepeatScheduleSplitMiddleDto{
-    @ApiProperty({ description: '완료된 날짜'})
+    @ApiProperty({ description: '삭제된 날짜'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
     removedDate: Date;

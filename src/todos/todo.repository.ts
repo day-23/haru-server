@@ -93,7 +93,7 @@ export class TodoRepository implements TodoRepositoryInterface {
 
     // todo find by todoId
     async findTodoWithScheduleIdByTodoId(todoId: string): Promise<Todo> {
-        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag'] });
+        return await this.repository.findOne({ where: { id: todoId }, relations: ['schedule', 'todoTags', 'subTodos', 'todoTags.tag', 'schedule.parent', 'schedule.alarms'] });
     }
 
     /* create todoTags */
@@ -127,13 +127,11 @@ export class TodoRepository implements TodoRepositoryInterface {
     async createTodo(userId: string, scheduleId: string, createBaseTodoDto: CreateBaseTodoDto, queryRunner? : QueryRunner): Promise<Todo> {
         const todoRepository = queryRunner ? queryRunner.manager.getRepository(Todo) : this.repository;
 
-        
         //find next todo order and today todo order by Promise.all
         const nextTodoOrder = await this.findNextTodoOrder(userId)
         const todo = todoRepository.create({ user: { id: userId }, schedule: { id: scheduleId }, ...createBaseTodoDto, todoOrder: nextTodoOrder, todayTodoOrder: nextTodoOrder });
         const savedTodo = await todoRepository.save(todo);
         
-        console.log('repository, createdTodo' , savedTodo)
         return savedTodo
     }
 
@@ -169,7 +167,6 @@ export class TodoRepository implements TodoRepositoryInterface {
             .where('subtodo.todo = :todoId', { todoId })
             .getRawOne();
 
-        console.log('maxSubTodoOrder', maxSubTodoOrder)
         return maxSubTodoOrder.maxSubTodoOrder + 1;
     }
 
@@ -433,8 +430,6 @@ export class TodoRepository implements TodoRepositoryInterface {
             // .orderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
         
-            console.log(todos)
-
         return {
             data: todosParseToTodoResponse(todos),
             pagination: {

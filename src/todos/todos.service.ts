@@ -6,9 +6,8 @@ import { Subtodo } from 'src/entity/subtodo.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
-import { TodoRepository } from 'src/todos/todo.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
+import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -319,9 +318,11 @@ export class TodosService implements TodosServiceInterface {
 
     async createNewNextRepeatTodoByExistingTodo(userId: string ,existingTodo : Todo, endDate:Date, queryRunner?: QueryRunner): Promise<TodoResponse>{
         const { id, user, schedule, ...todoData } = existingTodo
+
         const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
 
-        const parent = schedule.parent ? schedule.parent.id : schedule.id
+        const parent = schedule?.parent ? schedule?.parent?.id : schedule.id
+
         /* 다음 할일을 만듦 */
         return await this.createTodo(userId, { ...createTodoDto, endDate, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
     }
@@ -529,9 +530,9 @@ export class TodosService implements TodosServiceInterface {
             }
         }
     }
-    async deleteRepeatTodoMiddle(userId: string, todoId: string, repeatSplitMiddleDto: RepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void>{
+    async deleteRepeatTodoMiddle(userId: string, todoId: string, repeatSplitMiddleDto: DeleteRepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        const { completedDate, endDate } = repeatSplitMiddleDto
+        const { removedDate, endDate } = repeatSplitMiddleDto
         const { schedule } = existingTodo
 
         // Create a new queryRunner if one was not provided
@@ -544,7 +545,7 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
 
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(removedDate) }, queryRunner)
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
 
             await queryRunner.commitTransaction();

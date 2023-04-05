@@ -10,7 +10,6 @@ import { existingScheduleToCreateScheduleDto, parseScheduleResponse } from './sc
 import { Schedule } from 'src/entity/schedule.entity';
 import { getDatePlusMinusOneDay, getMinusOneDay } from 'src/common/makeDate';
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
-import { RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from 'src/todos/dto/repeat.todo.dto';
 
 
 @Injectable()

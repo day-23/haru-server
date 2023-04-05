@@ -43,6 +43,7 @@ export class ScheduleRepository {
     async updateSchedulePartial(userId: string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
+        console.log('transactionStarted')
         // if transaction is started don't start transaction
         // Start transaction if not already started
         let transactionStarted = false;
@@ -52,10 +53,13 @@ export class ScheduleRepository {
             transactionStarted = true;
         }
 
+        
         try {
             // Get parent from schedule or updateSchedulePartialDto or null
             const parent =
                 schedule?.parent?.id || updateSchedulePartialDto?.parent || null;
+
+            console.log('parent', parent)
 
             const updatedSchedule = scheduleRepository.create({
                 ...schedule,
@@ -69,6 +73,7 @@ export class ScheduleRepository {
                 await queryRunner.commitTransaction();
             }
 
+            console.log('savedSchedule', savedSchedule)
             return savedSchedule;
         } catch (error) {
             // Rollback transaction if it was started in this function

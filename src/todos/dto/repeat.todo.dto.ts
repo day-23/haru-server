@@ -36,6 +36,17 @@ export class RepeatSplitBackDto{
     repeatEnd: Date;
 }
 
+export class DeleteRepeatSplitMiddleDto{
+    @ApiProperty({ description: '완료된 날짜'})
+    @IsDate()
+    @Transform(({ value }) => new Date(value))
+    removedDate: Date;
+    
+    @ApiProperty({ description: '다음 마감일'})
+    @IsDate()
+    @Transform(({ value }) => new Date(value))
+    endDate: Date;
+}
 
 export class UpdateRepeatFrontTodoBySplitDto extends UpdateTodoDto{
     @ApiProperty({ description: '다음 마감일'})
