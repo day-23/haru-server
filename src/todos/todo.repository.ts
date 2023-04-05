@@ -406,6 +406,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         const [todos, count] = await this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
+            .leftJoinAndSelect('schedule.parent', 'parent')
             .leftJoinAndSelect('todo.todoTags', 'todoTags')
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
@@ -418,7 +419,9 @@ export class TodoRepository implements TodoRepositoryInterface {
             // .addOrderBy('schedule.created_at', 'ASC')
             // .orderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
-            
+        
+            console.log(todos)
+
         return {
             data: todosParseToTodoResponse(todos),
             pagination: {

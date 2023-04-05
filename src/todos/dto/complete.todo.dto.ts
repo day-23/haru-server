@@ -9,14 +9,14 @@ export class NotRepeatTodoCompleteDto{
     completed : boolean
 }
 
-export class RepeatTodoCompleteBySplitDto{
+export class RepeatSplitFrontDto{
     @ApiProperty({ description: '다음 마감일'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
     endDate: Date;
 }
 
-export class RepeatTodoCompleteMiddleBySplitDto{
+export class RepeatSplitMiddleDto{
     @ApiProperty({ description: '완료된 날짜'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
@@ -28,7 +28,7 @@ export class RepeatTodoCompleteMiddleBySplitDto{
     endDate: Date;
 }
 
-export class RepeatTodoCompleteBackBySplitDto{
+export class RepeatSplitBackDto{
     @ApiProperty({ description: '이전 마감일'})
     @IsDate()
     @Transform(({ value }) => new Date(value))

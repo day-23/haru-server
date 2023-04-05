@@ -9,7 +9,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { GetByTagDto } from '../dto/geybytag.todo.dto';
 import { UpdateSubTodoDto } from '../dto/create.subtodo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from '../dto/order.todo.dto';
-import { NotRepeatTodoCompleteDto } from '../dto/complete.todo.dto';
+import { NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from '../dto/complete.todo.dto';
 
 export interface TodoRepositoryInterface {
     /* create */
