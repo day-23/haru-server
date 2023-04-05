@@ -4,7 +4,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from 'src/todos/dto/repeat.todo.dto';
 import { CreateScheduleDto, UpdateScheduleBySplitDto } from './dto/create.schedule.dto';
-import { UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
+import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleService } from './schedules.service';
 
@@ -25,14 +25,6 @@ export class ScheduleController {
         @Param('scheduleId') scheduleId: string,
         @Body() schedule: CreateScheduleDto) : Promise<ScheduleResponse>{
         return this.scheduleService.updateSchedule(userId, scheduleId, schedule);
-    }
-
-    @Patch(':scheduleId/split')
-    @ApiOperation({ summary: '반복되는 스케줄 중 하나만 수정하여 split함', description: '스케줄를 수정한다.' })
-    async updateScheduleBySplit(@Param('userId') userId: string,
-        @Param('scheduleId') scheduleId: string, 
-        @Body() updateScheduleBySplitDto: UpdateScheduleBySplitDto) : Promise<ScheduleResponse>{
-        return this.scheduleService.updateScheduleBySplit(userId, scheduleId, updateScheduleBySplitDto);
     }
 
     @Delete(':scheduleId')
@@ -102,23 +94,23 @@ export class ScheduleController {
     @ApiOperation({ summary: '반복되는 일정 중 앞에거 삭제함', description: '일정를 삭제한다.' })
     async deleteRepeatScheduleFront(@Param('userId') userId: string,
         @Param('scheduleId') scheduleId : string,
-        @Body() repeatTodoCompleteBySplitDto: RepeatSplitFrontDto){
-        return this.scheduleService.deleteRepeatScheduleFront(userId, scheduleId, repeatTodoCompleteBySplitDto);
+        @Body() repeatScheduleSplitFrontDto: RepeatScheduleSplitFrontDto){
+        return this.scheduleService.deleteRepeatScheduleFront(userId, scheduleId, repeatScheduleSplitFrontDto);
     }
 
     @Delete(':scheduleId/repeat/middle')
     @ApiOperation({ summary: '반복되는 일정 중 중간거 삭제함', description: '일정를 삭제한다.' })
     async deleteRepeatScheduleMiddle(@Param('userId') userId: string,
         @Param('scheduleId') scheduleId : string,
-        @Body() repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto){
-        return this.scheduleService.deleteRepeatScheduleMiddle(userId, scheduleId, repeatTodoCompleteMiddleBySplitDto);
+        @Body() repeatScheduleSplitMiddleDto: RepeatScheduleSplitMiddleDto){
+        return this.scheduleService.deleteRepeatScheduleMiddle(userId, scheduleId, repeatScheduleSplitMiddleDto);
     }
 
     @Delete(':scheduleId/repeat/back')
     @ApiOperation({ summary: '반복되는 일정 중 마지막거 삭제함', description: '일정를 삭제한다.' })
     async deleteRepeatScheduleBack(@Param('userId') userId: string,
         @Param('scheduleId') scheduleId : string,
-        @Body() repeatTodoCompleteBySplitDto: RepeatSplitBackDto){
-        return this.scheduleService.deleteRepeatScheduleBack(userId, scheduleId, repeatTodoCompleteBySplitDto);
+        @Body() repeatScheduleSplitBackDto: RepeatScheduleSplitBackDto){
+        return this.scheduleService.deleteRepeatScheduleBack(userId, scheduleId, repeatScheduleSplitBackDto);
     }
 }
