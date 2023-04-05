@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { getMinusOneDay } from 'src/common/makeDate';
 import { Subtodo } from 'src/entity/subtodo.entity';
@@ -14,7 +14,7 @@ import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.to
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { TodoRepositoryInterface } from './interface/todo.repository.interface';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse, GetTodosResponseByDate } from './interface/todo.return.interface';
 import { TodosServiceInterface } from './interface/todo.service.interface';
 import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
 
@@ -133,6 +133,11 @@ export class TodosService implements TodosServiceInterface {
     async getTodosByDate(userId: string, datePaginationDto: DatePaginationDto) {
         return await this.todoRepository.findByDate(userId, datePaginationDto)
     }
+
+    async getTodosByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate>{
+        return await this.todoRepository.findByDateTime(userId, dateTimePaginationDto)
+    }
+
 
     async getTodosByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findByPagination(userId, paginationDto)

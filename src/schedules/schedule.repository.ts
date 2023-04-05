@@ -77,9 +77,8 @@ export class ScheduleRepository {
     }
 
     /* 스케줄 데이터 불러오기 order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetSchedulesResponseByDate> {
-        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
-        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
+    async findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate> {
+        const {startDate, endDate} = dateTimePaginationDto
 
         //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')

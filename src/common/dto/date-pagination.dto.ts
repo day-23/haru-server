@@ -20,6 +20,7 @@ export class DateTimePaginationDto{
 }
 
 export class TodayTodoDto{
-    @IsString()
-    endDate: string = new Date().toString()
+    @Transform(({ value }) => value ? new Date(value) : null)
+    @IsDate()
+    endDate: Date
 }

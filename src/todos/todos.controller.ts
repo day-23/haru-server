@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, ForbiddenException, Get, Inject, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBackBySplitDto, RepeatTodoCompleteBySplitDto, RepeatTodoCompleteMiddleBySplitDto } from './dto/complete.todo.dto';
 import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
@@ -18,11 +18,10 @@ export class TodosController {
     constructor(@Inject('TodosServiceInterface') private readonly todoService: TodosServiceInterface) {}
     
     @PaginatedResponse()
-    @Get('todos/all')
+    @Post('todos/all')
     @ApiOperation({ summary: '전체 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
+    async getTodosAllByToday(@Param('userId') userId, @Body() todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
         return await this.todoService.getAllTodos(userId, todayTodoDto);
     }
 
@@ -35,11 +34,10 @@ export class TodosController {
     }
 
     @PaginatedResponse()
-    @Get('todos/today')
+    @Post('todos/today')
     @ApiOperation({ summary: '오늘의 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    async getTodayTodos(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
+    async getTodayTodos(@Param('userId') userId, @Body() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
         return await this.todoService.getTodayTodos(userId, todayTodoDto);
     }
 
@@ -102,6 +100,15 @@ export class TodosController {
     async getTodosByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) : Promise<GetTodosResponseByDate> {
         return await this.todoService.getTodosByDate(userId, datePaginationDto);
     }
+
+    @PaginatedResponse()
+    @Post('todos/date')
+    @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    async getTodosByDateTime(@Param('userId') userId : string, @Body() dateTimePaginationDto: DateTimePaginationDto) {
+        return await this.todoService.getTodosByDateTime(userId, dateTimePaginationDto);
+    }
+
 
     @PaginatedResponse()
     @Get('todos/tag')

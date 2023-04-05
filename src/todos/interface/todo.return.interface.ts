@@ -48,6 +48,7 @@ export interface GetTodayTodosResponse {
         flaggedTodos: TodoResponse[]
         todayTodos: TodoResponse[]
         endDatedTodos: TodoResponse[]
+        completedTodos: TodoResponse[]
     },
 }
 

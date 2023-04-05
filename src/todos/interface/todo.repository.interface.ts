@@ -3,7 +3,7 @@ import { Subtodo } from 'src/entity/subtodo.entity';
 import { TodoTags } from 'src/entity/todo-tags.entity';
 import { QueryRunner } from 'typeorm';
 import { BaseTodoDto, CreateBaseTodoDto, CreateTodoDto, UpdateSubTodosDtoWhenUpdateTodo } from '../dto/create.todo.dto';
-import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { GetAllTodosResponse, GetTodayTodosResponse, GetTodosForMain, GetTodosPaginationResponse, GetTodosResponseByDate, GetTodosResponseByTag, TodoResponse } from './todo.return.interface';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { GetByTagDto } from '../dto/geybytag.todo.dto';
@@ -38,6 +38,7 @@ export interface TodoRepositoryInterface {
     findCompletedTodosForMain(userId: string): Promise<TodoResponse[]>;
     findTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse>
     findByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetTodosResponseByDate>
+    findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> 
     findByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse>;
     findCompletedTodoByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse>
     findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag>

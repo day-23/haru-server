@@ -158,8 +158,8 @@ export class ScheduleService {
         return this.scheduleRepository.deleteSchedule(userId, scheduleId);
     }
 
-    async getSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) {
-        return await this.scheduleRepository.findSchedulesByDate(userId, datePaginationDto)
+    async getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto) {
+        return await this.scheduleRepository.findSchedulesByDate(userId, dateTimePaginationDto)
     }
 
     async getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
