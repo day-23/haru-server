@@ -90,17 +90,6 @@ export class TodosController {
         return await this.todoService.getCompletedTodosByPagination(userId, paginationDto);
     }
 
-
-    @PaginatedResponse()
-    @Get('todos/date')
-    @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })
-    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
-    async getTodosByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) : Promise<GetTodosResponseByDate> {
-        return await this.todoService.getTodosByDate(userId, datePaginationDto);
-    }
-
     @PaginatedResponse()
     @Post('todos/date')
     @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })

@@ -3,7 +3,6 @@ import { Transform } from "class-transformer";
 import { IsDate } from "class-validator";
 import { CreateScheduleDto } from "./create.schedule.dto";
 
-
 export class UpdateRepeatFrontScheduleBySplitDto extends CreateScheduleDto{
     @ApiProperty({ description: '다음 반복 시작일'})
     @IsDate()
@@ -29,8 +28,6 @@ export class UpdateRepeatBackScheduleBySplitDto extends CreateScheduleDto{
     @Transform(({ value }) => new Date(value))
     preRepeatEnd: Date;
 }
-
-
 
 export class RepeatScheduleSplitFrontDto{
     @ApiProperty({ description: '다음 일정 시작일'})

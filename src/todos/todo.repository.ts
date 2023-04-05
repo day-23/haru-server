@@ -230,14 +230,19 @@ export class TodoRepository implements TodoRepositoryInterface {
         };
     }
 
-    async findFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
-        const flaggedTodos = await this.repository.createQueryBuilder('todo')
+    getBaseQueryBuilderTodos(userId: string) {
+        return this.repository.createQueryBuilder('todo')
             .innerJoinAndSelect('todo.schedule', 'schedule')
+            .leftJoinAndSelect('schedule.parent', 'parent')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
             .leftJoinAndSelect('todo.todoTags', 'todoTags')
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('todo.user = :userId', { userId })
+    }
+
+    async findFlaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
+        const flaggedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 1')
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
@@ -249,13 +254,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
 
     async findTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
-        const taggedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const taggedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 0')
             .andWhere('todo.completed = 0')
             .andWhere('todoTags.id is not null')
@@ -264,17 +263,12 @@ export class TodoRepository implements TodoRepositoryInterface {
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
+        console.log(taggedTodos)
         return todosParseToTodoResponse(taggedTodos)
     }
 
     async findUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
-        const unTaggedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const unTaggedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 0')
             .andWhere('(todo.id NOT IN (select distinct(todo_id) from todo_tags where todo_tags.user_id = :userId))', { userId })
             .andWhere('todo.completed = 0')
@@ -287,13 +281,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
 
     async findCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
-        const completedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const completedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
@@ -307,13 +295,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     async findTodayTodos(userId: string, todayTodoDto: TodayTodoDto): Promise<GetTodayTodosResponse> {
         const {endDate} = todayTodoDto
 
-        const flaggedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const flaggedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 1')
             .andWhere('(todo.todayTodo = 1 OR schedule.repeat_start <= :endDate)', { endDate })
             .andWhere('todo.completed = 0')
@@ -322,13 +304,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
         
-        const todayTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const todayTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 1')
             .andWhere('todo.completed = 0')
@@ -337,13 +313,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
-        const endDatedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const endDatedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.flag = 0')
             .andWhere('todo.todayTodo = 0')
             .andWhere('todo.completed = 0')
@@ -352,13 +322,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .orderBy('schedule.repeatStart', 'DESC')
             .getMany()
 
-        const completedTodos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const completedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('(todo.todayTodo = 1 OR schedule.repeat_start <= :endDate)', { endDate })
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
@@ -377,50 +341,11 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
 
     /* 투두 데이트 페이지네이션 함수 */
-    async findByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetTodosResponseByDate> {
-        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
-        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
-
-        // todo and schedule, alarm inner join and pagination
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
-            .andWhere('schedule.repeat_start IS NOT NULL')
-            .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
-            .setParameters({ startDate, endDate })
-            .orderBy('schedule.repeat_start', 'ASC')
-            // .addOrderBy('schedule.repeat_end', 'DESC')
-            // .addOrderBy('schedule.created_at', 'ASC')
-            // .orderBy('subTodos.subTodoOrder', 'ASC')
-            .getManyAndCount();
-            
-        return {
-            data: todosParseToTodoResponse(todos),
-            pagination: {
-                totalItems: count,
-                startDate,
-                endDate
-            },
-        };
-    }
-
-    /* 투두 데이트 페이지네이션 함수 */
     async findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> {
         const { startDate, endDate } = dateTimePaginationDto
 
         // todo and schedule, alarm inner join and pagination
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('schedule.parent', 'parent')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('schedule.repeat_start IS NOT NULL')
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
@@ -445,13 +370,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .skip(skip)
             .take(limit)
             .orderBy('todo.todoOrder', 'ASC')
@@ -477,13 +396,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.completed = 1')
             .skip(skip)
             .take(limit)
@@ -508,13 +421,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     /* 태그별로 조회해도 해당 투두에 다시 태그를 포함해야함 */
     async findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         const { tagId } = getByTagDto
-        const todos = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const todos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere(qb => {
                 const subQuery = qb.subQuery()
                     .select('todoTag.todo')
@@ -540,13 +447,7 @@ export class TodoRepository implements TodoRepositoryInterface {
 
     /* 검색 */
     async findTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
-        const [todos, count] = await this.repository.createQueryBuilder('todo')
-            .innerJoinAndSelect('todo.schedule', 'schedule')
-            .leftJoinAndSelect('schedule.alarms', 'alarms')
-            .leftJoinAndSelect('todo.todoTags', 'todoTags')
-            .leftJoinAndSelect('todoTags.tag', 'tag')
-            .leftJoinAndSelect('todo.subTodos', 'subTodos')
-            .where('todo.user = :userId', { userId })
+        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .andWhere('todo.completed = 0')
             .setParameters({ searchValue: `%${content}%` })
