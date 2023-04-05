@@ -67,14 +67,3 @@ export class CreateScheduleWithoutAlarmsDto extends OmitType(CreateScheduleDto, 
 
 /* repeatStart, repeatEnd 바꾸기 위함 */
 export class UpdateSchedulePartialDto extends PartialType(OmitType(CreateScheduleDto, ['alarms'])){}
-
-export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
-    @IsDefined()
-    @IsOptional()
-    @IsString()
-    category?: string;
-
-    @IsDefined()
-    @IsOptional()
-    alarms?: Date[];
-}

@@ -5,6 +5,7 @@ import { Category } from "src/entity/category.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { TodoResponse } from "src/todos/interface/todo.return.interface";
 import { parseTodoResponse } from "src/todos/todo.util";
+import { CreateScheduleDto } from "./dto/create.schedule.dto";
 import { ScheduleResponse } from "./interface/schedule.interface";
 
 
@@ -62,4 +63,23 @@ export function schedulesParseToTodosResponse(schedules: Schedule[]) : TodoRespo
     })
     return todoResponses;
 
+}
+
+
+export function existingScheduleToCreateScheduleDto(existingSchedule : Schedule) : CreateScheduleDto{
+    const { id, user, ...schedule} = existingSchedule
+    const createScheduleDto: CreateScheduleDto = {
+        ...schedule,
+        content: schedule.content,
+        memo: schedule.memo,
+        isAllDay: schedule.isAllDay,
+        repeatOption: schedule.repeatOption,
+        repeatValue: schedule.repeatValue,
+        repeatStart: schedule.repeatStart,
+        repeatEnd: schedule.repeatEnd,
+        alarms: schedule.alarms.map(alarm => alarm.time),
+        categoryId: schedule.category ? schedule.category.id : null,
+        parent : schedule.parent ? schedule.parent.id : null
+    }
+    return createScheduleDto
 }

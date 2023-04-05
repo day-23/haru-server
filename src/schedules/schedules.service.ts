@@ -6,9 +6,11 @@ import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
 import { GetSchedulesAndTodosResponseByDate, ScheduleResponse } from './interface/schedule.interface';
-import { parseScheduleResponse } from './schedule.util';
+import { existingScheduleToCreateScheduleDto, parseScheduleResponse } from './schedule.util';
 import { Schedule } from 'src/entity/schedule.entity';
-import { getDatePlusMinusOneDay } from 'src/common/makeDate';
+import { getDatePlusMinusOneDay, getMinusOneDay } from 'src/common/makeDate';
+import { UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
+import { RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from 'src/todos/dto/repeat.todo.dto';
 
 
 @Injectable()
@@ -172,6 +174,153 @@ export class ScheduleService {
 
     async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
         return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
+    }
+
+
+    async updateRepeatScheduleFront(userId: string, scheduleId : string, updateRepeatFrontScheduleBySplitDto: UpdateRepeatFrontScheduleBySplitDto, queryRunner? : QueryRunner){
+        const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+        
+        if (!existingSchedule) {
+            throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
+        }
+
+        const { nextRepeatStart, ...updateScheduleDto } = updateRepeatFrontScheduleBySplitDto
+    
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            /* 기존 애를 변경 */
+            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatStart: nextRepeatStart }, queryRunner)
+
+            /* 새로운 애를 만듦 */
+            await this.createSchedule(userId, updateScheduleDto, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async createNewNextRepeatSchedule(userId: string, schedule : Schedule, nextRepeatStart : Date, queryRunner? : QueryRunner){
+        const parent = schedule.parent ? schedule.parent.id : schedule.id
+        //schedule to createScheduleDto
+        const createScheduleDto = existingScheduleToCreateScheduleDto(schedule)
+        /* 다음 할일을 만듦 */
+        return await this.createSchedule(userId, { ...createScheduleDto, repeatStart: nextRepeatStart, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
+    }
+
+    async updateRepeatScheduleMiddle(userId: string, scheduleId : string, updateRepeatMiddleScheduleBySplitDto: UpdateRepeatMiddleScheduleBySplitDto, queryRunner? : QueryRunner){
+        const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+        
+        if (!existingSchedule) {
+            throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
+        }
+
+        const { changedDate, nextRepeatStart, ...updateScheduleDto } = updateRepeatMiddleScheduleBySplitDto
+    
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            /* 기존 애를 변경 */
+            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: getMinusOneDay(changedDate) }, queryRunner)
+
+            /* 새로운 애를 만듦 */
+            await this.createSchedule(userId, updateScheduleDto, queryRunner)
+            await this.createNewNextRepeatSchedule(userId, existingSchedule, nextRepeatStart, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async updateRepeatScheduleBack(userId: string, scheduleId : string, updateRepeatBackScheduleBySplitDto: UpdateRepeatBackScheduleBySplitDto, queryRunner? : QueryRunner){
+        const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+        
+        if (!existingSchedule) {
+            throw new NotFoundException(`Schedule with id ${scheduleId} not found`);
+        }
+
+        const { preRepeatEnd, ...updateScheduleDto } = updateRepeatBackScheduleBySplitDto
+    
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            /* 기존 애를 변경 */
+            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: preRepeatEnd }, queryRunner)
+            /* 새로운 애를 만듦 */
+            await this.createSchedule(userId, updateScheduleDto, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async deleteRepeatScheduleFront(userId: string, scheduleId : string, repeatTodoCompleteBySplitDto: RepeatSplitFrontDto, queryRunner? : QueryRunner){
+        
+    }
+
+    async deleteRepeatScheduleMiddle(userId: string, scheduleId : string, repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto, queryRunner? : QueryRunner){
+        
+    }
+
+    async deleteRepeatScheduleBack(userId: string, scheduleId : string, repeatTodoCompleteBySplitDto: RepeatSplitBackDto, queryRunner? : QueryRunner){
+        
     }
 
 }

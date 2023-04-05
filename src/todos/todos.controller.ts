@@ -244,7 +244,7 @@ export class TodosController {
         return this.todoService.updateRepeatTodoToCompleteBack(userId, todoId, repeatTodoCompleteBySplitDto);
     }
 
-    @Put('complete/todo/:todoId/repeat/front')
+    @Put('todo/:todoId/repeat/front')
     @ApiOperation({ summary: '반복되는 투두 중 앞에거 내용 수정함', description: '투두를 완료한다.' })
     async updateRepeatTodoFront(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
@@ -252,7 +252,7 @@ export class TodosController {
         return this.todoService.updateRepeatTodoFront(userId, todoId, updateRepeatFrontTodoBySplitDto);
     }
 
-    @Put('complete/todo/:todoId/repeat/middle')
+    @Put('todo/:todoId/repeat/middle')
     @ApiOperation({ summary: '반복되는 투두 중간거 내용 수정함', description: '투두를 완료한다.' })
     async updateRepeatTodoMiddle(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
@@ -260,7 +260,7 @@ export class TodosController {
         return this.todoService.updateRepeatTodoMiddle(userId, todoId, updateRepeatMiddleTodoBySplitDto);
     }
 
-    @Put('complete/todo/:todoId/repeat/back')
+    @Put('todo/:todoId/repeat/back')
     @ApiOperation({ summary: '반복되는 투두 중 마지막거 내용 수정함', description: '투두를 완료한다.' })
     async updateRepeatTodoBack(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
@@ -268,7 +268,7 @@ export class TodosController {
         return this.todoService.updateRepeatTodoBack(userId, todoId, updateRepeatBackTodoBySplitDto);
     }
 
-    @Delete('complete/todo/:todoId/repeat/front')
+    @Delete('todo/:todoId/repeat/front')
     @ApiOperation({ summary: '반복되는 투두 중 앞에거 삭제함', description: '투두를 완료한다.' })
     async deleteRepeatTodoFront(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
@@ -276,7 +276,7 @@ export class TodosController {
         return this.todoService.deleteRepeatTodoFront(userId, todoId, repeatTodoCompleteBySplitDto);
     }
 
-    @Delete('complete/todo/:todoId/repeat/middle')
+    @Delete('todo/:todoId/repeat/middle')
     @ApiOperation({ summary: '반복되는 투두 중 중간거 삭제함', description: '투두를 완료한다.' })
     async deleteRepeatTodoMiddle(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
@@ -284,7 +284,7 @@ export class TodosController {
         return this.todoService.deleteRepeatTodoMiddle(userId, todoId, repeatTodoCompleteMiddleBySplitDto);
     }
 
-    @Delete('complete/todo/:todoId/repeat/back')
+    @Delete('todo/:todoId/repeat/back')
     @ApiOperation({ summary: '반복되는 투두 중 마지막거 삭제함', description: '투두를 완료한다.' })
     async deleteRepeatTodoBack(@Param('userId') userId: string,
         @Param('todoId') todoId : string,

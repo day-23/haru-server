@@ -1,10 +1,9 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pagination.dto";
-import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
-import { CreateScheduleWithoutAlarmsDto, UpdateScheduleDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
+import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
 import { GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 
 import { Between, QueryRunner, Repository } from "typeorm";
