@@ -3,6 +3,9 @@ import { BaseCategory } from "src/categories/interface/category.interface";
 import { Alarm } from "src/entity/alarm.entity";
 import { Category } from "src/entity/category.entity";
 import { Schedule } from "src/entity/schedule.entity";
+import { TodoResponse } from "src/todos/interface/todo.return.interface";
+import { parseTodoResponse } from "src/todos/todo.util";
+import { CreateScheduleDto } from "./dto/create.schedule.dto";
 import { ScheduleResponse } from "./interface/schedule.interface";
 
 
@@ -38,4 +41,45 @@ export function schedulesParseToSchedulesResponse(schedules: Schedule[]) : Sched
         schedulesResponse.push(scheduleResponse);
     })
     return schedulesResponse;
+}
+
+
+export function schedulesParseToTodosResponse(schedules: Schedule[]) : TodoResponse[]{
+    const todoResponses : TodoResponse[] = schedules.map(schedule => {
+        const { category, alarms, todo } = schedule;
+        const scheduleResponse = parseScheduleResponse(schedule, category, alarms);
+        return parseTodoResponse(scheduleResponse, todo, todo.todoTags.map(todoTag => todoTag.tag), todo.subTodos);
+    })
+
+    //todoResponse order by endDate
+    todoResponses.sort((a, b) => {
+        if (a.endDate > b.endDate) {
+            return 1;
+        } else if (a.endDate < b.endDate) {
+            return -1;
+        } else {
+            return 0;
+        }
+    })
+    return todoResponses;
+
+}
+
+
+export function existingScheduleToCreateScheduleDto(existingSchedule : Schedule) : CreateScheduleDto{
+    const { id, user, ...schedule} = existingSchedule
+    const createScheduleDto: CreateScheduleDto = {
+        ...schedule,
+        content: schedule.content,
+        memo: schedule.memo,
+        isAllDay: schedule.isAllDay,
+        repeatOption: schedule.repeatOption,
+        repeatValue: schedule.repeatValue,
+        repeatStart: schedule.repeatStart,
+        repeatEnd: schedule.repeatEnd,
+        alarms: schedule.alarms.map(alarm => alarm.time),
+        categoryId: schedule.category ? schedule.category.id : null,
+        parent : schedule.parent ? schedule.parent.id : null
+    }
+    return createScheduleDto
 }

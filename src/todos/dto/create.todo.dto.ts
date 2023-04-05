@@ -74,14 +74,14 @@ export class CreateTodoDto extends BaseTodoDto {
     @ApiProperty({ description: 'alarms 시간들' })
     @IsString({ each: true })
     alarms: Date[];
+
+    @ApiProperty({ description: '부모 id' })
+    @IsOptional()
+    @IsString()
+    parent: string;
 }
 
 export class UpdateTodoDto extends CreateTodoDto {
-    @ApiProperty({ description: '할일 완료 여부' })
-    @IsOptional()
-    @IsBoolean()
-    completed: boolean;
-
     @ApiProperty({ description: '하위항목 완료 여부' })
     @IsOptional()
     @IsBoolean({ each: true })

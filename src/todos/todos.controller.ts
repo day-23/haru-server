@@ -1,28 +1,27 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Inject, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto } from './dto/complete.todo.dto';
+import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
 import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { BaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosResponseByDate, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
-import { TodosService } from './todos.service';
+import { TodosServiceInterface } from './interface/todo.service.interface';
 
 
 @Controller('todo/:userId')
 @ApiTags('Todo API')
 export class TodosController {
-    constructor(private readonly todoService: TodosService) {}
+    constructor(@Inject('TodosServiceInterface') private readonly todoService: TodosServiceInterface) {}
     
     @PaginatedResponse()
-    @Get('todos/all')
+    @Post('todos/all')
     @ApiOperation({ summary: '전체 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    async getTodosAllByToday(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
+    async getTodosAllByToday(@Param('userId') userId, @Body() todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse> {
         return await this.todoService.getAllTodos(userId, todayTodoDto);
     }
 
@@ -35,11 +34,10 @@ export class TodosController {
     }
 
     @PaginatedResponse()
-    @Get('todos/today')
+    @Post('todos/today')
     @ApiOperation({ summary: '오늘의 투두, endDate 날짜 파라미터로 조회 API', description: '오늘의 투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    async getTodayTodos(@Param('userId') userId, @Query() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
+    async getTodayTodos(@Param('userId') userId, @Body() todayTodoDto: TodayTodoDto) : Promise<GetTodayTodosResponse> {
         return await this.todoService.getTodayTodos(userId, todayTodoDto);
     }
 
@@ -92,16 +90,14 @@ export class TodosController {
         return await this.todoService.getCompletedTodosByPagination(userId, paginationDto);
     }
 
-
     @PaginatedResponse()
-    @Get('todos/date')
+    @Post('todos/date')
     @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
-    async getTodosByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) : Promise<GetTodosResponseByDate> {
-        return await this.todoService.getTodosByDate(userId, datePaginationDto);
+    async getTodosByDateTime(@Param('userId') userId : string, @Body() dateTimePaginationDto: DateTimePaginationDto) {
+        return await this.todoService.getTodosByDateTime(userId, dateTimePaginationDto);
     }
+
 
     @PaginatedResponse()
     @Get('todos/tag')
@@ -213,12 +209,76 @@ export class TodosController {
         return this.todoService.updateSubTodo(userId, subTodoId, notRepeatTodoCompleteDto)
     }
 
-    @Patch('complete/todo/:todoId/repeat')
+    @Patch('complete/todo/:todoId/repeat/front')
     @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
-    async updateRepeatTodoToComplete(@Param('userId') userId: string,
+    async updateRepeatTodoToCompleteFront(@Param('userId') userId: string,
         @Param('todoId') todoId : string,
-        @Body() repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto){
-        return this.todoService.updateRepeatTodoToComplete(userId, todoId, repeatTodoCompleteBySplitDto);
+        @Body() repeatTodoCompleteBySplitDto: RepeatSplitFrontDto){
+        return this.todoService.updateRepeatTodoToCompleteFront(userId, todoId, repeatTodoCompleteBySplitDto);
+    }
+
+    @Patch('complete/todo/:todoId/repeat/middle')
+    @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
+    async updateRepeatTodoToCompleteMiddle(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto){
+        return this.todoService.updateRepeatTodoToCompleteMiddle(userId, todoId, repeatTodoCompleteMiddleBySplitDto);
+    }
+
+    @Patch('complete/todo/:todoId/repeat/back')
+    @ApiOperation({ summary: '반복되는 투두 중 중간 하나 완료하여 split함', description: '투두를 완료한다.' })
+    async updateRepeatTodoToCompleteBack(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteBySplitDto: RepeatSplitBackDto){
+        return this.todoService.updateRepeatTodoToCompleteBack(userId, todoId, repeatTodoCompleteBySplitDto);
+    }
+
+    @Put('todo/:todoId/repeat/front')
+    @ApiOperation({ summary: '반복되는 투두 중 앞에거 내용 수정함', description: '투두를 완료한다.' })
+    async updateRepeatTodoFront(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() updateRepeatFrontTodoBySplitDto: UpdateRepeatFrontTodoBySplitDto){
+        return this.todoService.updateRepeatTodoFront(userId, todoId, updateRepeatFrontTodoBySplitDto);
+    }
+
+    @Put('todo/:todoId/repeat/middle')
+    @ApiOperation({ summary: '반복되는 투두 중간거 내용 수정함', description: '투두를 완료한다.' })
+    async updateRepeatTodoMiddle(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() updateRepeatMiddleTodoBySplitDto: UpdateRepeatMiddleTodoBySplitDto){
+        return this.todoService.updateRepeatTodoMiddle(userId, todoId, updateRepeatMiddleTodoBySplitDto);
+    }
+
+    @Put('todo/:todoId/repeat/back')
+    @ApiOperation({ summary: '반복되는 투두 중 마지막거 내용 수정함', description: '투두를 완료한다.' })
+    async updateRepeatTodoBack(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() updateRepeatBackTodoBySplitDto: UpdateRepeatBackTodoBySplitDto){
+        return this.todoService.updateRepeatTodoBack(userId, todoId, updateRepeatBackTodoBySplitDto);
+    }
+
+    @Delete('todo/:todoId/repeat/front')
+    @ApiOperation({ summary: '반복되는 투두 중 앞에거 삭제함', description: '투두를 완료한다.' })
+    async deleteRepeatTodoFront(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteBySplitDto: RepeatSplitFrontDto){
+        return this.todoService.deleteRepeatTodoFront(userId, todoId, repeatTodoCompleteBySplitDto);
+    }
+
+    @Delete('todo/:todoId/repeat/middle')
+    @ApiOperation({ summary: '반복되는 투두 중 중간거 삭제함', description: '투두를 완료한다.' })
+    async deleteRepeatTodoMiddle(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteMiddleBySplitDto: DeleteRepeatSplitMiddleDto){
+        return this.todoService.deleteRepeatTodoMiddle(userId, todoId, repeatTodoCompleteMiddleBySplitDto);
+    }
+
+    @Delete('todo/:todoId/repeat/back')
+    @ApiOperation({ summary: '반복되는 투두 중 마지막거 삭제함', description: '투두를 완료한다.' })
+    async deleteRepeatTodoBack(@Param('userId') userId: string,
+        @Param('todoId') todoId : string,
+        @Body() repeatTodoCompleteBySplitDto: RepeatSplitBackDto){
+        return this.todoService.deleteRepeatTodoBack(userId, todoId, repeatTodoCompleteBySplitDto);
     }
 
     @Delete(':todoId')

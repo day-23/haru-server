@@ -12,7 +12,15 @@ import { TodoTags } from 'src/entity/todo-tags.entity';
 @Module({
     imports: [SchedulesModule, TagsModule, TypeOrmModule.forFeature([Todo, Subtodo, TodoTags])],
     controllers: [TodosController],
-    providers: [TodosService, TodoRepository],
-    exports: [TodosService]
+    providers: [
+        {
+            provide: 'TodosServiceInterface',
+            useClass: TodosService,
+        },
+        {
+            provide: 'TodoRepositoryInterface',
+            useClass: TodoRepository,
+        }
+    ],
 })
 export class TodosModule { }

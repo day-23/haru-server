@@ -1,14 +1,13 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DatePaginationDto } from "src/common/dto/date-pagination.dto";
-import { fromYYYYMMDDAddOneDayToDate, fromYYYYMMDDToDate } from "src/common/makeDate";
+import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pagination.dto";
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
-import { CreateScheduleWithoutAlarmsDto, UpdateScheduleDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
-import { GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
+import { GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 
-import { Between, QueryRunner, Repository } from "typeorm";
-import { schedulesParseToSchedulesResponse } from "./schedule.util";
+import { Between, In, QueryRunner, Repository } from "typeorm";
+import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
 
 export class ScheduleRepository {
     constructor(
@@ -16,18 +15,17 @@ export class ScheduleRepository {
         @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
     ) { }
 
-    async createOrUpdateSchedule(userId : string, scheduleId : string, createScheduleDto : CreateScheduleWithoutAlarmsDto , queryRunner? : QueryRunner) {
+    async createOrUpdateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner) {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const { categoryId } = createScheduleDto;
+        const { categoryId, parent } = createScheduleDto;
+
         let newSchedule = null;
-        if(scheduleId){
-            newSchedule = scheduleRepository.create({id : scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
-        }else{
-            newSchedule = scheduleRepository.create({user: { id: userId }, category: { id: categoryId }, ...createScheduleDto });
+        if (scheduleId) {
+            newSchedule = scheduleRepository.create({ id: scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
+        } else {
+            newSchedule = scheduleRepository.create({ user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
         }
         const savedSchedule = await scheduleRepository.save(newSchedule);
-
-        console.log(savedSchedule)
         return savedSchedule;
     }
 
@@ -42,15 +40,60 @@ export class ScheduleRepository {
     }
 
     /* 스케줄 내용 일부 업데이트 */
-    async updateSchedulePartial(userId : string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
+    async updateSchedulePartial(userId: string, schedule: Partial<Schedule>, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
-        console.log(schedule)
-        console.log("스케줄 업데이트 ---------------문제----------------")
-        // const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto, user : {id:userId}});
-        const updatedSchedule = scheduleRepository.create({...schedule, ...updateSchedulePartialDto});
-        const savedSchedule = await scheduleRepository.save(updatedSchedule);
-        return savedSchedule;
+        // if transaction is started don't start transaction
+        // Start transaction if not already started
+        let transactionStarted = false;
+        if (!queryRunner) {
+            queryRunner = this.repository.manager.connection.createQueryRunner();
+            await queryRunner.startTransaction();
+            transactionStarted = true;
+        }
+
+        try {
+            // Get parent from schedule or updateSchedulePartialDto or null
+            const parent = schedule?.parent?.id || updateSchedulePartialDto?.parent || null;
+
+            const updatedSchedule = scheduleRepository.create({
+                ...schedule,
+                ...updateSchedulePartialDto,
+                parent: { id: parent },
+            });
+            const savedSchedule = await scheduleRepository.save(updatedSchedule);
+
+            // Commit transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.commitTransaction();
+            }
+
+            return savedSchedule;
+        } catch (error) {
+            // Rollback transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.rollbackTransaction();
+            }
+
+            throw error;
+        } finally {
+            // Release query runner if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.release();
+            }
+        }
+    }
+
+    async findSchedulesByParentId(userId: string, parent: string): Promise<Schedule[]> {
+        return await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('schedule.parent', 'parent')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('schedule.parent = :parent', { parent })
+            .orderBy('schedule.repeat_start', 'ASC')
+            .getMany()
     }
 
     async findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
@@ -75,27 +118,26 @@ export class ScheduleRepository {
                 HttpStatus.NOT_FOUND,
             );
         }
-    }    
+    }
 
     /* 스케줄 데이터 불러오기 order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, datePaginationDto: DatePaginationDto) : Promise<GetSchedulesResponseByDate> {
-        const startDate = fromYYYYMMDDToDate(datePaginationDto.startDate)
-        const endDate = fromYYYYMMDDAddOneDayToDate(datePaginationDto.endDate)
+    async findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate> {
+        const {startDate, endDate} = dateTimePaginationDto
 
         //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
-                    .leftJoinAndSelect('schedule.todo', 'todo')
-                    .leftJoinAndSelect('schedule.category', 'category')
-                    .leftJoinAndSelect('schedule.alarms', 'alarm')
-                    .where('schedule.user = :userId', { userId })
-                    .andWhere('schedule.todo_id IS NULL')
-                    .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
-                    .setParameters({ startDate, endDate })
-                    .orderBy('schedule.repeat_start', 'ASC')
-                    .addOrderBy('schedule.repeat_end', 'DESC')
-                    .addOrderBy('schedule.created_at', 'ASC')
-                    .getManyAndCount()
-    
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('schedule.todo_id IS NULL')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
+            .orderBy('schedule.repeat_start', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
+            .getManyAndCount()
+
         return {
             data: schedulesParseToSchedulesResponse(schedules),
             pagination: {
@@ -106,8 +148,57 @@ export class ScheduleRepository {
         };
     }
 
+
+    /* 스케줄 & 투두 데이터 불러오기 */
+    async findSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
+        const { startDate, endDate } = dateTimePaginationDto
+
+        //make query that schedule that is todo_id is null
+        const [datas, count] = await this.repository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .setParameters({ startDate, endDate })
+            .orderBy('schedule.repeat_start', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
+            .getManyAndCount()
+
+        const todos = []
+        const schedules = []
+
+        // if todo of data is null, push data to schedules else to todos
+        datas.forEach(data => {
+            console.log(data)
+
+            if (data.todo) {
+                todos.push(data)
+            } else {
+                schedules.push(data)
+            }
+        })
+
+        return {
+            data: {
+                schedules: schedulesParseToSchedulesResponse(schedules),
+                todos: schedulesParseToTodosResponse(todos)
+            },
+            pagination: {
+                totalItems: count,
+                startDate,
+                endDate
+            },
+        };
+    }
+
     /* 스케줄 검색 */
-    async findSchedulesBySearch(userId: string, content: string) : Promise<ScheduleResponse[]>{
+    async findSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]> {
         return await this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')
             .leftJoinAndSelect('schedule.alarms', 'alarm')
@@ -121,9 +212,9 @@ export class ScheduleRepository {
             .getMany()
     }
 
-    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto){
-        const {startDate, endDate } = datePaginationDto;
-        const holidays = await this.holidayRepository.find({where: {date: Between(startDate, endDate)}})
+    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+        const { startDate, endDate } = datePaginationDto;
+        const holidays = await this.holidayRepository.find({ where: { date: Between(startDate, endDate) } })
 
         return {
             data: holidays,
@@ -133,5 +224,72 @@ export class ScheduleRepository {
                 endDate
             },
         };
+    }
+
+    async updateSchedulesParentId(userId : string, scheduleIds :string[], nextParentId : string, queryRunner? : QueryRunner){
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const options ={ id: In(scheduleIds), user: { id: userId } } ;
+        const update = { parent: { id: nextParentId } };
+
+        let transactionStarted = false;
+        if (!queryRunner) {
+            queryRunner = this.repository.manager.connection.createQueryRunner();
+            await queryRunner.startTransaction();
+            transactionStarted = true;
+        }
+
+        try {
+            await scheduleRepository.update(options, update);
+
+            // Commit transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.commitTransaction();
+            }
+        } catch (error) {
+            // Rollback transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.rollbackTransaction();
+            }
+            throw error;
+        } finally {
+            // Release query runner if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.release();
+            }
+        }
+    }
+
+    //schedule to parent to null
+    async updateScheduleParentToNull(userId: string, scheduleId: string, queryRunner?: QueryRunner) {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const options = { id: scheduleId, user: { id: userId } };
+        const update = { parent: null };
+
+        let transactionStarted = false;
+        if (!queryRunner) {
+            queryRunner = this.repository.manager.connection.createQueryRunner();
+            await queryRunner.startTransaction();
+            transactionStarted = true;
+        }
+
+        try {
+            await scheduleRepository.update(options, update);
+
+            // Commit transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.commitTransaction();
+            }
+        } catch (error) {
+            // Rollback transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.rollbackTransaction();
+            }
+            throw error;
+        } finally {
+            // Release query runner if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.release();
+            }
+        }
     }
 }

@@ -1,26 +1,29 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { DatePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { getMinusOneDay } from 'src/common/makeDate';
 import { Subtodo } from 'src/entity/subtodo.entity';
+import { Todo } from 'src/entity/todo.entity';
 import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
-import { TodoRepository } from 'src/todos/todo.repository';
 import { DataSource, QueryRunner } from 'typeorm';
-import { NotRepeatTodoCompleteDto, RepeatTodoCompleteBySplitDto } from './dto/complete.todo.dto';
+import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
 import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
-import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse } from './interface/todo.return.interface';
-import { TodoServiceInterface } from './interface/todo.service.interface';
+import { TodoRepositoryInterface } from './interface/todo.repository.interface';
+import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse, GetTodosResponseByDate } from './interface/todo.return.interface';
+import { TodosServiceInterface } from './interface/todo.service.interface';
 import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
 
 @Injectable()
-export class TodosService implements TodoServiceInterface {
-    constructor(private readonly todoRepository: TodoRepository,
+export class TodosService implements TodosServiceInterface {
+    constructor(
+        @Inject('TodoRepositoryInterface') private readonly todoRepository: TodoRepositoryInterface,
         private readonly scheduleService: ScheduleService,
         private readonly tagService: TagsService,
-        private dataSource: DataSource
+        private readonly dataSource: DataSource
     ) { }
 
     async createTodo(userId: string, createTodoDto: CreateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
@@ -40,6 +43,43 @@ export class TodosService implements TodoServiceInterface {
             await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
 
             const savedSubTodos = await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);
+
+            await queryRunner.commitTransaction();
+            return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            // Release the query runner if it was created in this function
+            if (shouldReleaseQueryRunner) {
+                await queryRunner.release();
+            }
+        }
+    }
+
+    async createTodoForUpdateBySplit(userId: string, updateTodoDto: UpdateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
+        const { todayTodo, flag, completed, tags, subTodos, subTodosCompleted, endDate, ...createScheduleDto } = updateTodoDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            await queryRunner.startTransaction();
+            const savedSchedule = await this.scheduleService.createSchedule(userId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
+            const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag, completed, folded:false }, queryRunner);
+
+            const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
+            await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
+
+            const savedSubTodos = await this.todoRepository.createSubTodosForUpdateBySplit(savedTodo.id, subTodos, subTodosCompleted, queryRunner);
 
             await queryRunner.commitTransaction();
             return parseTodoResponse(savedSchedule, savedTodo, savedTags, savedSubTodos);
@@ -115,7 +155,7 @@ export class TodosService implements TodoServiceInterface {
     }
 
     async getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]> {
-        return await this.todoRepository.getUnTaggedTodosForMain(userId);
+        return await this.todoRepository.findUnTaggedTodosForMain(userId);
     }
 
     async getCompletedTodosForMain(userId: string): Promise<TodoResponse[]> {
@@ -126,9 +166,11 @@ export class TodosService implements TodoServiceInterface {
         return await this.todoRepository.findTodosAll(userId, todayTodoDto)
     }
 
-    async getTodosByDate(userId: string, datePaginationDto: DatePaginationDto) {
-        return await this.todoRepository.findByDate(userId, datePaginationDto)
+
+    async getTodosByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate>{
+        return await this.todoRepository.findByDateTime(userId, dateTimePaginationDto)
     }
+
 
     async getTodosByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findByPagination(userId, paginationDto)
@@ -155,37 +197,27 @@ export class TodosService implements TodoServiceInterface {
         return this.todoRepository.updateUnRepeatTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }
 
-    /* 리팩토링 필요 */
-    async updateRepeatTodoToComplete(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatTodoCompleteBySplitDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
+    async updateRepeatTodoToCompleteFront(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatSplitFrontDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
-        const { completedDate } = repeatTodoCompleteBySplitDto
+        const { schedule } = existingTodo
+        const { endDate } = repeatTodoCompleteBySplitDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
-
-        const { id, user, schedule, ...todoData } = existingTodo
 
         try {
             // Start the transaction
             if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
-
-            const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
-
             /* 기존 애를 변경 */
-            const ret = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: completedDate })
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
 
-            console.log(ret)
             /* 완료한 애를 하나 만듦 */
-            const completedTodo = await this.createTodo(userId, createTodoDto, queryRunner)
-            await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
+            await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
 
-            createTodoDto.endDate = completedDate
-            await this.createTodo(userId, createTodoDto, queryRunner)
-
-            return completedTodo
+            await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
             throw new HttpException(
@@ -201,6 +233,114 @@ export class TodosService implements TodoServiceInterface {
                 queryRunner.release();
             }
         }
+    }
+
+    async updateRepeatTodoToCompleteMiddle(userId: string, todoId: string, repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void> {
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { completedDate, endDate } = repeatTodoCompleteMiddleBySplitDto
+        const { schedule } = existingTodo
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
+            await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
+            await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async updateTodosParentId(userId : string, existingTodo : Todo, queryRunner: QueryRunner){
+        const {schedule} = existingTodo
+        const schedules = await this.scheduleService.getSchedulesByParent(userId, schedule.id)
+
+        if(schedules.length === 0) return
+        const scheduleIds = schedules.map(schedule => schedule.id)
+        const nextParentId = scheduleIds.shift()
+
+        await Promise.all([
+            this.scheduleService.updateSchedulesParentId(userId, scheduleIds, nextParentId, queryRunner),
+            this.scheduleService.updateScheduleParentToNull(userId, nextParentId, queryRunner)
+        ])
+    }
+
+    async updateRepeatTodoToCompleteBack(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void> {
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { repeatEnd } = repeatTodoCompleteBySplitDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
+            await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async createNewTodoByExistingTodo(userId: string ,existingTodo : Todo, queryRunner?: QueryRunner): Promise<TodoResponse>{
+        const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
+        return await this.createTodo(userId, createTodoDto, queryRunner)
+    }
+
+    async createNewNextRepeatTodoByExistingTodo(userId: string ,existingTodo : Todo, endDate:Date, queryRunner?: QueryRunner): Promise<TodoResponse>{
+        const { id, user, schedule, ...todoData } = existingTodo
+
+        const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
+
+        const parent = schedule?.parent ? schedule?.parent?.id : schedule.id
+
+        /* 다음 할일을 만듦 */
+        return await this.createTodo(userId, { ...createTodoDto, endDate, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
+    }
+
+    async createNewCompletedTodoByExistingTodo(userId: string ,existingTodo : Todo, queryRunner?: QueryRunner): Promise<void>{
+        const completedTodo = await this.createNewTodoByExistingTodo(userId, existingTodo, queryRunner)
+        await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
     }
 
     async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo> {
@@ -252,5 +392,225 @@ export class TodosService implements TodoServiceInterface {
 
     async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto): Promise<void> {
         return this.todoRepository.updateSubTodosOrder(userId, updateTodosOrderDto)
+    }
+
+    async updateRepeatTodoFront(userId: string, todoId : string, updateRepeatFrontTodoBySplitDto: UpdateRepeatFrontTodoBySplitDto, queryRunner? : QueryRunner) : Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { nextEndDate, ...updateTodoDto } = updateRepeatFrontTodoBySplitDto
+        const { schedule } = existingTodo
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            /* 기존 애를 변경 */
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: nextEndDate }, queryRunner)
+
+            /* 새로운 애를 만듦 */
+            await this.createTodoForUpdateBySplit(userId, updateTodoDto, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async updateRepeatTodoMiddle(userId: string, todoId : string, updateRepeatMiddleTodoBySplitDto: UpdateRepeatMiddleTodoBySplitDto,  queryRunner? : QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { changedDate, nextEndDate, ...updateTodoDto } = updateRepeatMiddleTodoBySplitDto
+        const { schedule } = existingTodo
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+            
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(changedDate) }, queryRunner)
+            await this.createTodoForUpdateBySplit(userId, updateTodoDto, queryRunner)
+            await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, nextEndDate, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+
+    async updateRepeatTodoBack(userId: string, todoId: string, updateRepeatBackTodoBySplitDto: UpdateRepeatBackTodoBySplitDto, queryRunner?: QueryRunner): Promise<void> {
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { preRepeatEnd , ...updateTodoDto } = updateRepeatBackTodoBySplitDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd : preRepeatEnd }, queryRunner)
+            /* 새로운 애를 만듦 */
+            await this.createTodoForUpdateBySplit(userId, updateTodoDto, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    
+    }
+
+    async deleteRepeatTodoFront(userId: string, todoId: string, repeatSplitFrontDto: RepeatSplitFrontDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { endDate } = repeatSplitFrontDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            // await this.updateTodosParentId(userId, existingTodo, queryRunner)
+
+            /* 기존 애를 변경 */
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+    async deleteRepeatTodoMiddle(userId: string, todoId: string, repeatSplitMiddleDto: DeleteRepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { removedDate, endDate } = repeatSplitMiddleDto
+        const { schedule } = existingTodo
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(removedDate) }, queryRunner)
+            await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
+    }
+    async deleteRepeatTodoBack(userId: string, todoId: string, repeatSplitBackDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void>{
+        const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
+        const { schedule } = existingTodo
+        const { repeatEnd } = repeatSplitBackDto
+
+        // Create a new queryRunner if one was not provided
+        const shouldReleaseQueryRunner = !queryRunner;
+        queryRunner = queryRunner || this.dataSource.createQueryRunner();
+
+        try {
+            // Start the transaction
+            if (!queryRunner.isTransactionActive) {
+                await queryRunner.startTransaction();
+            }
+
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new HttpException(
+                {
+                    message: 'SQL error',
+                    error: error.sqlMessage,
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        } finally {
+            if (shouldReleaseQueryRunner) {
+                // Release the queryRunner if it was created in this function
+                queryRunner.release();
+            }
+        }
     }
 }

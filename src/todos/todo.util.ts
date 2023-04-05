@@ -38,7 +38,31 @@ export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo
 
 
 export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
-    const todoResponses : TodoResponse[] = todos.map(todo => {
+    const parentTodos = []
+    const childTodos = []
+
+    todos.forEach(todo => {
+        if (todo.schedule.parent) {
+            childTodos.push(todo)
+        } else {
+            parentTodos.push(todo)
+        }
+    })
+
+    // make dictionary by childTodos that key is parentTodo's id and value is max repeatEnd
+    const childTodosDictionary = childTodos.reduce((acc, cur) => {
+        const parentTodoId = cur.schedule.parent.id
+        if(acc[parentTodoId]){
+            if(acc[parentTodoId] < cur.schedule.repeatEnd){
+                acc[parentTodoId] = cur.schedule.repeatEnd
+            }
+        }else{
+            acc[parentTodoId] = cur.schedule.repeatEnd
+        }
+        return acc
+    }, {})
+
+    const todoResponses : TodoResponse[] = parentTodos.map(todo => {
         const scheduleResponse : ScheduleResponse = {
             id: todo.schedule.id,
             content: todo.schedule.content,
@@ -46,7 +70,7 @@ export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
             isAllDay: todo.schedule.isAllDay,
             repeatOption: todo.schedule.repeatOption,
             repeatValue: todo.schedule.repeatValue,
-            repeatEnd: todo.schedule.repeatEnd,
+            repeatEnd: childTodosDictionary[todo.schedule.id] || todo.schedule.repeatEnd,
             repeatStart: todo.schedule.repeatStart,
             alarms: todo.schedule.alarms,
             createdAt: todo.schedule.createdAt,
@@ -71,7 +95,8 @@ export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto
         repeatEnd: schedule.repeatEnd,
         subTodos: todoData.subTodos.map(subTodo => subTodo.content),
         tags: todoData.todoTags.map(todoTag => todoTag.tag.content),
-        alarms: []
+        alarms: schedule.alarms.map(alarm => alarm.time),
+        parent : schedule.parent ? schedule.parent.id : null
     }
     return createTodoDto
 }

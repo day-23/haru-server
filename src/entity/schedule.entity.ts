@@ -56,6 +56,10 @@ export class Schedule extends BaseEntity {
     @OneToMany(() => Alarm, (alarm) => alarm.schedule, { cascade: true })
     alarms: Alarm[];
 
+    @ManyToOne(() => Schedule, { nullable: true , onDelete: "SET NULL" })
+    @JoinColumn({ name: 'parent_id' }, )
+    parent: Schedule;
+
     @CreateDateColumn()
     createdAt: Date;
 
