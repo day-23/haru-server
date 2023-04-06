@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { typeORMConfig } from './common/configs/typeorm.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { LoggerMiddleware } from './common/middleware/log/logger.middleware';
 import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middleware';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TodosModule } from './todos/todos.module';
@@ -17,6 +17,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
+import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
 
 @Module({
     imports: [
@@ -43,7 +44,7 @@ import { FollowsModule } from './follows/follows.module';
         FollowsModule,
     ],
     controllers: [AppController],
-    providers: [AppService, CheckApiKeyMiddleware],
+    providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware],
 })
 export class AppModule implements NestModule {
     /* 개발 환경의 경우 서버에서 로그 찍어주기 */
