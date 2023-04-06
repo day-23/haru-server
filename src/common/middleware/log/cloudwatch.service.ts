@@ -8,9 +8,13 @@ export class CloudWatchLoggerService implements LoggerService {
     private logStreamName: string;
 
     constructor() {
-        this.cloudwatchlogs = new AWS.CloudWatchLogs({ region: 'your-aws-region' });
-        this.logGroupName = 'your-log-group-name';
-        this.logStreamName = 'your-log-stream-name';
+        const awsCredentials = new AWS.Credentials(
+            process.env.AWS_S3_ACCESS_KEY,
+            process.env.AWS_S3_SECRET_KEY,
+        );
+        this.cloudwatchlogs = new AWS.CloudWatchLogs({ region: 'ap-northeast-2', credentials: awsCredentials });
+        this.logGroupName = 'haru-api-server-log';
+        this.logStreamName = 'haru-api-log-stream';
         this.createLogGroupAndStream();
     }
 
@@ -39,23 +43,23 @@ export class CloudWatchLoggerService implements LoggerService {
         }
     }
 
-    async log(message: string, context?: string) {
+    async log(message: any, context?: string) {
         await this.sendLogEvent(message, context, 'info');
     }
 
-    async error(message: string, trace?: string, context?: string) {
+    async error(message: any, trace?: string, context?: string) {
         await this.sendLogEvent(message, context, 'error', trace);
     }
 
-    async warn(message: string, context?: string) {
+    async warn(message: any, context?: string) {
         await this.sendLogEvent(message, context, 'warn');
     }
 
-    async debug(message: string, context?: string) {
+    async debug(message: any, context?: string) {
         await this.sendLogEvent(message, context, 'debug');
     }
 
-    async verbose(message: string, context?: string) {
+    async verbose(message: any, context?: string) {
         await this.sendLogEvent(message, context, 'verbose');
     }
     async sendLogEvent(message: string, context: string, level: string, trace?: string) {
@@ -63,6 +67,7 @@ export class CloudWatchLoggerService implements LoggerService {
             timestamp: Date.now(),
             message: JSON.stringify({ level, context, message, trace,}),
         };
+        // console.log(message)
 
         try {
             const response = await this.cloudwatchlogs
