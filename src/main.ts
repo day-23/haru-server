@@ -14,8 +14,6 @@ async function bootstrap() {
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    console.log('?');
-
     // success interceptor -> 필요없는 것 같아 제외
     app.useGlobalInterceptors(new SuccessInterceptor(new Reflector()));
 

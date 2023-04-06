@@ -44,7 +44,7 @@ export class ScheduleController {
     }
 
     @PaginatedResponse()
-    @Post('schedules/date')
+    @Post('schedules/date/all')
     @ApiOperation({ summary: '스케줄과 투두를 날짜 body로 조회 API', description: '스케줄을를 조회한다.' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     async getSchedulesAndTodosByDate(@Param('userId') userId : string, @Body() dateTimePaginationDto: DateTimePaginationDto) {
