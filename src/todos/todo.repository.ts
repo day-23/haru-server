@@ -66,6 +66,7 @@ export class TodoRepository implements TodoRepositoryInterface {
 
         const newSubTodos = contents.map((content, index) => {
             if (index < existingSubTodos.length) {
+                existingSubTodos[index].todo = new Todo({ id: todoId });
                 existingSubTodos[index].content = content;
                 existingSubTodos[index].subTodoOrder = nextSubTodoOrder + index;
                 existingSubTodos[index].completed = subTodosCompleted[index];
@@ -74,8 +75,7 @@ export class TodoRepository implements TodoRepositoryInterface {
                 return subTodoRepository.create({ todo: { id: todoId }, content, subTodoOrder: nextSubTodoOrder + index, completed: subTodosCompleted[index] });
             }
         });
-        
-        return await subTodoRepository.save(newSubTodos);
+        return await subTodoRepository.save(newSubTodos)
     }
     
     /* update todo */
@@ -352,7 +352,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .orderBy('schedule.repeat_start', 'ASC')
             // .addOrderBy('schedule.repeat_end', 'DESC')
             // .addOrderBy('schedule.created_at', 'ASC')
-            // .orderBy('subTodos.subTodoOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
         
         return {
