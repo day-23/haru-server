@@ -16,12 +16,14 @@ import { TodoRepositoryInterface } from './interface/todo.repository.interface';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse, GetTodosResponseByDate } from './interface/todo.return.interface';
 import { TodosServiceInterface } from './interface/todo.service.interface';
 import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
+import { ScheduleRepositoryInterface } from 'src/schedules/interface/schedule.repository.interface';
+import { ScheduleServiceInterface } from 'src/schedules/interface/schedule.service.interface';
 
 @Injectable()
 export class TodosService implements TodosServiceInterface {
     constructor(
         @Inject('TodoRepositoryInterface') private readonly todoRepository: TodoRepositoryInterface,
-        private readonly scheduleService: ScheduleService,
+        @Inject('ScheduleServiceInterface') private readonly scheduleService: ScheduleServiceInterface,
         private readonly tagService: TagsService,
         private readonly dataSource: DataSource
     ) { }

@@ -1,17 +1,16 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
-import { RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto } from 'src/todos/dto/repeat.todo.dto';
-import { CreateScheduleDto, UpdateScheduleBySplitDto } from './dto/create.schedule.dto';
+import { CreateScheduleDto } from './dto/create.schedule.dto';
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
 import { ScheduleResponse } from './interface/schedule.interface';
-import { ScheduleService } from './schedules.service';
+import { ScheduleServiceInterface } from './interface/schedule.service.interface';
 
 @Controller('schedule/:userId')
 @ApiTags('Schedule API')
 export class ScheduleController {
-    constructor(private readonly scheduleService: ScheduleService) { }
+    constructor(@Inject('ScheduleServiceInterface') private readonly scheduleService: ScheduleServiceInterface) { }
 
     @Post()
     @ApiOperation({ summary: '스케줄 생성 API', description: '스케줄을 생성한다.' })

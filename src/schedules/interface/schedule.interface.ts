@@ -3,6 +3,7 @@
 
 import { BaseAlarm } from "src/alarms/interface/alarm.interface";
 import { BaseCategory } from "src/categories/interface/category.interface";
+import { Holiday } from "src/entity/holiday.entity";
 import { TodoResponse } from "src/todos/interface/todo.return.interface";
 
 export interface BaseSchedule {
@@ -39,6 +40,15 @@ export interface GetSchedulesAndTodosResponseByDate {
 
 export interface GetSchedulesResponseByDate {
     data: ScheduleResponse[],
+    pagination: {
+        totalItems: number,
+        startDate: string | Date,
+        endDate: string | Date
+    },
+}
+
+export interface GetHolidaysByDate {
+    data: Holiday[],
     pagination: {
         totalItems: number,
         startDate: string | Date,
