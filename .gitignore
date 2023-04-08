@@ -38,3 +38,6 @@ lerna-debug.log*
 
 #
 .env
+
+# typeOrm config
+/src/common/configs
