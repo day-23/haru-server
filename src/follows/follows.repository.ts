@@ -5,11 +5,16 @@ import { Repository } from "typeorm";
 import { User } from "src/entity/user.entity";
 import { SnsBaseUser } from "./interface/follow.user.interface";
 import { CreateFollowDto } from "./dto/create.follow.dto";
+import { ConfigService } from "@nestjs/config";
 
 export class FollowRepository implements FollowRepositoryInterface {
+    public readonly S3_URL: string;
     constructor(
-        @InjectRepository(Follow) private readonly repository: Repository<Follow>
-    ) { }
+        @InjectRepository(Follow) private readonly repository: Repository<Follow>,
+        private readonly configService: ConfigService
+    ) { 
+        this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
+    }
 
     async createFollowing(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
         const {followId} = createFollowDto
@@ -25,30 +30,52 @@ export class FollowRepository implements FollowRepositoryInterface {
         const ret = await this.repository
             .createQueryBuilder('follow')
             .leftJoinAndSelect('follow.following', 'following')
-            .select(['follow.id', 'following.id', 'following.name', 'following.email']) // Add other fields you need, but exclude the password
+            .leftJoinAndSelect('following.profileImages', 'profileImages')
+            .select([
+                'follow.id',
+                'following.id',
+                'following.name',
+                'following.email',
+                'profileImages.id',
+                'profileImages.url',
+            ])
             .where('follow.follow = :userId', { userId })
             .getMany();
-        console.log(ret)
 
-        // return ret.map((follow) => {
-        //     console.log(follow)
-
-        //     // return {
-        //     //     id: follow.id,
-        //     //     name: follow.name,
-        //     //     email: follow.email,
-        //     //     profileImage: follow.profileImages.length > 0 ? follow.follow.profileImages[0].url : null,
-        //     // }
-        // })
-
-        return null
+        return ret.map((follow) => {
+            return {
+                id: follow.following.id,
+                name: follow.following.name,
+                email: follow.following.email,
+                profileImage: follow.following?.profileImages?.length > 0 ? this.S3_URL + follow.following.profileImages[0].url : null,
+            }
+        })
     }
 
     async findFollowingByUserId(userId: string): Promise<SnsBaseUser[]> {
-        return await this.repository.createQueryBuilder('follow')
-            .leftJoin('follow.following', 'user')
+        const ret = await this.repository
+            .createQueryBuilder('follow')
+            .leftJoinAndSelect('follow.following', 'following')
+            .leftJoinAndSelect('following.profileImages', 'profileImages')
+            .select([
+                'follow.id',
+                'following.id',
+                'following.name',
+                'following.email',
+                'profileImages.id',
+                'profileImages.url',
+            ])
             .where('follow.follow = :userId', { userId })
-            .getRawMany();
+            .getMany();
+
+        return ret.map((follow) => {
+            return {
+                id: follow.following.id,
+                name: follow.following.name,
+                email: follow.following.email,
+                profileImage: follow.following?.profileImages?.length > 0 ? this.S3_URL + follow.following.profileImages[0].url : null,
+            }
+        })
     }
 
     async deleteFollow(userId: string, followId: string): Promise<void> {
