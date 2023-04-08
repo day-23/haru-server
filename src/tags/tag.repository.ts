@@ -53,6 +53,7 @@ export class TagRepository {
         }));
     }
 
+    /* 리팩토링 필요 */
     async saveTagsOrderedByInput(userId: string, createTagsDto: CreateTagsDto, queryRunner?: QueryRunner): Promise<BaseTag[]> {
         const [existingTags, nextTagOrder] = await Promise.all([
             this.repository.find({ where: { user: { id: userId }, content: In(createTagsDto.contents) } }),
