@@ -12,7 +12,16 @@ import { ScheduleService } from './schedules.service';
 @Module({
     imports: [AlarmsModule, CategoriesModule, TypeOrmModule.forFeature([Holiday, Schedule])],
     controllers: [ScheduleController],
-    providers: [ScheduleService, ScheduleRepository],
-    exports : [ScheduleService, ScheduleRepository]
+    providers: [
+        {
+            provide: 'ScheduleServiceInterface',
+            useClass: ScheduleService,
+        },
+        {
+            provide: 'ScheduleRepositoryInterface',
+            useClass: ScheduleRepository,
+        }
+    ],
+    exports: ['ScheduleServiceInterface'],
 })
 export class SchedulesModule { }

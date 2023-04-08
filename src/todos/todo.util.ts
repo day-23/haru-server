@@ -5,12 +5,12 @@ import { BaseTag, BaseTagForTodoResponse } from "src/tags/interface/tag.interfac
 import { CreateTodoDto } from "./dto/create.todo.dto";
 import { BaseSubTodo, TodoResponse } from "./interface/todo.return.interface";
 
-export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo, savedTags:BaseTag[], savedSubTodos: Subtodo[]): TodoResponse {
+export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo, savedTags: BaseTag[], savedSubTodos: Subtodo[]): TodoResponse {
     //savedTags parse to BaseTagForTodoResponse
-    const tags: BaseTagForTodoResponse[] = savedTags.map(({id, content}) => ({id, content}))
+    const tags: BaseTagForTodoResponse[] = savedTags.map(({ id, content }) => ({ id, content }))
 
     //savedSubTodos parse to BaseSubTodo
-    const subTodos: BaseSubTodo[] = savedSubTodos.map(({id, content, subTodoOrder, completed}) => ({id, content, subTodoOrder, completed}))
+    const subTodos: BaseSubTodo[] = savedSubTodos.map(({ id, content, subTodoOrder, completed }) => ({ id, content, subTodoOrder, completed }))
 
     const response: TodoResponse = {
         id: todo.id,
@@ -25,19 +25,19 @@ export function parseTodoResponse(scheduleResponse: ScheduleResponse, todo: Todo
         repeatEnd: scheduleResponse.repeatEnd,
         todoOrder: todo.todoOrder,
         completed: todo.completed,
-        folded : todo.folded,
+        folded: todo.folded,
         subTodos,
         tags,
         alarms: scheduleResponse.alarms,
         createdAt: scheduleResponse.createdAt,
         updatedAt: scheduleResponse.updatedAt,
     };
-    
+
     return response;
 }
 
 
-export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
+export function todosParseToTodoResponse(todos: Todo[]): TodoResponse[] {
     const parentTodos = []
     const childTodos = []
 
@@ -52,18 +52,18 @@ export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
     // make dictionary by childTodos that key is parentTodo's id and value is max repeatEnd
     const childTodosDictionary = childTodos.reduce((acc, cur) => {
         const parentTodoId = cur.schedule.parent.id
-        if(acc[parentTodoId]){
-            if(acc[parentTodoId] < cur.schedule.repeatEnd){
+        if (acc[parentTodoId]) {
+            if (acc[parentTodoId] < cur.schedule.repeatEnd) {
                 acc[parentTodoId] = cur.schedule.repeatEnd
             }
-        }else{
+        } else {
             acc[parentTodoId] = cur.schedule.repeatEnd
         }
         return acc
     }, {})
 
-    const todoResponses : TodoResponse[] = parentTodos.map(todo => {
-        const scheduleResponse : ScheduleResponse = {
+    const todoResponses: TodoResponse[] = parentTodos.map(todo => {
+        const scheduleResponse: ScheduleResponse = {
             id: todo.schedule.id,
             content: todo.schedule.content,
             memo: todo.schedule.memo,
@@ -75,14 +75,14 @@ export function todosParseToTodoResponse(todos : Todo[]) : TodoResponse[] {
             alarms: todo.schedule.alarms,
             createdAt: todo.schedule.createdAt,
             updatedAt: todo.schedule.updatedAt,
-            category : null
+            category: null
         }
         return parseTodoResponse(scheduleResponse, todo, todo.todoTags.map(todoTag => todoTag.tag), todo.subTodos)
     })
     return todoResponses;
 }
 
-export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto{
+export function existingTodoToCreateTodoDto(existingTodo: Todo): CreateTodoDto {
     const { id, user, schedule, ...todoData } = existingTodo
     const createTodoDto: CreateTodoDto = {
         ...todoData,
@@ -96,7 +96,7 @@ export function existingTodoToCreateTodoDto(existingTodo : Todo) : CreateTodoDto
         subTodos: todoData.subTodos.map(subTodo => subTodo.content),
         tags: todoData.todoTags.map(todoTag => todoTag.tag.content),
         alarms: schedule.alarms.map(alarm => alarm.time),
-        parent : schedule.parent ? schedule.parent.id : null
+        parent: schedule.parent ? schedule.parent.id : null
     }
     return createTodoDto
 }

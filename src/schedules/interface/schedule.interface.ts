@@ -3,23 +3,25 @@
 
 import { BaseAlarm } from "src/alarms/interface/alarm.interface";
 import { BaseCategory } from "src/categories/interface/category.interface";
+import { Holiday } from "src/entity/holiday.entity";
 import { TodoResponse } from "src/todos/interface/todo.return.interface";
 
+/* 투두와 공통 요소 */
 export interface BaseSchedule {
     id: string,
     content: string,
     memo: string,
     isAllDay: boolean,
-    repeatEnd: string | Date,
+    repeatEnd: Date,
     repeatOption: string,
     repeatValue: string,
     alarms: BaseAlarm[],
-    createdAt: string | Date,
-    updatedAt: string | Date,
+    createdAt: Date,
+    updatedAt: Date,
 }
 
 export interface ScheduleResponse extends BaseSchedule {
-    repeatStart: string | Date,
+    repeatStart: Date,
     category: BaseCategory,
 }
 
@@ -32,8 +34,8 @@ export interface GetSchedulesAndTodosResponseByDate {
     }
     pagination: {
         totalItems: number,
-        startDate: string | Date,
-        endDate: string | Date
+        startDate: Date,
+        endDate: Date
     },
 }
 
@@ -41,7 +43,16 @@ export interface GetSchedulesResponseByDate {
     data: ScheduleResponse[],
     pagination: {
         totalItems: number,
-        startDate: string | Date,
-        endDate: string | Date
+        startDate: Date,
+        endDate: Date
+    },
+}
+
+export interface GetHolidaysByDate {
+    data: Holiday[],
+    pagination: {
+        totalItems: number,
+        startDate: string,
+        endDate: string
     },
 }

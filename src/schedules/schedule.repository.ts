@@ -4,34 +4,35 @@ import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pa
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
-import { GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
-
+import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { Between, In, QueryRunner, Repository } from "typeorm";
 import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
+import { ScheduleRepositoryInterface } from "./interface/schedule.repository.interface";
 
-export class ScheduleRepository {
+export class ScheduleRepository implements ScheduleRepositoryInterface {
     constructor(
         @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
         @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,
     ) { }
 
-    async createOrUpdateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner) {
-        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const { categoryId, parent } = createScheduleDto;
-
-        let newSchedule = null;
-        if (scheduleId) {
-            newSchedule = scheduleRepository.create({ id: scheduleId, user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
-        } else {
-            newSchedule = scheduleRepository.create({ user: { id: userId }, category: { id: categoryId }, ...createScheduleDto, parent: { id: parent } });
-        }
-        const savedSchedule = await scheduleRepository.save(newSchedule);
-        return savedSchedule;
-    }
-
     // /* 스케줄 데이터 저장하고 스케줄 프로미스를 리턴한다  */
     async createSchedule(userId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner): Promise<Schedule> {
         return this.createOrUpdateSchedule(userId, null, createScheduleDto, queryRunner);
+    }
+
+    async createOrUpdateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner): Promise<Schedule> {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
+        const { categoryId, parent } = createScheduleDto;
+
+        const scheduleData = {
+            ...(scheduleId ? { id: scheduleId } : {}),
+            user: { id: userId },
+            category: { id: categoryId },
+            ...createScheduleDto,
+            parent: { id: parent },
+        };
+
+        return await scheduleRepository.save(scheduleData);
     }
 
     /* 스케줄 내용 업데이트 */
@@ -122,7 +123,7 @@ export class ScheduleRepository {
 
     /* 스케줄 데이터 불러오기 order : 1.repeat_start, 2.repeat_end, 3.created_at */
     async findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate> {
-        const {startDate, endDate} = dateTimePaginationDto
+        const { startDate, endDate } = dateTimePaginationDto
 
         //make query that schedule that is todo_id is null
         const [schedules, count] = await this.repository.createQueryBuilder('schedule')
@@ -131,7 +132,7 @@ export class ScheduleRepository {
             .leftJoinAndSelect('schedule.alarms', 'alarm')
             .where('schedule.user = :userId', { userId })
             .andWhere('schedule.todo_id IS NULL')
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate))')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
@@ -162,7 +163,7 @@ export class ScheduleRepository {
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('schedule.user = :userId', { userId })
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate))')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate))')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
@@ -212,7 +213,7 @@ export class ScheduleRepository {
             .getMany()
     }
 
-    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
+    async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate> {
         const { startDate, endDate } = datePaginationDto;
         const holidays = await this.holidayRepository.find({ where: { date: Between(startDate, endDate) } })
 
@@ -226,9 +227,9 @@ export class ScheduleRepository {
         };
     }
 
-    async updateSchedulesParentId(userId : string, scheduleIds :string[], nextParentId : string, queryRunner? : QueryRunner){
+    async updateSchedulesParentId(userId: string, scheduleIds: string[], nextParentId: string, queryRunner?: QueryRunner): Promise<void> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
-        const options ={ id: In(scheduleIds), user: { id: userId } } ;
+        const options = { id: In(scheduleIds), user: { id: userId } };
         const update = { parent: { id: nextParentId } };
 
         let transactionStarted = false;
@@ -260,7 +261,7 @@ export class ScheduleRepository {
     }
 
     //schedule to parent to null
-    async updateScheduleParentToNull(userId: string, scheduleId: string, queryRunner?: QueryRunner) {
+    async updateScheduleParentToNull(userId: string, scheduleId: string, queryRunner?: QueryRunner): Promise<void> {
         const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
         const options = { id: scheduleId, user: { id: userId } };
         const update = { parent: null };

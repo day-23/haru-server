@@ -1,20 +1,21 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
-import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
-import { GetSchedulesAndTodosResponseByDate, ScheduleResponse } from './interface/schedule.interface';
+import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from './interface/schedule.interface';
 import { existingScheduleToCreateScheduleDto, parseScheduleResponse } from './schedule.util';
 import { Schedule } from 'src/entity/schedule.entity';
 import { getDatePlusMinusOneDay, getMinusOneDay } from 'src/common/makeDate';
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
+import { ScheduleServiceInterface } from './interface/schedule.service.interface';
+import { ScheduleRepositoryInterface } from './interface/schedule.repository.interface';
 
 
 @Injectable()
-export class ScheduleService {
-    constructor(private readonly scheduleRepository: ScheduleRepository,
+export class ScheduleService implements ScheduleServiceInterface{
+    constructor(@Inject('ScheduleRepositoryInterface') private readonly scheduleRepository: ScheduleRepositoryInterface,
         private readonly alarmRepository: AlarmRepository,
         private readonly categoryRepository: CategoryRepository,
         private dataSource: DataSource
@@ -57,6 +58,34 @@ export class ScheduleService {
                 await queryRunner.release();
             }
         }
+    }
+
+    async createNewNextRepeatSchedule(userId: string, schedule: Schedule, nextRepeatStart: Date, queryRunner?: QueryRunner): Promise<ScheduleResponse> {
+        const parent = schedule.parent ? schedule.parent.id : schedule.id
+        //schedule to createScheduleDto
+        const createScheduleDto = existingScheduleToCreateScheduleDto(schedule)
+        /* 다음 할일을 만듦 */
+        return await this.createSchedule(userId, { ...createScheduleDto, repeatStart: nextRepeatStart, repeatEnd: schedule.repeatEnd, parent }, queryRunner)
+    }
+    ///
+    async getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate> {
+        return await this.scheduleRepository.findSchedulesByDate(userId, dateTimePaginationDto)
+    }
+
+    async getSchedulesByParent(userId: string, parentId: string): Promise<Schedule[]> {
+        return await this.scheduleRepository.findSchedulesByParentId(userId, parentId)
+    }
+
+    async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate> {
+        return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
+    }
+
+    async getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
+        return await this.scheduleRepository.findSchedulesAndTodosByDate(userId, dateTimePaginationDto)
+    }
+
+    async getSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]> {
+        return await this.scheduleRepository.findSchedulesBySearch(userId, content)
     }
 
     async updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleDto, queryRunner?: QueryRunner): Promise<ScheduleResponse> {
@@ -110,32 +139,7 @@ export class ScheduleService {
         return await this.scheduleRepository.updateSchedulePartial(userId, schedule, updateSchedulePartialDto, queryRunner)
     }
 
-    async getSchedulesByParent(userId: string, parentId: string) {
-        return await this.scheduleRepository.findSchedulesByParentId(userId, parentId)
-    }
-
-    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
-        return this.scheduleRepository.deleteSchedule(userId, scheduleId);
-    }
-
-    async getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto) {
-        return await this.scheduleRepository.findSchedulesByDate(userId, dateTimePaginationDto)
-    }
-
-    async getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
-        return await this.scheduleRepository.findSchedulesAndTodosByDate(userId, dateTimePaginationDto)
-    }
-
-    async getSchedulesBySearch(userId: string, content: string) {
-        return await this.scheduleRepository.findSchedulesBySearch(userId, content)
-    }
-
-    async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto) {
-        return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
-    }
-
-
-    async updateRepeatScheduleFront(userId: string, scheduleId : string, updateRepeatFrontScheduleBySplitDto: UpdateRepeatFrontScheduleBySplitDto, queryRunner? : QueryRunner){
+    async updateRepeatScheduleFront(userId: string, scheduleId : string, updateRepeatFrontScheduleBySplitDto: UpdateRepeatFrontScheduleBySplitDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -177,15 +181,7 @@ export class ScheduleService {
         }
     }
 
-    async createNewNextRepeatSchedule(userId: string, schedule : Schedule, nextRepeatStart : Date, queryRunner? : QueryRunner){
-        const parent = schedule.parent ? schedule.parent.id : schedule.id
-        //schedule to createScheduleDto
-        const createScheduleDto = existingScheduleToCreateScheduleDto(schedule)
-        /* 다음 할일을 만듦 */
-        return await this.createSchedule(userId, { ...createScheduleDto, repeatStart: nextRepeatStart, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
-    }
-
-    async updateRepeatScheduleMiddle(userId: string, scheduleId : string, updateRepeatMiddleScheduleBySplitDto: UpdateRepeatMiddleScheduleBySplitDto, queryRunner? : QueryRunner){
+    async updateRepeatScheduleMiddle(userId: string, scheduleId : string, updateRepeatMiddleScheduleBySplitDto: UpdateRepeatMiddleScheduleBySplitDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -228,7 +224,7 @@ export class ScheduleService {
         }
     }
 
-    async updateRepeatScheduleBack(userId: string, scheduleId : string, updateRepeatBackScheduleBySplitDto: UpdateRepeatBackScheduleBySplitDto, queryRunner? : QueryRunner){
+    async updateRepeatScheduleBack(userId: string, scheduleId : string, updateRepeatBackScheduleBySplitDto: UpdateRepeatBackScheduleBySplitDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -269,7 +265,21 @@ export class ScheduleService {
         }
     }
 
-    async deleteRepeatScheduleFront(userId: string, scheduleId : string, repeatScheduleSplitFrontDto: RepeatScheduleSplitFrontDto, queryRunner? : QueryRunner){
+    //schedule in scheduleIds 의 parentId 를 nextParentId 로 변경
+    async updateSchedulesParentId(userId : string, scheduleIds :string[], nextParentId : string, queryRunner? : QueryRunner): Promise<void>{
+        await this.scheduleRepository.updateSchedulesParentId(userId, scheduleIds, nextParentId, queryRunner);
+    }
+
+    //update schedule parent to null
+    async updateScheduleParentToNull(userId : string, scheduleId : string, queryRunner? : QueryRunner): Promise<void>{
+        await this.scheduleRepository.updateScheduleParentToNull(userId, scheduleId, queryRunner);
+    }
+
+    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
+        return this.scheduleRepository.deleteSchedule(userId, scheduleId);
+    }
+
+    async deleteRepeatScheduleFront(userId: string, scheduleId : string, repeatScheduleSplitFrontDto: RepeatScheduleSplitFrontDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -308,7 +318,7 @@ export class ScheduleService {
         }
     }
 
-    async deleteRepeatScheduleMiddle(userId: string, scheduleId : string, repeatScheduleSplitMiddleDto: RepeatScheduleSplitMiddleDto, queryRunner? : QueryRunner){
+    async deleteRepeatScheduleMiddle(userId: string, scheduleId : string, repeatScheduleSplitMiddleDto: RepeatScheduleSplitMiddleDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -349,7 +359,7 @@ export class ScheduleService {
         }
     }
 
-    async deleteRepeatScheduleBack(userId: string, scheduleId : string, repeatTodoCompleteBySplitDto: RepeatScheduleSplitBackDto, queryRunner? : QueryRunner){
+    async deleteRepeatScheduleBack(userId: string, scheduleId : string, repeatTodoCompleteBySplitDto: RepeatScheduleSplitBackDto, queryRunner? : QueryRunner): Promise<void>{
         const existingSchedule = await this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
         
         if (!existingSchedule) {
@@ -387,16 +397,4 @@ export class ScheduleService {
             }
         }
     }
-
-    //schedule in scheduleIds 의 parentId 를 nextParentId 로 변경
-    async updateSchedulesParentId(userId : string, scheduleIds :string[], nextParentId : string, queryRunner? : QueryRunner){
-        await this.scheduleRepository.updateSchedulesParentId(userId, scheduleIds, nextParentId, queryRunner);
-    }
-
-    //update schedule parent to null
-    async updateScheduleParentToNull(userId : string, scheduleId : string, queryRunner? : QueryRunner){
-        await this.scheduleRepository.updateScheduleParentToNull(userId, scheduleId, queryRunner);
-    }
-    
-
 }

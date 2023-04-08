@@ -22,12 +22,12 @@ export class CreateScheduleDto {
 
     @ApiProperty({ description: '반복 시작'})
     @IsOptional()
-    @Transform(({ value }) => new Date(value))
+    @Transform(({ value }) => value ? new Date(value) : null)
     repeatStart: Date;
 
     @ApiProperty({ description: '반복 끝'})
     @IsOptional()
-    @Transform(({ value }) => new Date(value))
+    @Transform(({ value }) => value ? new Date(value) : null)
     repeatEnd: Date;
 
     /* 반복 설정 */
