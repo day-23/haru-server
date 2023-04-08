@@ -98,8 +98,11 @@ export class TodoRepository implements TodoRepositoryInterface {
 
     /* create todoTags */
     async createTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner? : QueryRunner): Promise<TodoTags[]> {
+        console.log('createTodoTags', tagIds)
+        
         if(tagIds.length === 0) return [];
 
+        
         const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
 
         // in todoTags, group by tag_id and get max value per tag_id

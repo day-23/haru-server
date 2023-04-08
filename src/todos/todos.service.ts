@@ -42,7 +42,7 @@ export class TodosService implements TodosServiceInterface {
             const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag, completed, folded:false }, queryRunner);
 
             const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
-            console.log("here")
+            console.log("here", savedTags)
             await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
 
             const savedSubTodos = await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);

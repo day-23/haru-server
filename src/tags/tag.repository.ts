@@ -58,9 +58,8 @@ export class TagRepository {
             this.repository.find({ where: { user: { id: userId }, content: In(createTagsDto.contents) } }),
             this.findNextTagOrder(userId),
         ]);
-    
-        const tagsRepository = queryRunner ? queryRunner.manager.getRepository(Tag) : this.repository;
         
+        const tagsRepository = queryRunner ? queryRunner.manager.getRepository(Tag) : this.repository;
         const contents = [...new Set(createTagsDto.contents)]
 
         const newTags = contents
@@ -73,12 +72,12 @@ export class TagRepository {
                 }),
             );
     
-        const createdTags = await tagsRepository.save(newTags);
-    
+        const createdTags = newTags.length > 0 ? await tagsRepository.save(newTags) : [];
+        
         // Create a mapping between content strings and tags
         const contentTagMap = new Map<string, BaseTag>();
         for (const tag of [...createdTags, ...existingTags]) {
-            contentTagMap.set(tag.content, {
+            contentTagMap.set(tag.content.toUpperCase(), {
                 id: tag.id,
                 content: tag.content,
                 isSelected: tag.isSelected,
@@ -87,7 +86,7 @@ export class TagRepository {
         }
     
         // Reconstruct the tags array based on the original order of createTagsDto.contents
-        const orderedTags: BaseTag[] = contents.map((content) => contentTagMap.get(content));
+        const orderedTags: BaseTag[] = contents.map((content) => contentTagMap.get(content.toUpperCase()));
         return orderedTags;
     }
 
