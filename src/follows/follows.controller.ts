@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import { FollowServiceInterface } from './interface/follow.service.interface';
 import { CreateFollowDto } from './dto/create.follow.dto';
 import { ApiOperation } from '@nestjs/swagger';
@@ -13,15 +13,17 @@ export class FollowsController {
         return await this.followsService.createFollowing(userId, createFollowDto);
     }
 
-    async getFollowByUserId(userId: string): Promise<any> {
+    @Get('follow')
+    async getFollowByUserId(@Param('userId') userId: string): Promise<any> {
         return await this.followsService.getFollowByUserId(userId);
     }
 
-    async getFollowingByUserId(userId: string): Promise<any> {
+    @Get('following')
+    async getFollowingByUserId(@Param('userId') userId: string): Promise<any> {
         return await this.followsService.getFollowingByUserId(userId);
     }
 
-    async deleteFollow(userId: string, followId: string): Promise<void> {
+    async deleteFollow(@Param('userId') userId: string, followId: string): Promise<void> {
         return await this.followsService.deleteFollow(userId, followId);
     }
 }

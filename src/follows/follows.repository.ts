@@ -22,21 +22,34 @@ export class FollowRepository implements FollowRepositoryInterface {
     }
 
     async findFollowByUserId(userId: string): Promise<SnsBaseUser[]> {
-        return await this.repository.createQueryBuilder('follow')
-            .select(['follow.followId', 'user.nickname', 'user.profileImage'])
-            .leftJoin('follow.follow', 'user')
-            .where('follow.userId = :userId', { userId })
-            .getRawMany();
+        const ret = await this.repository
+            .createQueryBuilder('follow')
+            .leftJoinAndSelect('follow.following', 'following')
+            .select(['follow.id', 'following.id', 'following.name', 'following.email']) // Add other fields you need, but exclude the password
+            .where('follow.follow = :userId', { userId })
+            .getMany();
+        console.log(ret)
+
+        // return ret.map((follow) => {
+        //     console.log(follow)
+
+        //     // return {
+        //     //     id: follow.id,
+        //     //     name: follow.name,
+        //     //     email: follow.email,
+        //     //     profileImage: follow.profileImages.length > 0 ? follow.follow.profileImages[0].url : null,
+        //     // }
+        // })
+
+        return null
     }
 
     async findFollowingByUserId(userId: string): Promise<SnsBaseUser[]> {
         return await this.repository.createQueryBuilder('follow')
-            .select(['follow.userId', 'user.nickname', 'user.profileImage'])
             .leftJoin('follow.following', 'user')
-            .where('follow.followId = :userId', { userId })
+            .where('follow.follow = :userId', { userId })
             .getRawMany();
     }
-
 
     async deleteFollow(userId: string, followId: string): Promise<void> {
         await this.repository.delete({ follow: { id: userId }, following: { id: followId } });
