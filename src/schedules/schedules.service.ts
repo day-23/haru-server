@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from
 import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { AlarmRepository } from 'src/alarms/alarm.repository';
 import { CategoryRepository } from 'src/categories/category.repository';
-import { ScheduleRepository } from 'src/schedules/schedule.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
 import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from './interface/schedule.interface';
