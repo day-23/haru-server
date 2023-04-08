@@ -5,11 +5,11 @@ import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
 import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
-
 import { Between, In, QueryRunner, Repository } from "typeorm";
 import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
+import { ScheduleRepositoryInterface } from "./interface/schedule.repository.interface";
 
-export class ScheduleRepository {
+export class ScheduleRepository implements ScheduleRepositoryInterface {
     constructor(
         @InjectRepository(Schedule) private readonly repository: Repository<Schedule>,
         @InjectRepository(Holiday) private readonly holidayRepository: Repository<Holiday>,

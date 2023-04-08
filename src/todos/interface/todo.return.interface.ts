@@ -6,7 +6,7 @@ import { BaseTagForTodoResponse } from "src/tags/interface/tag.interface";
 export interface BaseTodo extends BaseSchedule {
     todayTodo: boolean,
     flag: boolean,
-    endDate: string | Date,
+    endDate: Date,
     todoOrder: number,
     completed: boolean,
     folded : boolean,

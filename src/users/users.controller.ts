@@ -2,12 +2,9 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes
 import { UserService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
 import { User } from 'src/entity/user.entity';
-import { UserRepository } from 'src/users/user.repository';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.gaurd';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 
 @Controller('user')
