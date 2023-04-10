@@ -6,3 +6,15 @@ export interface SnsBaseUser{
     email: string,
     profileImage: string,
 }
+
+
+
+export interface GetSnsBaseUserByPaginationDto{
+    data: SnsBaseUser[],
+    pagination: {
+        totalItems: number,
+        itemsPerPage: number,
+        currentPage: number,
+        totalPages: number,
+    },
+}

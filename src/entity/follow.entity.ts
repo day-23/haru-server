@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDat
 import { User } from './user.entity';
 
 @Entity()
-export class Follow extends BaseEntity{
+export class UserRelationship extends BaseEntity{
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
@@ -12,13 +12,13 @@ export class Follow extends BaseEntity{
 
     /* 다른 엔터티들간의 관계 */
     /* 사용자 : 팔로우 = N:1 */
-    @ManyToOne(() => User, (user) => user.follow)
-    @JoinColumn()
-    follow: User;
-
     @ManyToOne(() => User, (user) => user.following)
     @JoinColumn()
     following: User;
+
+    @ManyToOne(() => User, (user) => user.follower)
+    @JoinColumn()
+    follower: User;
 
     @CreateDateColumn()
     createdAt: Date;

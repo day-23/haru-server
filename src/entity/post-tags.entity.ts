@@ -1,8 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Post } from './post.entity';
-import { Tag } from './tag.entity';
-import { Todo } from './todo.entity';
 import { User } from './user.entity';
+import { Hashtag } from './hashtag.entity';
 
 @Entity()
 export class PostTags extends BaseEntity {
@@ -16,9 +15,9 @@ export class PostTags extends BaseEntity {
     user: User;
 
     /* postTags : tag = N : 1 */
-    @ManyToOne(() => Tag, (tag) => tag.postTags, { onDelete:'CASCADE' })
-    @JoinColumn({ name: 'tag_id' })
-    tag: Tag;
+    @ManyToOne(() => Hashtag, (tag) => tag.postTags, { onDelete:'CASCADE' })
+    @JoinColumn({ name: 'hashtag_id' })
+    tag: Hashtag;
 
     /* tagwithpost : 게시글 = N : 1 */
     @ManyToOne(() => Post, (post) => post.id)
