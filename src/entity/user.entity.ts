@@ -14,7 +14,7 @@ import {
 } from 'typeorm';
 import { Alarm } from './alarm.entity';
 import { Comment } from './comment.entity';
-import { Follow } from './follow.entity';
+import { UserRelationship } from './follow.entity';
 import { Liked } from './liked.entity';
 import { Post } from './post.entity';
 import { Category } from './category.entity';
@@ -77,12 +77,12 @@ export class User extends BaseEntity {
     profileImages: Image[];
 
     /* 사용자 : 팔로우  -  1:N  */
-    @OneToMany(() => Follow, (follow) => follow.follow)
-    follow: Follow[];
+    @OneToMany(() => UserRelationship, (userRelationship) => userRelationship.follower)
+    follower: UserRelationship[];
 
     /* 사용자 : 팔로윙  -  1:N  */
-    @OneToMany(() => Follow, (following) => following.following)
-    following: Follow[];
+    @OneToMany(() => UserRelationship, (userRelationship) => userRelationship.following)
+    following: UserRelationship[];
 
     /* 사용자 : 게시글  -  1:N  */
     @OneToMany(() => Post, (post) => post.user)

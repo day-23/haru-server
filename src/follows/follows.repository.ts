@@ -1,121 +1,149 @@
-import { Follow } from "src/entity/follow.entity";
+import { UserRelationship } from "src/entity/follow.entity";
 import { FollowRepositoryInterface } from "./interface/follow.repository.interface";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "src/entity/user.entity";
-import { SnsBaseUser } from "./interface/follow.user.interface";
+import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from "./interface/follow.user.interface";
 import { CreateFollowDto } from "./dto/create.follow.dto";
 import { ConfigService } from "@nestjs/config";
+import { NotFoundException } from "@nestjs/common";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 export class FollowRepository implements FollowRepositoryInterface {
     public readonly S3_URL: string;
     constructor(
-        @InjectRepository(Follow) private readonly repository: Repository<Follow>,
+        @InjectRepository(UserRelationship) private readonly repository: Repository<UserRelationship>,
         private readonly configService: ConfigService
-    ) { 
+    ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
     }
 
     async createFollowing(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
-        const {followId} = createFollowDto
-        const follow = new Follow();
-        follow.follow = new User({ id: userId });
-        follow.following = new User({ id: followId });
-        follow.relation = true
-        const ret = await this.repository.save(follow);
-        console.log(userId, ret)
+        const { followId } = createFollowDto
+        const userRelationship = new UserRelationship();
+        userRelationship.following = new User({ id: userId });
+        userRelationship.follower = new User({ id: followId });
+        userRelationship.relation = true
+        const ret = await this.repository.save(userRelationship);
     }
 
-    async findFollowByUserId(userId: string): Promise<SnsBaseUser[]> {
-        const ret = await this.repository
-            .createQueryBuilder('follow')
-            .leftJoinAndSelect('follow.following', 'following')
+    async findFollowByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        const { page, limit } = paginationDto
+        const skip = (page - 1) * limit;
+
+        const [followers, count] = await this.repository
+            .createQueryBuilder('userRelationship')
+            .leftJoinAndSelect('userRelationship.following', 'following')
             .leftJoinAndSelect('following.profileImages', 'profileImages')
             .select([
-                'follow.id',
+                'userRelationship.id',
+                'userRelationship.createdAt',
                 'following.id',
                 'following.name',
                 'following.email',
                 'profileImages.id',
                 'profileImages.url',
             ])
-            .where('follow.follow = :userId', { userId })
-            .getMany();
+            .where('userRelationship.follower = :userId', { userId })
+            .orderBy('userRelationship.createdAt', 'DESC')
+            .skip(skip)
+            .take(limit)
+            .getManyAndCount();
 
-        return ret.map((follow) => {
+        const totalPages = Math.ceil(count / limit);
+
+        const ret = followers.map((userRelationship) => {
             return {
-                id: follow.following.id,
-                name: follow.following.name,
-                email: follow.following.email,
-                profileImage: follow.following?.profileImages?.length > 0 ? this.S3_URL + follow.following.profileImages[0].url : null,
+                id: userRelationship.follower.id,
+                name: userRelationship.follower.name,
+                email: userRelationship.follower.email,
+                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
             }
         })
+
+        return {
+            data: ret,
+            pagination: {
+                totalItems: count,
+                itemsPerPage: limit,
+                currentPage: page,
+                totalPages: totalPages,
+            },
+        }
     }
 
-    async findFollowingByUserId(userId: string): Promise<SnsBaseUser[]> {
-        const ret = await this.repository
-            .createQueryBuilder('follow')
-            .leftJoinAndSelect('follow.following', 'following')
-            .leftJoinAndSelect('following.profileImages', 'profileImages')
+    async findFollowingByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        const { page, limit } = paginationDto
+        const skip = (page - 1) * limit;
+
+        const [followings, count] = await this.repository
+            .createQueryBuilder('userRelationship')
+            .leftJoinAndSelect('userRelationship.follower', 'follower')
+            .leftJoinAndSelect('follower.profileImages', 'profileImages')
             .select([
-                'follow.id',
-                'following.id',
-                'following.name',
-                'following.email',
+                'userRelationship.id',
+                'userRelationship.createdAt',
+                'follower.id',
+                'follower.name',
+                'follower.email',
                 'profileImages.id',
                 'profileImages.url',
             ])
-            .where('follow.follow = :userId', { userId })
-            .getMany();
+            .where('userRelationship.following = :userId', { userId })
+            .orderBy('userRelationship.createdAt', 'DESC')
+            .skip(skip)
+            .take(limit)
+            .getManyAndCount();
 
-        return ret.map((follow) => {
+        const totalPages = Math.ceil(count / limit);
+
+        const ret = followings.map((userRelationship) => {
             return {
-                id: follow.following.id,
-                name: follow.following.name,
-                email: follow.following.email,
-                profileImage: follow.following?.profileImages?.length > 0 ? this.S3_URL + follow.following.profileImages[0].url : null,
+                id: userRelationship.follower.id,
+                name: userRelationship.follower.name,
+                email: userRelationship.follower.email,
+                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
             }
         })
+
+        return {
+            data: ret,
+            pagination: {
+                totalItems: count,
+                itemsPerPage: limit,
+                currentPage: page,
+                totalPages: totalPages,
+            },
+        }
     }
 
-    async deleteFollow(userId: string, followId: string): Promise<void> {
-        await this.repository.delete({ follow: { id: userId }, following: { id: followId } });
+    async deleteFollow(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
+        const { followId } = createFollowDto
+        const ret = await this.repository.delete({ following: { id: userId }, follower: { id: followId } });
+
+        if (ret.affected === 0) {
+            throw new NotFoundException(`Follow not found`);
+        }
     }
 
-    async getFollowers(userId: string): Promise<Follow[]> {
-        return await this.repository.find({ where: { follow: { id: userId } } });
+    async getFollowers(userId: string): Promise<UserRelationship[]> {
+        return await this.repository.find({ where: { follower: { id: userId } } });
     }
 
-    async getFollowings(userId: string): Promise<Follow[]> {
+    async getFollowings(userId: string): Promise<UserRelationship[]> {
         return await this.repository.find({ where: { following: { id: userId } } });
     }
 
     async isFollowing(userId: string, followId: string): Promise<boolean> {
-        const follow = await this.repository.findOne({ where: { follow: { id: userId }, following: { id: followId } } });
+        const follow = await this.repository.findOne({ where: { follower: { id: userId }, following: { id: followId } } });
         return follow ? true : false;
     }
 
     async getFollowersCount(userId: string): Promise<number> {
-        return await this.repository.count({ where: { following: { id: userId }, relation : true } });
+        return await this.repository.count({ where: { following: { id: userId }, relation: true } });
     }
 
     async getFollowingsCount(userId: string): Promise<number> {
         return await this.repository.count({ where: { id: userId } });
-    }
-
-    async getFollowersWithPagination(userId: string, page: number, limit: number): Promise<Follow[]> {
-        return await this.repository.find({
-            where: { follow: { id: userId } },
-            skip: page * limit,
-            take: limit
-        });
-    }
-
-    async getFollowingsWithPagination(userId: string, page: number, limit: number): Promise<Follow[]> {
-        return await this.repository.find({
-            where: { follow: { id: userId } },
-            skip: page * limit,
-            take: limit
-        });
     }
 }

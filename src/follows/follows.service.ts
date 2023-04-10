@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FollowRepositoryInterface } from './interface/follow.repository.interface';
 import { FollowServiceInterface } from './interface/follow.service.interface';
-import { SnsBaseUser } from './interface/follow.user.interface';
+import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from './interface/follow.user.interface';
 import { CreateFollowDto } from './dto/create.follow.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class FollowsService implements FollowServiceInterface {
@@ -16,15 +17,15 @@ export class FollowsService implements FollowServiceInterface {
         }
     }
 
-    async getFollowByUserId(userId: string): Promise<SnsBaseUser[]> {
-        return await this.followRepositoryInterface.findFollowByUserId(userId);
+    async getFollowByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        return await this.followRepositoryInterface.findFollowByUserId(userId, paginationDto);
     }
 
-    async getFollowingByUserId(userId: string): Promise<SnsBaseUser[]> {
-        return await this.followRepositoryInterface.findFollowingByUserId(userId);
+    async getFollowingByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        return await this.followRepositoryInterface.findFollowingByUserId(userId, paginationDto);
     }
 
-    async deleteFollow(userId: string, followId: string): Promise<void> {
-        return await this.followRepositoryInterface.deleteFollow(userId, followId);
+    async deleteFollow(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
+        return await this.followRepositoryInterface.deleteFollow(userId, createFollowDto);
     }
 }
