@@ -13,6 +13,7 @@ export class PostService {
 
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto){
         const images = await this.awsService.uploadFilesToS3('sns', files)
+        console.log(createPostDto)
         return await this.postRepository.createPost(userId, createPostDto, images)
     }
 

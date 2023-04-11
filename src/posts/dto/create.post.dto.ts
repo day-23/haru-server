@@ -10,6 +10,9 @@ export class CreatePostDto {
     @MaxLength(200)
     @IsString()
     content: string;
+
+    @IsString({ each: true })
+    hashTags: string[];
 }
 
 export class UpdatePostDto extends PartialType(CreatePostDto) {}

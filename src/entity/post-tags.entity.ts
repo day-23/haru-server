@@ -23,4 +23,7 @@ export class PostTags extends BaseEntity {
     @ManyToOne(() => Post, (post) => post.id)
     @JoinColumn({ name: 'post_id' })
     post: Post;
+
+    @CreateDateColumn()
+    createdAt: Date;
 }
