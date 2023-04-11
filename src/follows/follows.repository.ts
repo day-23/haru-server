@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "src/entity/user.entity";
 import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from "./interface/follow.user.interface";
-import { CreateFollowDto } from "./dto/create.follow.dto";
+import { CreateFollowDto, DeleteFollowDto, DeleteFollowingDto } from "./dto/create.follow.dto";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundException } from "@nestjs/common";
 import { PaginationDto } from "src/common/dto/pagination.dto";
@@ -50,14 +50,16 @@ export class FollowRepository implements FollowRepositoryInterface {
             .take(limit)
             .getManyAndCount();
 
+        console.log(followers)
+
         const totalPages = Math.ceil(count / limit);
 
         const ret = followers.map((userRelationship) => {
             return {
-                id: userRelationship.follower.id,
-                name: userRelationship.follower.name,
-                email: userRelationship.follower.email,
-                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
+                id: userRelationship.following.id,
+                name: userRelationship.following.name,
+                email: userRelationship.following.email,
+                profileImage: userRelationship.following?.profileImages?.length > 0 ? this.S3_URL + userRelationship.following.profileImages[0].url : null,
             }
         })
 
@@ -117,10 +119,18 @@ export class FollowRepository implements FollowRepositoryInterface {
         }
     }
 
-    async deleteFollow(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
-        const { followId } = createFollowDto
-        const ret = await this.repository.delete({ following: { id: userId }, follower: { id: followId } });
+    async deleteFollowing(userId: string, deleteFollowingDto: DeleteFollowingDto): Promise<void> {
+        const { followingId } = deleteFollowingDto
+        const ret = await this.repository.delete({ following: { id: userId }, follower: { id: followingId } });
 
+        if (ret.affected === 0) {
+            throw new NotFoundException(`Follow not found`);
+        }
+    }
+
+    async deleteFollow(userId: string, deleteFollowDto: DeleteFollowDto): Promise<void> {
+        const { followId } = deleteFollowDto
+        const ret = await this.repository.delete({ following: { id: followId }, follower: { id: userId } });
         if (ret.affected === 0) {
             throw new NotFoundException(`Follow not found`);
         }

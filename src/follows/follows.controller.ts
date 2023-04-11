@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Query } from '@nestjs/common';
 import { FollowServiceInterface } from './interface/follow.service.interface';
-import { CreateFollowDto } from './dto/create.follow.dto';
+import { CreateFollowDto, DeleteFollowDto, DeleteFollowingDto } from './dto/create.follow.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
@@ -30,9 +30,17 @@ export class FollowsController {
         return await this.followsService.getFollowByUserId(userId, paginationDto);
     }
 
+    
+
+    @Delete('following')
+    @ApiOperation({ summary: '유저의 팔로잉 삭제', description: '유저의 팔로잉 삭제' })
+    async deleteFollowing(@Param('userId') userId: string, @Body() createFollowDto: DeleteFollowingDto): Promise<void> {
+        return await this.followsService.deleteFollowing(userId, createFollowDto);
+    }
+
     @Delete('follow')
     @ApiOperation({ summary: '유저의 팔로잉 삭제', description: '유저의 팔로잉 삭제' })
-    async deleteFollow(@Param('userId') userId: string, @Body() createFollowDto: CreateFollowDto): Promise<void> {
+    async deleteFollow(@Param('userId') userId: string, @Body() createFollowDto: DeleteFollowDto): Promise<void> {
         return await this.followsService.deleteFollow(userId, createFollowDto);
     }
 }
