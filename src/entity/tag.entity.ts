@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany, Column } from 'typeorm';
-import { PostTags } from './post-tags.entity';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { TodoTags } from './todo-tags.entity';
 import { User } from './user.entity';
 
@@ -32,9 +31,4 @@ export class Tag extends BaseEntity {
     /* 태그 : 태그투두 = 1:N */
     @OneToMany(() => TodoTags, (todoTags) => todoTags.tag)
     todoTags: TodoTags[];
-
-    /* 태그 : 태그게시물 = 1:N */
-    @OneToMany(() => PostTags, (postTags) => postTags.tag)
-    postTags: PostTags[];
-
 }

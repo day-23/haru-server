@@ -10,17 +10,20 @@ export class PostTags extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
-    @ManyToOne(() => User, (user) => user.id, { onDelete:'CASCADE' })
+    @ManyToOne(() => User, (user) => user.postTags, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
     /* postTags : tag = N : 1 */
     @ManyToOne(() => Hashtag, (tag) => tag.postTags, { onDelete:'CASCADE' })
     @JoinColumn({ name: 'hashtag_id' })
-    tag: Hashtag;
+    hashtag: Hashtag;
 
     /* tagwithpost : 게시글 = N : 1 */
-    @ManyToOne(() => Post, (post) => post.id)
+    @ManyToOne(() => Post, (post) => post.postTags)
     @JoinColumn({ name: 'post_id' })
     post: Post;
+
+    @CreateDateColumn()
+    createdAt: Date;
 }

@@ -18,6 +18,7 @@ import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
 import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
+import { HashtagsModule } from './hashtags/hashtags.module';
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.serv
         PostsModule,
         CommentsModule,
         FollowsModule,
+        HashtagsModule,
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware],
