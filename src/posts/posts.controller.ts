@@ -9,7 +9,7 @@ import { BaseHashTag } from './interface/post.interface';
 import { PostService } from './posts.service';
 
 @Controller('post/:userId')
-@ApiTags('게시물 API - 전체 작업중')
+@ApiTags('게시물 API')
 export class PostsController {
     constructor(private readonly postService: PostService) { }
 
@@ -107,7 +107,7 @@ export class PostsController {
 
     @PaginatedResponse()
     @Get('posts/user/:specificUserId/media/hashtag/:hashTagId')
-    @ApiOperation({ summary: '특정 사용자 media 게시물 페이지네이션 전체 조회 API', description: '특정 사용자 media 게시물 조회' })
+    @ApiOperation({ summary: '특정 사용자 media 게시물 해시태그로 필터링 하여 페이지네이션 전체 조회 API', description: '특정 사용자 media 게시물 해시태그로 필터링 하여 조회' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
