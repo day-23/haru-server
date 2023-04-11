@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
+import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 
 @Injectable()
 export class PostService {
     constructor(private readonly postRepository: PostRepository,
-        private readonly awsService: AwsService
+        private readonly awsService: AwsService,
+        @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto){
         const images = await this.awsService.uploadFilesToS3('sns', files)
-        console.log(createPostDto)
-        return await this.postRepository.createPost(userId, createPostDto, images)
+
+        const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags})
+        const post =  await this.postRepository.createPost(userId, createPostDto, images)
+        const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)
     }
 
     async getPostsByPagination(userId : string, paginationDto: PaginationDto){

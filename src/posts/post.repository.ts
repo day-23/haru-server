@@ -3,7 +3,9 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
+import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
+import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
@@ -16,6 +18,7 @@ export class PostRepository {
 
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
             @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
+            @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
             private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -49,6 +52,13 @@ export class PostRepository {
             updatedAt: savedPost.updatedAt
         }
         return ret
+    }
+
+    async createPostTags(userId: string, postId: string, hashTags: Hashtag[]): Promise<void> {
+        const postTags = hashTags.map((hashtag) => {
+            return this.postTagsRepository.create({ user: { id: userId }, post: { id: postId }, hashtag: { id: hashtag.id } })
+        })
+        await this.postTagsRepository.save(postTags)
     }
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {

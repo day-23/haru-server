@@ -16,5 +16,6 @@ import { HashtagRepository } from './hashtags.repository';
         provide: 'HashtagRepositoryInterface',
         useClass: HashtagRepository,
     }],
+    exports: ['HashtagServiceInterface']
 })
 export class HashtagsModule { }

@@ -23,6 +23,7 @@ import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 import { Image } from './image.entity';
 import { Schedule } from './schedule.entity';
+import { PostTags } from './post-tags.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -114,6 +115,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => TodoTags, (todoTags) => todoTags.user)
     todoTags: TodoTags[]
+
+    @OneToMany(() => PostTags, (postTags) => postTags.user)
+    postTags: PostTags[]
 
     /* 사용자 : 알람 - 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.user)

@@ -17,6 +17,6 @@ export class Hashtag extends BaseEntity {
     content: string;
 
     /* 태그 : 태그게시물 = 1:N */
-    @OneToMany(() => PostTags, (postTags) => postTags.tag)
+    @OneToMany(() => PostTags, (postTags) => postTags.hashtag)
     postTags: PostTags[];
 }
