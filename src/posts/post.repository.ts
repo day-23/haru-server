@@ -102,7 +102,40 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            // .where('post.user = :userId', { userId })
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
+            .getManyAndCount();
+
+        return {
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
+        };
+    }
+
+
+    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto){
+        const { page, limit } = paginationDto;
+        const skip = (page - 1) * limit
+
+        //get posts that include the hashtagId and also include other hashtags not only the hashtagId
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .innerJoinAndSelect('post.postImages', 'postimage')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .where(qb => {
+                const subQuery = qb.subQuery()
+                    .select('postTag.post')
+                    .from('post_tags', 'postTag')
+                    .leftJoin('postTag.hashtag', 'hashtag')
+                    .where('hashtag.id = :hashTagId', { hashTagId })
+                    .getQuery();
+                return 'post.id IN ' + subQuery;
+            })
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
@@ -157,13 +190,10 @@ export class PostRepository {
         }
     }
 
-
     async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
         const images = await this.imageRepository.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } })
         return images.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
     }
-
-
 
     async getHashtags(): Promise<BaseHashTag[]> {
         // get postTags that made in recent 1 day and group by hashtag and rank by count

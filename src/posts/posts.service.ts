@@ -28,6 +28,10 @@ export class PostService {
         return await this.postRepository.getPostsByPagination(userId, paginationDto);
     }
 
+    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto){
+        return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
+    }
+
     async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
         return await this.postRepository.updatePost(userId, postId, updatePostDto)
     }

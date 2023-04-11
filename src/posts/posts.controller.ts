@@ -1,12 +1,11 @@
 import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post, Query, UploadedFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiCreatedResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { AwsService } from 'src/aws/aws.service';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
-import { BaseHashTag, PostCreateResponse } from './interface/post.interface';
+import { BaseHashTag } from './interface/post.interface';
 import { PostService } from './posts.service';
 
 @Controller('post/:userId')
@@ -50,6 +49,16 @@ export class PostsController {
         return await this.postService.getPostsByPagination(userId, paginationDto);
     }
 
+    @PaginatedResponse()
+    @Get('posts/:hashTagId')
+    @ApiOperation({ summary: '전체 게시물(둘러보기) 페이지네이션 조회 API', description: '둘러보기 게시물 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId : string, @Param('hashTagId') hashTagId : string, @Query() paginationDto: PaginationDto){
+        return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
+    }
+
     @Patch(':postId')
     @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
     async updatePost(@Param('userId') userId: string, @Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<void> {
@@ -61,7 +70,6 @@ export class PostsController {
     async deletePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
         return await this.postService.deletePost(userId , postId)
     }
-    
 
     /* 프로필 사진 추가(이미지 하나 추가) */
     @Post('profile/image')
