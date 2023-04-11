@@ -5,7 +5,7 @@ import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
-import { PostCreateResponse } from './interface/post.interface';
+import { BaseHashTag, PostCreateResponse } from './interface/post.interface';
 
 @Injectable()
 export class PostService {
@@ -43,5 +43,14 @@ export class PostService {
 
     async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
         return await this.postRepository.getProfileImagesByUserId(userId)
+    }
+
+
+    async getHashtags(): Promise<BaseHashTag[]> {
+        return await this.postRepository.getHashtags()
+    }
+
+    async getHashtagsByUserId(userId: string): Promise<BaseHashTag[]> {
+        return await this.postRepository.getHashtagsByUserId(userId)
     }
 }

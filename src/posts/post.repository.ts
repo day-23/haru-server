@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { PaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
 import { PostTags } from "src/entity/post-tags.entity";
@@ -10,49 +10,57 @@ import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { PostImageResponse } from "src/posts/interface/post-image.interface";
-import { GetPostsPaginationResponse, PostCreateResponse } from "src/posts/interface/post.interface";
+import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 
 export class PostRepository {
     public readonly S3_URL: string;
 
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
-            @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
-            @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
-            private readonly configService: ConfigService
+        @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
+        @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
+        private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
-     }
+    }
 
-    async createPost(userId: string, createPostDto: CreatePostDto, images : CreatedS3ImageFiles): Promise<PostCreateResponse> {
-        const { content } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content })
-        const savedPost = await this.repository.save(post)
 
-        const postImages = []
+    createPostImage(image: any, savedPost: Post): Image {
+        const postImage = new Image();
+        postImage.post = savedPost;
+        postImage.originalName = image.originalName;
+        postImage.url = image.key;
+        postImage.mimeType = image.contentType;
+        postImage.size = image.size;
+        return postImage;
+    }
 
-        images.uploadedFiles.map((image) => {
-            const postImage = new Image()
-            postImage.post = savedPost
-            postImage.originalName = image.originalName
-            postImage.url = image.key
-            postImage.mimeType = image.contentType
-            postImage.size = image.size
-            postImages.push(postImage)
-        })
+    async savePostImages(images: CreatedS3ImageFiles, savedPost: Post): Promise<Image[]> {
+        const postImages = images.uploadedFiles.map((image) => this.createPostImage(image, savedPost));
+        return await this.imageRepository.save(postImages);
+    }
 
-        const savedPostImages = await this.imageRepository.save(postImages)
-        console.log(savedPostImages)
-
-        const ret = {
+    createPostResponse(
+        savedPost: Post,
+        savedPostImages: Image[],
+        createPostDto: CreatePostDto,
+    ): PostCreateResponse {
+        return {
             id: savedPost.id,
-            images : savedPostImages.map(({id, originalName, url, mimeType}) => ({id, originalName, url: this.S3_URL+ url, mimeType}) ),
-            hashTags : createPostDto.hashTags,
+            images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType })),
+            hashTags: createPostDto.hashTags,
             content: savedPost.content,
             createdAt: savedPost.createdAt,
-            updatedAt: savedPost.updatedAt
-        }
-        return ret
+            updatedAt: savedPost.updatedAt,
+        };
+    }
+
+    async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
+        const { content } = createPostDto
+        const post = this.repository.create({ user: { id: userId }, content });
+        const savedPost = await this.repository.save(post)
+        const savedPostImages = await this.savePostImages(images, savedPost)
+        return this.createPostResponse(savedPost, savedPostImages, createPostDto);
     }
 
     async createPostTags(userId: string, postId: string, hashTags: Hashtag[]): Promise<void> {
@@ -60,6 +68,27 @@ export class PostRepository {
             return this.postTagsRepository.create({ user: { id: userId }, post: { id: postId }, hashtag: { id: hashtag.id } })
         })
         await this.postTagsRepository.save(postTags)
+    }
+
+    createPostData(post: Post) : PostGetResponse {
+        return {
+            id: post.id,
+            user: {
+                id: post.user.id,
+                name: post.user.name,
+                profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null,
+            },
+            content: post.content,
+            images: post.postImages.map(({ id, originalName, url, mimeType }) => ({
+                id,
+                originalName,
+                url: this.S3_URL + url,
+                mimeType,
+            })),
+            hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
+            createdAt: post.createdAt,
+            updatedAt: post.updatedAt,
+        };
     }
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
@@ -73,32 +102,16 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            // .where('post.user = :userId', { userId })
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
-        const totalPages = Math.ceil(count / limit);
-
         return {
-            data: posts.map(post => ({
-                id: post.id,
-                user: { id : post.user.id , name : post.user.name, profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null },
-                content: post.content,
-                images: post.postImages.map(({ id, originalName, url, mimeType}) => ({
-                    id, originalName, url : this.S3_URL + url, mimeType
-                })),
-                hashTags: post.postTags.map(({ hashtag }) => (hashtag.content)),
-                createdAt: post.createdAt,
-                updatedAt: post.updatedAt
-            })),
-            pagination: {
-                totalItems: count,
-                itemsPerPage: limit,
-                currentPage: page,
-                totalPages: totalPages,
-            },
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
         };
     }
 
@@ -125,7 +138,7 @@ export class PostRepository {
         }
     }
 
-    async createProfileImage(userId: string, image: CreatedS3ImageFile) : Promise<PostImageResponse>{
+    async createProfileImage(userId: string, image: CreatedS3ImageFile): Promise<PostImageResponse> {
         const { originalName, key, contentType, size } = image.uploadedFile
 
         const profileImage = new Image()
@@ -139,14 +152,46 @@ export class PostRepository {
         return {
             id: savedProfileImage.id,
             originalName,
-            url : this.S3_URL + key,
-            mimeType : contentType,
+            url: this.S3_URL + key,
+            mimeType: contentType,
         }
     }
 
 
     async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
         const images = await this.imageRepository.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } })
-        return images.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url : this.S3_URL + url, mimeType }))
+        return images.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
     }
+
+
+
+    async getHashtags(): Promise<BaseHashTag[]> {
+        // get postTags that made in recent 1 day and group by hashtag and rank by count
+        const postTags = await this.postTagsRepository.createQueryBuilder('posttags')
+            .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
+            .innerJoin('posttags.hashtag', 'hashtag')
+            .where('posttags.createdAt > :date', { date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000) })
+            .groupBy('hashtag.id')
+            .addGroupBy('hashtag.content')
+            .orderBy('count', 'DESC')
+            .getRawMany();
+
+        return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
+    }
+
+    async getHashtagsByUserId(userId: string): Promise<BaseHashTag[]> {
+        // get postTags that group by hashtag and rank by count and also filter by userId
+        const postTags = await this.postTagsRepository.createQueryBuilder('posttags')
+            .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
+            .innerJoin('posttags.hashtag', 'hashtag')
+            .where('posttags.user = :userId', { userId })
+            .groupBy('hashtag.id')
+            .addGroupBy('hashtag.content')
+            .orderBy('count', 'DESC')
+            .getRawMany();
+
+        return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
+    }
+
+
 }

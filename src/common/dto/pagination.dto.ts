@@ -12,3 +12,13 @@ export class PaginationDto {
     @Min(1)
     limit: number = 20;
 }
+
+export function createPaginationObject(count: number, limit: number, page: number) {
+    const totalPages = Math.ceil(count / limit);
+    return {
+        totalItems: count,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages: totalPages,
+    };
+}

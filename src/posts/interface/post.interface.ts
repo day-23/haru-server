@@ -11,12 +11,24 @@ export interface PostCreateResponse {
     updatedAt: string | Date,
 }
 
+export interface PostUserResponse {
+    id : string,
+    name : string,
+    profileImage : string,
+}
+
 export interface PostGetResponse extends PostCreateResponse{
-    user : Partial<User>,
+    user : PostUserResponse,
 }
 
 
 export interface GetPostsPaginationResponse {
     data: PostGetResponse[],
     pagination: Pagination
+}
+
+
+export interface BaseHashTag{
+    id: string,
+    content: string
 }

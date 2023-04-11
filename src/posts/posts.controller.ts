@@ -6,7 +6,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
-import { PostCreateResponse } from './interface/post.interface';
+import { BaseHashTag, PostCreateResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 
 @Controller('post/:userId')
@@ -89,12 +89,21 @@ export class PostsController {
         return await this.postService.uploadProfileImage(userId, file)
     }
 
-
     @Get('profile/images')
     @ApiOperation({ summary: '사용자 프로필 이미지를 조회', description: '프로필 이미지를 조회한다.' })
     async getProfileImagesByUserId(@Param('userId') userId: string): Promise<PostImageResponse[]> {
         return await this.postService.getProfileImagesByUserId(userId)
     }
 
-
+    @Get('hashtags')
+    @ApiOperation({ summary: '둘러보기에서 해시태그를 10개 조회', description: '해시태그를 조회한다.' })
+    async getHashtags(): Promise<BaseHashTag[]> {
+        return await this.postService.getHashtags()
+    }
+    
+    @Get('hashtags/:userId')
+    @ApiOperation({ summary: '사용자의 해시태그를 조회', description: '해시태그를 조회한다.' })
+    async getHashtagsByUserId(@Param('userId') userId: string): Promise<BaseHashTag[]> {
+        return await this.postService.getHashtagsByUserId(userId)
+    }
 }
