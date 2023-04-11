@@ -39,38 +39,6 @@ export class PostsController {
         return await this.postService.createPost(userId, files, createPostDto)
     }
 
-    @PaginatedResponse()
-    @Get('posts/all')
-    @ApiOperation({ summary: '전체 게시물(둘러보기) 페이지네이션 조회 API', description: '둘러보기 게시물 조회' })
-    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
-    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsByPagination(@Param('userId') userId : string, @Query() paginationDto: PaginationDto){
-        return await this.postService.getPostsByPagination(userId, paginationDto);
-    }
-
-    @PaginatedResponse()
-    @Get('posts/:hashTagId')
-    @ApiOperation({ summary: '전체 게시물(둘러보기) 페이지네이션 조회 API', description: '둘러보기 게시물 조회' })
-    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
-    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId : string, @Param('hashTagId') hashTagId : string, @Query() paginationDto: PaginationDto){
-        return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
-    }
-
-    @Patch(':postId')
-    @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
-    async updatePost(@Param('userId') userId: string, @Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<void> {
-        return await this.postService.updatePost(userId, postId, updatePostDto)
-    }
-
-    @Delete(':postId')
-    @ApiOperation({ summary: '게시물 삭제 API', description: '게시물을 삭제한다.' })
-    async deletePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
-        return await this.postService.deletePost(userId , postId)
-    }
-
     /* 프로필 사진 추가(이미지 하나 추가) */
     @Post('profile/image')
     @ApiOperation({ summary: '사용자 프로필 이미지 설정', description: '프로필 이미지를 추가한다.' })
@@ -97,6 +65,56 @@ export class PostsController {
         return await this.postService.uploadProfileImage(userId, file)
     }
 
+    @PaginatedResponse()
+    @Get('posts/all')
+    @ApiOperation({ summary: '전체 게시물(둘러보기) 페이지네이션 조회 API', description: '둘러보기 게시물 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getPostsByPagination(@Param('userId') userId : string, @Query() paginationDto: PaginationDto){
+        return await this.postService.getPostsByPagination(userId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('posts/hashtag/:hashTagId')
+    @ApiOperation({ summary: '전체 게시물(둘러보기) 태그 선택 조회 API', description: '둘러보기 게시물 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId : string, @Param('hashTagId') hashTagId : string, @Query() paginationDto: PaginationDto){
+        return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('posts/user/:specificUserId/feed')
+    @ApiOperation({ summary: '특정 사용자 feed 게시물 페이지네이션 조회 API', description: '특정 사용자 feed 게시물 페이지네이션 조회 API' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getSpecificUserFeedByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PaginationDto) {
+        return await this.postService.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('posts/user/:specificUserId/media')
+    @ApiOperation({ summary: '특정 사용자 media 게시물 페이지네이션 전체 조회 API', description: '특정 사용자 media 게시물 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getSpecificUserMediaByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PaginationDto) {
+        return await this.postService.getSpecificUserMediaByPagination(userId, specificUserId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('posts/user/:specificUserId/media/hashtag/:hashTagId')
+    @ApiOperation({ summary: '특정 사용자 media 게시물 페이지네이션 전체 조회 API', description: '특정 사용자 media 게시물 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getSpecificUserMediaFilterByHashTagAndPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Param('hashTagId') hashTagId: string, @Query() paginationDto: PaginationDto) {
+        return await this.postService.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, paginationDto);
+    }
+
     @Get('profile/images')
     @ApiOperation({ summary: '사용자 프로필 이미지를 조회', description: '프로필 이미지를 조회한다.' })
     async getProfileImagesByUserId(@Param('userId') userId: string): Promise<PostImageResponse[]> {
@@ -114,4 +132,21 @@ export class PostsController {
     async getHashtagsByUserId(@Param('userId') userId: string): Promise<BaseHashTag[]> {
         return await this.postService.getHashtagsByUserId(userId)
     }
+
+
+
+
+    @Patch(':postId')
+    @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
+    async updatePost(@Param('userId') userId: string, @Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<void> {
+        return await this.postService.updatePost(userId, postId, updatePostDto)
+    }
+
+    @Delete(':postId')
+    @ApiOperation({ summary: '게시물 삭제 API', description: '게시물을 삭제한다.' })
+    async deletePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
+        return await this.postService.deletePost(userId , postId)
+    }
+
+    
 }

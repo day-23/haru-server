@@ -115,7 +115,7 @@ export class PostRepository {
     }
 
 
-    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto){
+    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit } = paginationDto;
         const skip = (page - 1) * limit
 
@@ -147,6 +147,89 @@ export class PostRepository {
             pagination: createPaginationObject(count, limit, page)
         };
     }
+
+
+    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit } = paginationDto;
+        const skip = (page - 1) * limit
+
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .leftJoinAndSelect('post.postImages', 'postimage')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .where('user.id = :specificUserId', { specificUserId })
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
+            .getManyAndCount();
+
+        return {
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
+        };
+    }
+
+    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit } = paginationDto;
+        const skip = (page - 1) * limit
+
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .innerJoinAndSelect('post.postImages', 'postimage')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .where('user.id = :specificUserId', { specificUserId })
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
+            .getManyAndCount();
+
+        return {
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
+        };
+    }
+
+    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit } = paginationDto;
+        const skip = (page - 1) * limit
+
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .innerJoinAndSelect('post.postImages', 'postimage')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .where('user.id = :specificUserId', { specificUserId })
+            .andWhere(qb => {
+                const subQuery = qb.subQuery()
+                    .select('postTag.post')
+                    .from('post_tags', 'postTag')
+                    .leftJoin('postTag.hashtag', 'hashtag')
+                    .where('hashtag.id = :hashTagId', { hashTagId })
+                    .getQuery();
+                return 'post.id IN ' + subQuery;
+            })
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
+            .getManyAndCount();
+
+        return {
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
+        };
+    }
+
 
     async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
         const { content } = updatePostDto

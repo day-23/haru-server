@@ -32,6 +32,18 @@ export class PostService {
         return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
     }
 
+    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto) {
+        return await this.postRepository.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
+    }
+
+    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto) {
+        return await this.postRepository.getSpecificUserMediaByPagination(userId, specificUserId, paginationDto);
+    }
+
+    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, paginationDto: PaginationDto) {
+        return await this.postRepository.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, paginationDto);
+    }
+
     async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
         return await this.postRepository.updatePost(userId, postId, updatePostDto)
     }
