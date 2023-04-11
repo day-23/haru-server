@@ -1,22 +1,20 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { DatePaginationDto, DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
+import { DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { getMinusOneDay } from 'src/common/makeDate';
 import { Subtodo } from 'src/entity/subtodo.entity';
 import { Todo } from 'src/entity/todo.entity';
-import { ScheduleService } from 'src/schedules/schedules.service';
 import { TagsService } from 'src/tags/tags.service';
 import { DataSource, QueryRunner } from 'typeorm';
 import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
-import { CreateSubTodoDto, UpdateSubTodoDto } from './dto/create.subtodo.dto';
-import { CreateBaseTodoDto, CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
+import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
+import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
 import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto } from './dto/order.todo.dto';
 import { TodoRepositoryInterface } from './interface/todo.repository.interface';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse, GetTodosResponseByDate } from './interface/todo.return.interface';
 import { TodosServiceInterface } from './interface/todo.service.interface';
 import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
-import { ScheduleRepositoryInterface } from 'src/schedules/interface/schedule.repository.interface';
 import { ScheduleServiceInterface } from 'src/schedules/interface/schedule.service.interface';
 
 @Injectable()
@@ -42,7 +40,6 @@ export class TodosService implements TodosServiceInterface {
             const savedTodo = await this.todoRepository.createTodo(userId, savedSchedule.id, { todayTodo, flag, completed, folded:false }, queryRunner);
 
             const savedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
-            console.log("here", savedTags)
             await this.todoRepository.createTodoTags(userId, savedTodo.id, savedTags.map(tag => tag.id), queryRunner);
 
             const savedSubTodos = await this.todoRepository.createSubTodos(savedTodo.id, subTodos, queryRunner);

@@ -5,6 +5,7 @@ import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
+import { PostCreateResponse } from './interface/post.interface';
 
 @Injectable()
 export class PostService {
@@ -13,12 +14,14 @@ export class PostService {
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
-    async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto){
+    async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto) : Promise<PostCreateResponse>{
         const images = await this.awsService.uploadFilesToS3('sns', files)
 
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags})
         const post =  await this.postRepository.createPost(userId, createPostDto, images)
         const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)
+
+        return post
     }
 
     async getPostsByPagination(userId : string, paginationDto: PaginationDto){

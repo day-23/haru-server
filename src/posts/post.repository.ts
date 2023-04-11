@@ -47,6 +47,7 @@ export class PostRepository {
         const ret = {
             id: savedPost.id,
             images : savedPostImages.map(({id, originalName, url, mimeType}) => ({id, originalName, url: this.S3_URL+ url, mimeType}) ),
+            hashTags : createPostDto.hashTags,
             content: savedPost.content,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt
@@ -67,10 +68,15 @@ export class PostRepository {
 
         const [posts, count] = await this.repository.createQueryBuilder('post')
             .innerJoinAndSelect('post.postImages', 'postimage')
-            .innerJoinAndSelect('post.user', 'user')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
         const totalPages = Math.ceil(count / limit);
@@ -78,11 +84,12 @@ export class PostRepository {
         return {
             data: posts.map(post => ({
                 id: post.id,
-                user: { id : post.user.id , name : post.user.name },
+                user: { id : post.user.id , name : post.user.name, profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null },
                 content: post.content,
                 images: post.postImages.map(({ id, originalName, url, mimeType}) => ({
                     id, originalName, url : this.S3_URL + url, mimeType
                 })),
+                hashTags: post.postTags.map(({ hashtag }) => (hashtag.content)),
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt
             })),
