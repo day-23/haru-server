@@ -8,9 +8,12 @@ import { CommentCreateResponse, CommentGetResponse, GetCommentsPaginationRespons
 export class CommentsService {
     constructor(private readonly commentRepository: CommentRepository) { }
 
-    /* 구현 예정 */
-    async createComment(userId: string, postId : string,  createCommentDto: CreateCommentDto) : Promise<CommentCreateResponse>{
-        return await this.commentRepository.createComment(userId, postId, createCommentDto)
+    async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
+        return await this.commentRepository.createComment(userId, postId, null, createCommentDto)
+    }
+
+    async createCommentInImage(userId: string, postId: string, postImageId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
+        return await this.commentRepository.createComment(userId, postId, postImageId, createCommentDto)
     }
 
     async getCommentsByPagination(userId : string, paginationDto: PaginationDto): Promise<GetCommentsPaginationResponse>{

@@ -9,13 +9,12 @@ import { Repository } from "typeorm";
 export class CommentRepository {
     constructor(@InjectRepository(Comment) private readonly repository: Repository<Comment>) { }
 
-    async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
-        const { content, x , y } = createCommentDto
-        const comment = this.repository.create({ user: { id: userId }, post: {id : postId}, content , x, y })
+    async createComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {    
+        const { content, x, y } = createCommentDto
+        const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : undefined, content, x, y })
 
         const savedComment = await this.repository.save(comment)
-        console.log(savedComment)
-
+        
         const ret = {
             id: savedComment.id,
             content: savedComment.content,
