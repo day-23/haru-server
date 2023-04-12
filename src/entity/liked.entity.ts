@@ -15,7 +15,7 @@ export class Liked extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 댓글 : 게시글 = N : 1 */
-    @ManyToOne(() => Post, (post) => post.id, {onDelete: 'CASCADE'})
+    @ManyToOne(() => Post, (post) => post.liked, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'post_id' })
     post: Post;
 
