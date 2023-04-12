@@ -134,8 +134,6 @@ export class PostsController {
     }
 
 
-
-
     @Patch(':postId')
     @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
     async updatePost(@Param('userId') userId: string, @Param('postId') postId: string, @Body() updatePostDto: UpdatePostDto): Promise<void> {
@@ -148,5 +146,9 @@ export class PostsController {
         return await this.postService.deletePost(userId , postId)
     }
 
-    
+    @Post(':postId/like')
+    @ApiOperation({ summary: '게시물 좋아요 API', description: '게시물을 좋아요한다.' })
+    async likePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
+        return await this.postService.likePost(userId, postId)
+    }
 }

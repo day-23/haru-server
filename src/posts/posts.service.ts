@@ -69,4 +69,8 @@ export class PostService {
     async getHashtagsByUserId(userId: string): Promise<BaseHashTag[]> {
         return await this.postRepository.getHashtagsByUserId(userId)
     }
+
+    async likePost(userId: string, postId: string) : Promise<void>{
+        return await this.postRepository.likePost(userId, postId)
+    }
 }

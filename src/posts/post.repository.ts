@@ -5,6 +5,7 @@ import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3
 import { PaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
+import { Liked } from "src/entity/liked.entity";
 import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
@@ -19,6 +20,7 @@ export class PostRepository {
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
         @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
+        @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -306,5 +308,16 @@ export class PostRepository {
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
     }
 
+
+    async likePost(userId: string, postId: string): Promise<void> {
+        //if user already liked the post, then delete like and return, else create like
+        const like = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId } } })
+        if (like) {
+            await this.likedRepository.delete({ id: like.id })
+            return
+        }
+        const newLike = this.likedRepository.create({ user: { id: userId }, post: { id: postId } })
+        await this.likedRepository.save(newLike)
+    }
 
 }
