@@ -145,6 +145,27 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+        
+        // //comment 이어 붙이기 해야함
+        // const parentsWithLimitedChildren = await getConnection()
+        //     .createQueryBuilder(Parent, 'parent')
+        //     .leftJoinAndSelect(
+        //         (subquery) => {
+        //             return subquery
+        //                 .select([
+        //                     'child.id',
+        //                     'child.parentId',
+        //                     'child.name', // Replace 'name' with the actual column name in the 'child' table
+        //                 ])
+        //                 .from(Child, 'child')
+        //                 .where('child.parentId = parent.id') // Replace 'parentId' with the actual foreign key column name in the 'child' table
+        //                 .orderBy('child.createdAt', 'DESC')
+        //                 .limit(10);
+        //         },
+        //         'child',
+        //         'parent.id = child.parentId'
+        //     )
+        //     .getMany();
 
         const postIds = posts.map(post => post.id);
         const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);

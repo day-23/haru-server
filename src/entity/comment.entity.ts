@@ -15,7 +15,7 @@ export class Comment extends BaseEntity {
     post: Post;
 
     /* 댓글 : 사진 = N : 1 */
-    @ManyToOne(() => Image, (postImage) => postImage.id, {onDelete: 'CASCADE'})
+    @ManyToOne(() => Image, (postImage) => postImage.comments, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'post_image_id' })
     postImage: Image;
 

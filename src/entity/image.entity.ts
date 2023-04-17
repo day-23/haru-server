@@ -33,8 +33,8 @@ export class Image extends BaseEntity {
     user: User;
 
     /* 사진 : 댓글 = 1:N */
-    @OneToMany(() => Comment, (comment) => comment.id)
-    comment: Comment[];
+    @OneToMany(() => Comment, (comment) => comment.postImage)
+    comments: Comment[];
     
     @CreateDateColumn()
     createdAt: Date;
