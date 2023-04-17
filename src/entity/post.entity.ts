@@ -35,7 +35,7 @@ export class Post extends BaseEntity {
 
     /* 게시글 : 댓글 = 1:N */
     @OneToMany(() => Comment, (comment) => comment.post)
-    comment: Comment[]
+    comments: Comment[]
 
     /* 게시물 : 태그게시물 = 1:N */
     @OneToMany(() => PostTags, (postTags) => postTags.post)
@@ -43,5 +43,8 @@ export class Post extends BaseEntity {
 
     /* 게시물 : 좋아요 = 1:N */
     @OneToMany(() => Liked, (like) => like.post)
-    like: Liked[]
+    liked: Liked[];
+
+    likedCount: number;
+    commentCount : number;
 }

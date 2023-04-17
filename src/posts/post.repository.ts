@@ -3,8 +3,10 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
 import { PaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
+import { Comment } from "src/entity/comment.entity";
 import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
+import { Liked } from "src/entity/liked.entity";
 import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
@@ -19,6 +21,8 @@ export class PostRepository {
     constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
         @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
+        @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
+        @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -86,10 +90,42 @@ export class PostRepository {
                 mimeType,
             })),
             hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
+            isLiked: post.liked.length > 0 ? true : false,
+            likedCount: post.likedCount,
+            commentCount: post.commentCount,
             createdAt: post.createdAt,
             updatedAt: post.updatedAt,
         };
     }
+
+    async getPostsWithCounts(userId: string, postIds: string[]) {
+        const likedCounts = await this.likedRepository.createQueryBuilder('liked')
+            .select('liked.post_id', 'postId')
+            .addSelect('COUNT(*)', 'count')
+            .where('liked.post_id IN (:...postIds)', { postIds })
+            .groupBy('liked.post_id')
+            .getRawMany();
+
+        const commentCounts = await this.commentRepository.createQueryBuilder('comment')
+            .select('comment.post_id', 'postId')
+            .addSelect('COUNT(*)', 'count')
+            .where('comment.post_id IN (:...postIds)', { postIds })
+            .groupBy('comment.post_id')
+            .getRawMany();
+
+        return { likedCounts, commentCounts };
+    }
+
+    async setCountsToPosts(posts: Post[], likedCounts: any[], commentCounts: any[]) {
+        for (const post of posts) {
+            const likedCount = likedCounts.find(item => item.postId === post.id);
+            post.likedCount = likedCount ? Number(likedCount.count) : 0;
+
+            const commentCount = commentCounts.find(item => item.postId === post.id);
+            post.commentCount = commentCount ? Number(commentCount.count) : 0;
+        }
+    }
+    
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit } = paginationDto;
@@ -102,11 +138,38 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+        
+        // //comment 이어 붙이기 해야함
+        // const parentsWithLimitedChildren = await getConnection()
+        //     .createQueryBuilder(Parent, 'parent')
+        //     .leftJoinAndSelect(
+        //         (subquery) => {
+        //             return subquery
+        //                 .select([
+        //                     'child.id',
+        //                     'child.parentId',
+        //                     'child.name', // Replace 'name' with the actual column name in the 'child' table
+        //                 ])
+        //                 .from(Child, 'child')
+        //                 .where('child.parentId = parent.id') // Replace 'parentId' with the actual foreign key column name in the 'child' table
+        //                 .orderBy('child.createdAt', 'DESC')
+        //                 .limit(10);
+        //         },
+        //         'child',
+        //         'parent.id = child.parentId'
+        //     )
+        //     .getMany();
+
+        const postIds = posts.map(post => post.id);
+        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
+        await this.setCountsToPosts(posts, likedCounts, commentCounts);
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -127,6 +190,8 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
             .where(qb => {
                 const subQuery = qb.subQuery()
                     .select('postTag.post')
@@ -141,6 +206,10 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+
+        const postIds = posts.map(post => post.id);
+        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
+        await this.setCountsToPosts(posts, likedCounts, commentCounts);
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -160,12 +229,18 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
             .where('user.id = :specificUserId', { specificUserId })
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+
+        const postIds = posts.map(post => post.id);
+        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
+        await this.setCountsToPosts(posts, likedCounts, commentCounts);
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -184,12 +259,18 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
             .where('user.id = :specificUserId', { specificUserId })
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+
+        const postIds = posts.map(post => post.id);
+        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
+        await this.setCountsToPosts(posts, likedCounts, commentCounts);
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -208,6 +289,8 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
             .where('user.id = :specificUserId', { specificUserId })
             .andWhere(qb => {
                 const subQuery = qb.subQuery()
@@ -223,6 +306,11 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+        
+
+        const postIds = posts.map(post => post.id);
+        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
+        await this.setCountsToPosts(posts, likedCounts, commentCounts);
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -306,5 +394,16 @@ export class PostRepository {
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
     }
 
+
+    async likePost(userId: string, postId: string): Promise<void> {
+        //if user already liked the post, then delete like and return, else create like
+        const like = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId } } })
+        if (like) {
+            await this.likedRepository.delete({ id: like.id })
+            return
+        }
+        const newLike = this.likedRepository.create({ user: { id: userId }, post: { id: postId } })
+        await this.likedRepository.save(newLike)
+    }
 
 }

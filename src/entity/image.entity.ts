@@ -23,7 +23,7 @@ export class Image extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 사진 : 게시글 = N:1 */
-    @ManyToOne(() => Post, (post) => post.postImages)
+    @ManyToOne(() => Post, (post) => post.postImages, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'post_id' })
     post: Post;
 
@@ -33,13 +33,9 @@ export class Image extends BaseEntity {
     user: User;
 
     /* 사진 : 댓글 = 1:N */
-    @OneToMany(() => Comment, (comment) => comment.id)
-    comment: Comment[];
-
-    /* 사진 : 좋아요 = 1:N */
-    @OneToMany(() => Liked, (like) => like.postImage)
-    likes: Liked[];
-
+    @OneToMany(() => Comment, (comment) => comment.postImage)
+    comments: Comment[];
+    
     @CreateDateColumn()
     createdAt: Date;
 

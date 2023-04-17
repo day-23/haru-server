@@ -19,6 +19,9 @@ export interface PostUserResponse {
 
 export interface PostGetResponse extends PostCreateResponse{
     user : PostUserResponse,
+    isLiked : boolean,
+    likedCount : number,
+    commentCount : number,
 }
 
 

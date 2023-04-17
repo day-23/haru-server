@@ -15,14 +15,9 @@ export class Liked extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 댓글 : 게시글 = N : 1 */
-    @ManyToOne(() => Post, (post) => post.id)
+    @ManyToOne(() => Post, (post) => post.liked, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'post_id' })
     post: Post;
-
-    /* 댓글 : 사진 = N : 1 */
-    @ManyToOne(() => Image, (postImage) => postImage.likes)
-    @JoinColumn({ name: 'post_image_id' })
-    postImage: Image;
 
     @CreateDateColumn()
     createdAt: Date;

@@ -20,7 +20,7 @@ export class PostTags extends BaseEntity {
     hashtag: Hashtag;
 
     /* tagwithpost : 게시글 = N : 1 */
-    @ManyToOne(() => Post, (post) => post.postTags)
+    @ManyToOne(() => Post, (post) => post.postTags, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'post_id' })
     post: Post;
 

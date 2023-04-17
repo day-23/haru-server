@@ -8,9 +8,11 @@ import { PostRepository } from 'src/posts/post.repository';
 import { PostsController } from './posts.controller';
 import { PostService } from './posts.service';
 import { HashtagsModule } from 'src/hashtags/hashtags.module';
+import { Liked } from 'src/entity/liked.entity';
+import { Comment } from 'src/entity/comment.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image])],
+    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Liked, Comment])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })
