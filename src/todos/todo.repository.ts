@@ -438,12 +438,17 @@ export class TodoRepository implements TodoRepositoryInterface {
     
         const parsedTodos = todosParseToTodoResponse(todos)
         const unCompleted = parsedTodos.filter(todo => !todo.completed);
-        const completed = parsedTodos.filter(todo => todo.completed);
+
+        const flaggedTodos = unCompleted.filter(todo => todo.flag);
+        const unFlaggedTodos = unCompleted.filter(todo => !todo.flag);
+
+        const completedTodos = parsedTodos.filter(todo => todo.completed);
         
         return {
             data: {
-                todos: unCompleted,
-                completedTodos: completed
+                flaggedTodos ,
+                unFlaggedTodos,
+                completedTodos
             }
         }
     }
