@@ -83,11 +83,12 @@ export class PostRepository {
                 profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null,
             },
             content: post.content,
-            images: post.postImages.map(({ id, originalName, url, mimeType }) => ({
+            images: post.postImages.map(({ id, originalName, url, mimeType, comments }) => ({
                 id,
                 originalName,
                 url: this.S3_URL + url,
                 mimeType,
+                comments: comments.map(({ id, content, x, y }) => ({ id, content, x, y }))
             })),
             hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
             isLiked: post.liked.length > 0 ? true : false,
@@ -145,29 +146,39 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
-        
-        // //comment 이어 붙이기 해야함
-        // const parentsWithLimitedChildren = await getConnection()
-        //     .createQueryBuilder(Parent, 'parent')
-        //     .leftJoinAndSelect(
-        //         (subquery) => {
-        //             return subquery
-        //                 .select([
-        //                     'child.id',
-        //                     'child.parentId',
-        //                     'child.name', // Replace 'name' with the actual column name in the 'child' table
-        //                 ])
-        //                 .from(Child, 'child')
-        //                 .where('child.parentId = parent.id') // Replace 'parentId' with the actual foreign key column name in the 'child' table
-        //                 .orderBy('child.createdAt', 'DESC')
-        //                 .limit(10);
-        //         },
-        //         'child',
-        //         'parent.id = child.parentId'
-        //     )
-        //     .getMany();
+
 
         const postIds = posts.map(post => post.id);
+        const postImageIds = posts.flatMap(post => post.postImages.map(postImage => postImage.id));
+
+        const comments = await this.commentRepository.query(`
+            SELECT *
+            FROM (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY post_image_id ORDER BY created_at DESC) as row_num
+                FROM comment
+            ) ranked_comments
+            WHERE ranked_comments.row_num <= 10
+            AND post_image_id IN (?)
+        `, [postImageIds]);
+
+        // Create a mapping of post image IDs to their respective comments
+        const postImageIdToCommentsMap = comments.reduce((map, comment) => {
+            if (!map[comment.post_image_id]) {
+                map[comment.post_image_id] = [];
+            }
+            map[comment.post_image_id].push(comment);
+            return map;
+        }, {});
+
+        // Assign comments to each post image using the mapping
+        for (const post of posts) {
+            for (const postImage of post.postImages) {
+                postImage.comments = postImageIdToCommentsMap[postImage.id] || [];
+            }
+        }
+
         const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
         await this.setCountsToPosts(posts, likedCounts, commentCounts);
 

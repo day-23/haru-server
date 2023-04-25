@@ -54,7 +54,8 @@ export interface GetTodayTodosResponse {
 
 export interface GetTodosResponseByTag {
     data: {
-        todos: TodoResponse[]
+        flaggedTodos: TodoResponse[]
+        unFlaggedTodos: TodoResponse[]
         completedTodos: TodoResponse[]
     },
 }
