@@ -88,7 +88,7 @@ export class PostRepository {
                 originalName,
                 url: this.S3_URL + url,
                 mimeType,
-                comments: comments.map(({ id, content, x, y }) => ({ id, content, x, y }))
+                comments: comments?.map(({ id, content, x, y }) => ({ id, content, x, y }))
             })),
             hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
             isLiked: post.liked.length > 0 ? true : false,
