@@ -5,7 +5,7 @@ import { CategoryRepository } from 'src/categories/category.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 import { CreateScheduleDto, UpdateScheduleBySplitDto, UpdateSchedulePartialDto } from './dto/create.schedule.dto';
 import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from './interface/schedule.interface';
-import { existingScheduleToCreateScheduleDto, parseScheduleResponse } from './schedule.util';
+import { existingScheduleToCreateScheduleDto, getPreRepeatEnd, parseScheduleResponse } from './schedule.util';
 import { Schedule } from 'src/entity/schedule.entity';
 import { getDatePlusMinusOneDay, getMinusOneDay } from 'src/common/makeDate';
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
@@ -189,7 +189,8 @@ export class ScheduleService implements ScheduleServiceInterface{
         }
 
         const { changedDate, nextRepeatStart, ...updateScheduleDto } = updateRepeatMiddleScheduleBySplitDto
-    
+        const preRepeatEnd = getPreRepeatEnd(changedDate, existingSchedule.repeatEnd)
+
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
@@ -200,7 +201,7 @@ export class ScheduleService implements ScheduleServiceInterface{
                 await queryRunner.startTransaction();
             }
             /* 기존 애를 변경 */
-            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: getMinusOneDay(changedDate) }, queryRunner)
+            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: preRepeatEnd }, queryRunner)
 
             /* 새로운 애를 만듦 */
             await this.createSchedule(userId, updateScheduleDto, queryRunner)
@@ -326,6 +327,7 @@ export class ScheduleService implements ScheduleServiceInterface{
         }
 
         const { removedDate, repeatStart } = repeatScheduleSplitMiddleDto
+        const preRepeatEnd = getPreRepeatEnd(removedDate, existingSchedule.repeatEnd)
     
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
@@ -337,7 +339,7 @@ export class ScheduleService implements ScheduleServiceInterface{
                 await queryRunner.startTransaction();
             }
             /* 기존 애를 변경 */
-            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: getMinusOneDay(removedDate) }, queryRunner)
+            await this.updateSchedulePartialAndSave(userId, existingSchedule, { repeatEnd: preRepeatEnd }, queryRunner)
 
             /* 새로운 애를 만듦 */
             await this.createNewNextRepeatSchedule(userId, existingSchedule, repeatStart, queryRunner)
