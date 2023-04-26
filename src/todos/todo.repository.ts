@@ -119,8 +119,8 @@ export class TodoRepository implements TodoRepositoryInterface {
             return acc;
         }, {})
 
-        const todoTagsEntities = tagIds.map(tagId => {
-            return todoTagsRepository.create({user: {id:userId}, todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId]})
+        const todoTagsEntities = tagIds.map((tagId,index) => {
+            return todoTagsRepository.create({user: {id:userId}, todo: { id: todoId }, tag: { id: tagId }, todoOrder: maxTodoOrderPerTagIdDict[tagId], tagOrder: index})
         })
 
         return await todoTagsRepository.save(todoTagsEntities);
@@ -250,6 +250,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -263,6 +264,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todoTags.id is not null')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -277,6 +279,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -288,6 +291,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -304,6 +308,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
         
@@ -313,6 +318,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 0')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -323,6 +329,8 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('schedule.repeat_start <= :endDate', { endDate })
             .take(LIMIT_DATA_LENGTH)
             .orderBy('schedule.repeatStart', 'DESC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
         const completedTodos = await this.getBaseQueryBuilderTodos(userId)
@@ -330,6 +338,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
 
@@ -353,8 +362,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
-            // .addOrderBy('schedule.repeat_end', 'DESC')
-            // .addOrderBy('schedule.created_at', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
         
@@ -377,9 +385,10 @@ export class TodoRepository implements TodoRepositoryInterface {
             .skip(skip)
             .take(limit)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
-
+            
         const totalPages = Math.ceil(count / limit);
 
         /* tag 내용 파싱 */
@@ -404,6 +413,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .skip(skip)
             .take(limit)
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
 
@@ -460,6 +470,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .andWhere('todo.completed = 0')
             .setParameters({ searchValue: `%${content}%` })
             .orderBy('todo.todoOrder', 'ASC')
+            .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .take(50)
             .getManyAndCount();

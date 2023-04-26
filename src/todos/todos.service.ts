@@ -119,8 +119,9 @@ export class TodosService implements TodosServiceInterface {
             const updatedSchedule = await this.scheduleService.updateSchedule(userId, scheduleId, { ...createScheduleDto, repeatStart: endDate, categoryId: null }, queryRunner);
             const updatedTodo = await this.todoRepository.updateTodo(userId, todoId, { todayTodo, completed, flag, folded:false }, queryRunner);
             const updatedTags = await this.tagService.createTagsOrderedByInput(userId, { contents: tags }, queryRunner);
-            await this.todoRepository.updateTodoTags(userId, todoId, updatedTags.map(tag => tag.id), queryRunner);
-
+            console.log(updatedTags)
+            const ret = await this.todoRepository.updateTodoTags(userId, todoId, updatedTags.map(tag => tag.id), queryRunner);
+            console.log(ret)
             const updatedSubTodos = await this.todoRepository.updateSubTodos(todoId, { contents: subTodos, subTodosCompleted }, queryRunner);
 
             await queryRunner.commitTransaction();
