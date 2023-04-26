@@ -7,6 +7,7 @@ import { TodoResponse } from "src/todos/interface/todo.return.interface";
 import { parseTodoResponse } from "src/todos/todo.util";
 import { CreateScheduleDto } from "./dto/create.schedule.dto";
 import { ScheduleResponse } from "./interface/schedule.interface";
+import { getMinusOneDay } from "src/common/makeDate";
 
 
 export function parseScheduleResponse(newSchedule: Schedule, category: Category, alarms: Alarm[]): ScheduleResponse {
@@ -82,4 +83,14 @@ export function existingScheduleToCreateScheduleDto(existingSchedule : Schedule)
         parent : schedule.parent ? schedule.parent.id : null
     }
     return createScheduleDto
+}
+
+
+export function getPreRepeatEnd(removedDate: Date, repeatEnd: Date) : Date {
+    // Extracting the date part as a string
+    const date_part = removedDate.toISOString().split('T')[0];
+    // Extracting the time part as a string (including the 'Z' at the end)
+    const time_part = repeatEnd.toISOString().split('T')[1];
+
+    return getMinusOneDay(new Date(date_part + 'T' + time_part))
 }
