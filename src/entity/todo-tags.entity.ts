@@ -20,6 +20,9 @@ export class TodoTags extends BaseEntity {
     @Column({ default: 0 }) /* 해당 태그에서 투두의 order */
     todoOrder: number;
 
+    @Column({ default: 0 }) /* 해당 투두에서 태그의 order */
+    tagOrder: number;
+
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
     @ManyToOne(() => User, (user) => user.todoTags, { onDelete: 'CASCADE' })
