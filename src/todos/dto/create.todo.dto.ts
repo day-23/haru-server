@@ -83,7 +83,6 @@ export class CreateTodoDto extends BaseTodoDto {
 
 export class UpdateTodoDto extends CreateTodoDto {
     @ApiProperty({ description: '하위항목 완료 여부' })
-    @IsOptional()
     @IsBoolean({ each: true })
     subTodosCompleted: boolean[];
 }
