@@ -25,28 +25,30 @@ export class TodoRepository implements TodoRepositoryInterface {
     ) { }
 
     /* update todoTags */
+    /* 트랜잭션 처리 필요 */
     async updateTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]> {
         const todoTagsRepository = queryRunner ? queryRunner.manager.getRepository(TodoTags) : this.todoTagsRepository;
 
-        // Fetch existing todoTags
-        const existingTodoTags = await todoTagsRepository.find({ where: { todo: { id: todoId } }, relations: ['tag'] });
+        await todoTagsRepository.delete({ user: { id: userId }, todo: { id: todoId } });
+        // // Fetch existing todoTags
+        // const existingTodoTags = await todoTagsRepository.find({ where: { todo: { id: todoId } }, relations: ['tag'] });
 
-        // Find tagIds to be deleted and new tagIds to be created
-        const existingTagIds = existingTodoTags.map(todoTag => todoTag.tag.id);
-        const tagIdsToDelete = existingTagIds.filter(tagId => !tagIds.includes(tagId));
-        const newTagIds = tagIds.filter(tagId => !existingTagIds.includes(tagId));
+        // // Find tagIds to be deleted and new tagIds to be created
+        // const existingTagIds = existingTodoTags.map(todoTag => todoTag.tag.id);
+        // const tagIdsToDelete = existingTagIds.filter(tagId => !tagIds.includes(tagId));
+        // const newTagIds = tagIds.filter(tagId => !existingTagIds.includes(tagId));
 
-        // Delete todoTags to be removed
-        if (tagIdsToDelete.length > 0) {
-            await todoTagsRepository.delete({ todo: { id: todoId }, tag: { id: In(tagIdsToDelete) } });
-        }
+        // // Delete todoTags to be removed
+        // if (tagIdsToDelete.length > 0) {
+        //     await todoTagsRepository.delete({ todo: { id: todoId }, tag: { id: In(tagIdsToDelete) } });
+        // }
 
         // Create new todoTags
-        const createdTodoTags = await this.createTodoTags(userId, todoId, newTagIds, queryRunner);
+        const createdTodoTags = await this.createTodoTags(userId, todoId, tagIds, queryRunner);
 
         // Merge existing and new todoTags, excluding the deleted ones
-        const updatedTodoTags = existingTodoTags.filter(todoTag => !tagIdsToDelete.includes(todoTag.tag.id)).concat(createdTodoTags);
-        return updatedTodoTags;
+        // const updatedTodoTags = existingTodoTags.filter(todoTag => !tagIdsToDelete.includes(todoTag.tag.id)).concat(createdTodoTags);
+        return createdTodoTags;
     }
 
     /* create subTodos */
