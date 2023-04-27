@@ -100,3 +100,11 @@ export function existingTodoToCreateTodoDto(existingTodo: Todo): CreateTodoDto {
     }
     return createTodoDto
 }
+
+export function existingTodoToUnRepeatCreateTodoDto(existingTodo: Todo): CreateTodoDto {
+    const newTodo = existingTodoToCreateTodoDto(existingTodo)
+    newTodo.repeatEnd = null
+    newTodo.repeatOption = null
+    newTodo.repeatValue = null
+    return newTodo
+}
