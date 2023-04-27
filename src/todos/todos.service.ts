@@ -14,7 +14,7 @@ import { UpdateSubTodosOrderDto, UpdateTodosInTagOrderDto, UpdateTodosOrderDto }
 import { TodoRepositoryInterface } from './interface/todo.repository.interface';
 import { GetTodosPaginationResponse, GetTodosResponseByTag, GetTodosForMain, TodoResponse, GetTodayTodosResponse, GetAllTodosResponse, GetTodosResponseByDate } from './interface/todo.return.interface';
 import { TodosServiceInterface } from './interface/todo.service.interface';
-import { existingTodoToCreateTodoDto, parseTodoResponse } from './todo.util';
+import { existingTodoToCreateTodoDto, existingTodoToUnRepeatCreateTodoDto, parseTodoResponse } from './todo.util';
 import { ScheduleServiceInterface } from 'src/schedules/interface/schedule.service.interface';
 
 @Injectable()
@@ -328,6 +328,11 @@ export class TodosService implements TodosServiceInterface {
         return await this.createTodo(userId, createTodoDto, queryRunner)
     }
 
+    async createUnRepeatNewTodoByExistingTodo(userId: string ,existingTodo : Todo, queryRunner?: QueryRunner): Promise<TodoResponse>{
+        const createTodoDto = existingTodoToUnRepeatCreateTodoDto(existingTodo)
+        return await this.createTodo(userId, createTodoDto, queryRunner)
+    }
+
     async createNewNextRepeatTodoByExistingTodo(userId: string ,existingTodo : Todo, endDate:Date, queryRunner?: QueryRunner): Promise<TodoResponse>{
         const { id, user, schedule, ...todoData } = existingTodo
 
@@ -340,7 +345,7 @@ export class TodosService implements TodosServiceInterface {
     }
 
     async createNewCompletedTodoByExistingTodo(userId: string ,existingTodo : Todo, queryRunner?: QueryRunner): Promise<void>{
-        const completedTodo = await this.createNewTodoByExistingTodo(userId, existingTodo, queryRunner)
+        const completedTodo = await this.createUnRepeatNewTodoByExistingTodo(userId, existingTodo, queryRunner)
         await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
     }
 
