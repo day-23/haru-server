@@ -7,6 +7,7 @@ import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { PostImageResponse } from './interface/post-image.interface';
 import { BaseHashTag } from './interface/post.interface';
 import { PostService } from './posts.service';
+import { imageFileFilter } from './image-file-filter';
 
 @Controller('post/:userId')
 @ApiTags('게시물 API')
@@ -22,18 +23,7 @@ export class PostsController {
                 files: 10, // 파일 10개로 제한
             },
             // Validate the file types
-            fileFilter: (req: any, file: any, callback: (error: Error | null, acceptFile: boolean) => void) => {
-                if (
-                    file.mimetype === 'image/jpeg' ||
-                    file.mimetype === 'image/png' ||
-                    file.mimetype === 'image/gif'
-                ) {
-                    callback(null, true);
-                } else {
-                    const error = new HttpException(`Failed to upload file. file mimetype must be jpeg, png, gif`, HttpStatus.BAD_REQUEST);
-                    callback(error, false);
-                }
-            },
+            fileFilter: imageFileFilter,
         }))
     async uploadFilesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[], @Body() createPostDto:CreatePostDto) {
         return await this.postService.createPost(userId, files, createPostDto)
@@ -48,18 +38,7 @@ export class PostsController {
                 fileSize: 40 * 1024 * 1024, // 40MB
             },
             // Validate the file types
-            fileFilter: (req: any, file: any, callback: (error: Error | null, acceptFile: boolean) => void) => {
-                if (
-                    file.mimetype === 'image/jpeg' ||
-                    file.mimetype === 'image/png' ||
-                    file.mimetype === 'image/gif'
-                ) {
-                    callback(null, true);
-                } else {
-                    const error = new HttpException(`Failed to upload file. file mimetype must be jpeg, png, gif`, HttpStatus.BAD_REQUEST);
-                    callback(error, false);
-                }
-            },
+            fileFilter: imageFileFilter,
         }))
     async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File): Promise<PostImageResponse>{
         return await this.postService.uploadProfileImage(userId, file)
