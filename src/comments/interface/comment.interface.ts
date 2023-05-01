@@ -3,13 +3,19 @@ import { User } from "src/entity/user.entity";
 
 export interface CommentCreateResponse {
     content: string,
-    x : number,
-    y : number,
-    createdAt: string | Date,
-    updatedAt: string | Date,
+    createdAt: Date,
+    updatedAt: Date,
 }
 
-export interface CommentGetResponse extends CommentCreateResponse{
+export interface ImageCommentCreateResponse {
+    content: string,
+    x : number,
+    y : number,
+    createdAt: Date,
+    updatedAt: Date,
+}
+
+export interface CommentGetResponse extends ImageCommentCreateResponse{
     id: string,
     user : User,
 }

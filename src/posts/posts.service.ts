@@ -3,7 +3,7 @@ import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
-import { PostImageResponse } from './interface/post-image.interface';
+import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, PostCreateResponse } from './interface/post.interface';
 
@@ -52,12 +52,12 @@ export class PostService {
         return await this.postRepository.deletePost(userId, postId)
     }
 
-    async uploadProfileImage(userId: string, file: Express.Multer.File): Promise<PostImageResponse>{
+    async uploadProfileImage(userId: string, file: Express.Multer.File): Promise<ImageResponse>{
         const image = await this.awsService.uploadFileToS3('profile', file)
         return await this.postRepository.createProfileImage(userId, image)
     }
 
-    async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
+    async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
         return await this.postRepository.getProfileImagesByUserId(userId)
     }
 

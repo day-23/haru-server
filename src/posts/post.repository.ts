@@ -10,8 +10,9 @@ import { Liked } from "src/entity/liked.entity";
 import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
+import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
-import { PostImageResponse } from "src/posts/interface/post-image.interface";
+import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 
@@ -51,7 +52,7 @@ export class PostRepository {
     ): PostCreateResponse {
         return {
             id: savedPost.id,
-            images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType })),
+            images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments:[] })),
             hashTags: createPostDto.hashTags,
             content: savedPost.content,
             createdAt: savedPost.createdAt,
@@ -88,7 +89,7 @@ export class PostRepository {
                 originalName,
                 url: this.S3_URL + url,
                 mimeType,
-                comments: comments?.map(({ id, content, x, y }) => ({ id, content, x, y }))
+                comments
             })),
             hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
             isLiked: post.liked.length > 0 ? true : false,
@@ -99,7 +100,9 @@ export class PostRepository {
         };
     }
 
-    async getPostsWithCounts(userId: string, postIds: string[]) {
+    async setCountsToPosts(posts: Post[]) : Promise<void> {
+        const postIds = posts.map(post => post.id);
+
         const likedCounts = await this.likedRepository.createQueryBuilder('liked')
             .select('liked.post_id', 'postId')
             .addSelect('COUNT(*)', 'count')
@@ -114,10 +117,6 @@ export class PostRepository {
             .groupBy('comment.post_id')
             .getRawMany();
 
-        return { likedCounts, commentCounts };
-    }
-
-    async setCountsToPosts(posts: Post[], likedCounts: any[], commentCounts: any[]) {
         for (const post of posts) {
             const likedCount = likedCounts.find(item => item.postId === post.id);
             post.likedCount = likedCount ? Number(likedCount.count) : 0;
@@ -126,7 +125,83 @@ export class PostRepository {
             post.commentCount = commentCount ? Number(commentCount.count) : 0;
         }
     }
-    
+
+    async getComments(postImageIds : string[]) : Promise<Comment[]> {
+        const comments = await this.commentRepository.query(`
+            SELECT ranked_comments.*, user.id user_id, user.name user_name, image.url user_profile_image_url
+            FROM (
+            SELECT
+                comment.*,
+                ROW_NUMBER() OVER (PARTITION BY post_image_id ORDER BY created_at DESC) as row_num
+            FROM comment
+            WHERE x IS NOT NULL
+            ) ranked_comments
+            JOIN user ON ranked_comments.user_id = user.id
+            LEFT JOIN (
+            SELECT i1.*
+            FROM image i1
+            INNER JOIN (
+                SELECT user_id, MAX(created_at) as latest_created_at
+                FROM image
+                GROUP BY user_id
+            ) i2 ON i1.user_id = i2.user_id AND i1.created_at = i2.latest_created_at
+            ) image ON user.id = image.user_id
+            WHERE ranked_comments.row_num <= 10
+            AND post_image_id IN (?)
+        `, [postImageIds]);
+
+        return comments.map((commentRow: any) => {
+            const user : SnsBaseUser = {
+                id : commentRow.user_id,
+                name : commentRow.user_name,
+                email : commentRow.user_email,
+                profileImage : commentRow.user_profile_image_url ? this.S3_URL + commentRow.user_profile_image_url : null,
+            };
+
+            const comment = {
+                id : commentRow.id,
+                content : commentRow.content,
+                x : commentRow.x,
+                y : commentRow.y,
+                user,
+                createdAt : commentRow.created_at,
+                updatedAt : commentRow.updated_at,
+                deletedAt : commentRow.deleted_at,
+                postImage : { id : commentRow.post_image_id }
+            }
+            return comment;
+        })
+    }
+
+    createPostImageIdToCommentsMap(comments: Comment[]): Record<string, Comment[]> {
+        return comments.reduce((map, comment) => {
+            if (!map[comment.postImage.id]) {
+                map[comment.postImage.id] = [];
+            }
+
+            const {postImage, ...parsedComment} = comment;
+            map[comment.postImage.id].push(parsedComment);
+            return map;
+        }, {});
+    }
+
+    assignCommentsToPostImages(posts: Post[], postImageIdToCommentsMap: Record<string, Comment[]>): void {
+        for (const post of posts) {
+            for (const postImage of post.postImages) {
+                postImage.comments = postImageIdToCommentsMap[postImage.id] || [];
+            }
+        }
+    }
+
+    async addCommentsToPostImages(posts: Post[]): Promise<void> {
+        const postImageIds = posts.flatMap(post => post.postImages.map(postImage => postImage.id));
+
+        const comments = await this.getComments(postImageIds);
+        const postImageIdToCommentsMap = this.createPostImageIdToCommentsMap(comments);
+
+        this.assignCommentsToPostImages(posts, postImageIdToCommentsMap);
+    }
+
 
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit } = paginationDto;
@@ -146,41 +221,7 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
-
-
-        const postIds = posts.map(post => post.id);
-        const postImageIds = posts.flatMap(post => post.postImages.map(postImage => postImage.id));
-
-        const comments = await this.commentRepository.query(`
-            SELECT *
-            FROM (
-                SELECT
-                    *,
-                    ROW_NUMBER() OVER (PARTITION BY post_image_id ORDER BY created_at DESC) as row_num
-                FROM comment
-            ) ranked_comments
-            WHERE ranked_comments.row_num <= 10
-            AND post_image_id IN (?)
-        `, [postImageIds]);
-
-        // Create a mapping of post image IDs to their respective comments
-        const postImageIdToCommentsMap = comments.reduce((map, comment) => {
-            if (!map[comment.post_image_id]) {
-                map[comment.post_image_id] = [];
-            }
-            map[comment.post_image_id].push(comment);
-            return map;
-        }, {});
-
-        // Assign comments to each post image using the mapping
-        for (const post of posts) {
-            for (const postImage of post.postImages) {
-                postImage.comments = postImageIdToCommentsMap[postImage.id] || [];
-            }
-        }
-
-        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
-        await this.setCountsToPosts(posts, likedCounts, commentCounts);
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -217,10 +258,7 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
-
-        const postIds = posts.map(post => post.id);
-        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
-        await this.setCountsToPosts(posts, likedCounts, commentCounts);
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -249,9 +287,7 @@ export class PostRepository {
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
-        const postIds = posts.map(post => post.id);
-        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
-        await this.setCountsToPosts(posts, likedCounts, commentCounts);
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -278,10 +314,8 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
-
-        const postIds = posts.map(post => post.id);
-        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
-        await this.setCountsToPosts(posts, likedCounts, commentCounts);
+        
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -318,10 +352,7 @@ export class PostRepository {
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
         
-
-        const postIds = posts.map(post => post.id);
-        const { likedCounts, commentCounts } = await this.getPostsWithCounts(userId, postIds);
-        await this.setCountsToPosts(posts, likedCounts, commentCounts);
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -353,7 +384,7 @@ export class PostRepository {
         }
     }
 
-    async createProfileImage(userId: string, image: CreatedS3ImageFile): Promise<PostImageResponse> {
+    async createProfileImage(userId: string, image: CreatedS3ImageFile): Promise<ImageResponse> {
         const { originalName, key, contentType, size } = image.uploadedFile
 
         const profileImage = new Image()
@@ -372,7 +403,7 @@ export class PostRepository {
         }
     }
 
-    async getProfileImagesByUserId(userId: string): Promise<PostImageResponse[]> {
+    async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
         const images = await this.imageRepository.find({ where: { user: { id: userId } }, order: { createdAt: 'DESC' } })
         return images.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
     }

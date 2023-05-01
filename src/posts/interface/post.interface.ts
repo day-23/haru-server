@@ -1,14 +1,14 @@
 import { Pagination } from "src/common/interface/pagination.interface";
 import { User } from "src/entity/user.entity";
-import { PostImageResponse } from "./post-image.interface";
+import { ImageResponse, PostImageResponse } from "./post-image.interface";
 
 export interface PostCreateResponse {
     id: string,
     content: string,
     images : PostImageResponse[],
     hashTags: string[],
-    createdAt: string | Date,
-    updatedAt: string | Date,
+    createdAt: Date,
+    updatedAt: Date,
 }
 
 export interface PostUserResponse {
@@ -23,7 +23,6 @@ export interface PostGetResponse extends PostCreateResponse{
     likedCount : number,
     commentCount : number,
 }
-
 
 export interface GetPostsPaginationResponse {
     data: PostGetResponse[],

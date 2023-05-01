@@ -1,25 +1,26 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CommentsService } from './comments.service';
-import { CreateCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
-import { CommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse } from './interface/comment.interface';
+import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
+import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
 
 @Controller('comment/:userId')
+@ApiTags('댓글 API')
 export class CommentsController {
     constructor(private readonly commentService: CommentsService) { }
 
     @Post(':postId')
-    @ApiOperation({ summary: '이미지에 댓글 작성 API', description: '댓글을 생성한다.' })
+    @ApiOperation({ summary: '게시글에 댓글 작성 API', description: '댓글을 생성한다.' })
     async createComment(@Param('userId') userId: string, @Param('postId') postId: string, @Body() createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
         return await this.commentService.createComment(userId, postId, createCommentDto)
     }
 
     @Post(':postId/:postImageId')
     @ApiOperation({ summary: '이미지에 댓글 작성 API', description: '댓글을 생성한다.' })
-    async createCommentInImage(@Param('userId') userId: string, @Param('postId') postId: string, @Param('postImageId') postImageId:string, @Body() createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
-        return await this.commentService.createCommentInImage(userId, postId, postImageId, createCommentDto)
+    async createCommentInImage(@Param('userId') userId: string, @Param('postId') postId: string, @Param('postImageId') postImageId:string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
+        return await this.commentService.createImageComment(userId, postId, postImageId, createCommentDto)
     }
 
     @PaginatedResponse()
