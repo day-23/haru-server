@@ -23,12 +23,15 @@ export interface TodoRepositoryInterface {
     updateTodoTags(userId: string, todoId: string, tagIds: string[], queryRunner?: QueryRunner): Promise<TodoTags[]>;
     updateSubTodos(todoId: string, updateSubTodoDto: UpdateSubTodosDtoWhenUpdateTodo, queryRunner?: QueryRunner): Promise<Subtodo[]>;
     updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo>
+    updateSubTodosToUnCompleteByTodoId(todoId: string, queryRunner?: QueryRunner): Promise<Subtodo[]>;
 
     updateTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void>
     updateTodayTodosOrder(userId: string, updateTodosOrderDto: UpdateTodosOrderDto): Promise<void>
     updateTodosOrderInTag(userId: string, updateTodosInTagOrderDto: UpdateTodosInTagOrderDto): Promise<void>
     updateSubTodosOrder(userId: string, updateSubTodosOrderDto: UpdateSubTodosOrderDto): Promise<void>
     updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void>
+
+
 
     /* read */
     findTodosAll(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse>;

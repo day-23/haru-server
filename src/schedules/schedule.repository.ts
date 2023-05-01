@@ -62,7 +62,14 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
                 ...updateSchedulePartialDto,
                 parent: { id: parent },
             });
-            const savedSchedule = await scheduleRepository.save(updatedSchedule);
+            let savedSchedule: Schedule = null;
+
+            // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
+            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart > updatedSchedule.repeatEnd) {
+                this.deleteSchedule(userId, schedule.id, queryRunner);
+            } else {
+                savedSchedule = await scheduleRepository.save(updatedSchedule);
+            }
 
             // Commit transaction if it was started in this function
             if (transactionStarted) {
@@ -107,17 +114,47 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
     }
 
     /* 스케줄 삭제 */
-    async deleteSchedule(userId: string, scheduleId: string): Promise<void> {
-        const result = await this.repository.delete({
-            user: { id: userId },
-            id: scheduleId
-        });
+    async deleteSchedule(userId: string, scheduleId: string, queryRunner?: QueryRunner): Promise<void> {
+        const scheduleRepository = queryRunner ? queryRunner.manager.getRepository(Schedule) : this.repository;
 
-        if (result.affected === 0) {
-            throw new HttpException(
-                `No scheduleId with ID ${scheduleId} and user with ID ${userId} was found`,
-                HttpStatus.NOT_FOUND,
-            );
+        // if transaction is started don't start transaction
+        // Start transaction if not already started
+        let transactionStarted = false;
+        if (!queryRunner) {
+            queryRunner = this.repository.manager.connection.createQueryRunner();
+            await queryRunner.startTransaction();
+            transactionStarted = true;
+        }
+        
+        try {
+            const result = await scheduleRepository.delete({
+                user: { id: userId },
+                id: scheduleId
+            });
+    
+            if (result.affected === 0) {
+                throw new HttpException(
+                    `No scheduleId with ID ${scheduleId} and user with ID ${userId} was found`,
+                    HttpStatus.NOT_FOUND,
+                );
+            }
+
+            // Commit transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.commitTransaction();
+            }
+        } catch (error) {
+            // Rollback transaction if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.rollbackTransaction();
+            }
+
+            throw error;
+        } finally {
+            // Release query runner if it was started in this function
+            if (transactionStarted) {
+                await queryRunner.release();
+            }
         }
     }
 
