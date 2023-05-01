@@ -79,6 +79,20 @@ export class TodoRepository implements TodoRepositoryInterface {
         });
         return await subTodoRepository.save(newSubTodos)
     }
+
+
+    async updateSubTodosToUnCompleteByTodoId(todoId: string, queryRunner?: QueryRunner): Promise<Subtodo[]> {
+        const subTodoRepository = queryRunner ? queryRunner.manager.getRepository(Subtodo) : this.subTodoRepository;
+        const subTodos = await subTodoRepository.find({ where: { todo: { id: todoId } }});
+        if (subTodos.length === 0) return [];
+
+        const updatedSubTodos = subTodos.map(subTodo => {
+            subTodo.completed = false;
+            return subTodo;
+        });
+
+        return await subTodoRepository.save(updatedSubTodos);
+    }
     
     /* update todo */
     async updateTodo(userId: string, todoId: string, baseTodoDto: Partial<BaseTodoDto>, queryRunner?: QueryRunner): Promise<Todo> {

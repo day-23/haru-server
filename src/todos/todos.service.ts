@@ -198,6 +198,10 @@ export class TodosService implements TodosServiceInterface {
         return this.todoRepository.updateUnRepeatTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }
 
+    async updateSubTodosToUnCompleteByTodoId(todoId: string, queryRunner?: QueryRunner): Promise<Subtodo[]> {
+        return this.todoRepository.updateSubTodosToUnCompleteByTodoId(todoId, queryRunner)
+    }
+
     async updateRepeatTodoToCompleteFront(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatSplitFrontDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { schedule } = existingTodo
@@ -214,6 +218,7 @@ export class TodosService implements TodosServiceInterface {
             }
             /* 기존 애를 변경 */
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatStart: endDate }, queryRunner)
+            await this.updateSubTodosToUnCompleteByTodoId(todoId, queryRunner)
 
             /* 완료한 애를 하나 만듦 */
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
