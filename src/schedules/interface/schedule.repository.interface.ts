@@ -21,5 +21,5 @@ export interface ScheduleRepositoryInterface {
     updateSchedulesParentId(userId: string, scheduleIds: string[], nextParentId: string, queryRunner?: QueryRunner): Promise<void>
     updateScheduleParentToNull(userId: string, scheduleId: string, queryRunner?: QueryRunner): Promise<void>
 
-    deleteSchedule(userId: string, scheduleId: string): Promise<void>
+    deleteSchedule(userId: string, scheduleId: string, queryRunner?: QueryRunner): Promise<void>
 }
