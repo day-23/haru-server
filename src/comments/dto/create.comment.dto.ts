@@ -3,14 +3,15 @@ import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsBoolean, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
-
-export class CreateCommentDto {
+export class CreateCommentDto{
     @ApiProperty({ description: 'Comment 내용' })
     @MinLength(1)
     @MaxLength(200)
     @IsString()
     content: string;
+}
 
+export class CreateImageCommentDto extends CreateCommentDto{
     @ApiProperty({ description: '댓글 x좌표' })
     @IsNumber()
     x: number;
@@ -20,4 +21,4 @@ export class CreateCommentDto {
     y: number;
 }
 
-export class UpdateCommentDto extends PartialType(CreateCommentDto) {}
+export class UpdateCommentDto extends PartialType(CreateImageCommentDto) {}

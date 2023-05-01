@@ -4,7 +4,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
-import { PostImageResponse } from './interface/post-image.interface';
+import { ImageResponse } from './interface/post-image.interface';
 import { BaseHashTag } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
@@ -40,7 +40,7 @@ export class PostsController {
             // Validate the file types
             fileFilter: imageFileFilter,
         }))
-    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File): Promise<PostImageResponse>{
+    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File): Promise<ImageResponse>{
         return await this.postService.uploadProfileImage(userId, file)
     }
 
@@ -96,7 +96,7 @@ export class PostsController {
 
     @Get('profile/images')
     @ApiOperation({ summary: '사용자 프로필 이미지를 조회', description: '프로필 이미지를 조회한다.' })
-    async getProfileImagesByUserId(@Param('userId') userId: string): Promise<PostImageResponse[]> {
+    async getProfileImagesByUserId(@Param('userId') userId: string): Promise<ImageResponse[]> {
         return await this.postService.getProfileImagesByUserId(userId)
     }
 

@@ -32,7 +32,6 @@ export interface TodoRepositoryInterface {
     updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void>
 
 
-
     /* read */
     findTodosAll(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse>;
     findTodosForMain(userId: string): Promise<GetTodosForMain>;

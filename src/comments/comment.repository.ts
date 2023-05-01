@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateCommentDto, UpdateCommentDto } from "src/comments/dto/create.comment.dto";
-import { CommentCreateResponse, GetCommentsPaginationResponse } from "src/comments/interface/comment.interface";
+import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/comments/dto/create.comment.dto";
+import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Repository } from "typeorm";
@@ -9,7 +9,22 @@ import { Repository } from "typeorm";
 export class CommentRepository {
     constructor(@InjectRepository(Comment) private readonly repository: Repository<Comment>) { }
 
-    async createComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {    
+    async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {    
+        const { content } = createCommentDto
+        const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, content})
+
+        const savedComment = await this.repository.save(comment)
+        
+        const ret = {
+            id: savedComment.id,
+            content: savedComment.content,
+            createdAt: savedComment.createdAt,
+            updatedAt: savedComment.updatedAt
+        }
+        return ret
+    }
+
+    async createImageComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {    
         const { content, x, y } = createCommentDto
         const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : undefined, content, x, y })
 
