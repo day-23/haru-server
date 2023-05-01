@@ -27,10 +27,10 @@ export class Comment extends BaseEntity {
     @Column()
     content: string;
 
-    @Column()
+    @Column({ nullable: true })
     x: number;
 
-    @Column()
+    @Column({ nullable: true })
     y: number;
 
     @CreateDateColumn()
