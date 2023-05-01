@@ -61,6 +61,12 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
+    @Column({ length: 100 })
+    country: string;
+
+    @Column({ length: 10 })
+    timezone: string;
+
     @CreateDateColumn()
     createdAt: Date;
 
