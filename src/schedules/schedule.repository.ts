@@ -200,7 +200,7 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('schedule.user = :userId', { userId })
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate))')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) OR (schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('schedule.repeat_end', 'DESC')
