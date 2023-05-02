@@ -48,6 +48,9 @@ export class Todo extends BaseEntity {
     @OneToOne(() => Schedule, (schedule) => schedule.todo)
     schedule: Schedule
 
+    @UpdateDateColumn()
+    updatedAt: Date;
+
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.todos)
     @JoinColumn({ name: 'user_id' })

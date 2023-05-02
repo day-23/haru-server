@@ -306,7 +306,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         const completedTodos = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('todo.completed = 1')
             .take(LIMIT_DATA_LENGTH)
-            .orderBy('todo.todoOrder', 'ASC')
+            .orderBy('todo.updatedAt', 'DESC')
             .addOrderBy('todoTags.tagOrder', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getMany()
