@@ -55,7 +55,7 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
     name: string;
 
-    @Column({ type: 'varchar', length: 100, comment: '자기소개' })
+    @Column({ type: 'varchar', length: 100, comment: '자기소개', default: '' })
     introduction: string;
 
     @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
@@ -64,10 +64,10 @@ export class User extends BaseEntity {
     @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
     phone: string;
 
-    @Column({ length: 100 })
+    @Column({ length: 100, default: 'kor' })
     country: string;
 
-    @Column({ length: 10 })
+    @Column({ length: 10, default: 'Asia/Seoul'})
     timezone: string;
 
     @CreateDateColumn()
