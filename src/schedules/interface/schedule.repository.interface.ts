@@ -1,7 +1,7 @@
 import { QueryRunner } from "typeorm";
 import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "../dto/create.schedule.dto";
 import { Schedule } from "src/entity/schedule.entity";
-import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface";
+import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface";
 import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pagination.dto";
 
 
@@ -13,7 +13,7 @@ export interface ScheduleRepositoryInterface {
     findScheduleByUserAndScheduleId(userId: string, scheduleId: string): Promise<Schedule>
     findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate>
     findSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate>
-    findSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]>
+    findSchedulesBySearch(userId: string, content: string): Promise<GetSchedulesAndTodos>
     findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate>
 
     updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleWithoutAlarmsDto, queryRunner?: QueryRunner): Promise<Schedule>
