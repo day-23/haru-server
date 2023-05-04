@@ -4,7 +4,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { DatePaginationDto, DateTimePaginationDto } from 'src/common/dto/date-pagination.dto';
 import { CreateScheduleDto } from './dto/create.schedule.dto';
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from './dto/repeat.schedule.dto';
-import { ScheduleResponse } from './interface/schedule.interface';
+import { GetSchedulesAndTodos, ScheduleResponse } from './interface/schedule.interface';
 import { ScheduleServiceInterface } from './interface/schedule.service.interface';
 
 @Controller('schedule/:userId')
@@ -53,7 +53,7 @@ export class ScheduleController {
 
     @Get('search')
     @ApiOperation({ summary: '일정 검색 API', description: '일정를 검색한다.' })
-    async searchSchedules(@Param('userId') userId : string, @Query('content') content : string,){
+    async searchSchedulesAndTodos(@Param('userId') userId : string, @Query('content') content : string,): Promise<GetSchedulesAndTodos>{
         return this.scheduleService.getSchedulesBySearch(userId, content)
     }
 

@@ -4,7 +4,7 @@ import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pa
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
-import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { Between, In, QueryRunner, Repository } from "typeorm";
 import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
 import { ScheduleRepositoryInterface } from "./interface/schedule.repository.interface";
@@ -213,8 +213,6 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
 
         // if todo of data is null, push data to schedules else to todos
         datas.forEach(data => {
-            console.log(data)
-
             if (data.todo) {
                 todos.push(data)
             } else {
@@ -236,18 +234,40 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
     }
 
     /* 스케줄 검색 */
-    async findSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]> {
-        return await this.repository.createQueryBuilder('schedule')
+    async findSchedulesBySearch(userId: string, content: string): Promise<GetSchedulesAndTodos> {
+        //make query that schedule that is todo_id is null
+        const [datas, count] = await this.repository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.category', 'category')
             .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('schedule.user = :userId', { userId })
-            .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue))')
+            .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(category.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
             .setParameters({ searchValue: `%${content}%` })
-            .orderBy('schedule.repeatStart', 'ASC')
-            .addOrderBy('schedule.repeatEnd', 'DESC')
-            .addOrderBy('schedule.createdAt', 'ASC')
+            .orderBy('schedule.repeatStart', 'DESC')
+            .addOrderBy('schedule.createdAt', 'DESC')
+            .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .take(50)
-            .getMany()
+            .getManyAndCount()
+    
+        const todos = []
+        const schedules = []
+
+        // if todo of data is null, push data to schedules else to todos
+        datas.forEach(data => {
+            if (data.todo) {
+                todos.push(data)
+            } else {
+                schedules.push(data)
+            }
+        })
+
+        return {
+            schedules: schedulesParseToSchedulesResponse(schedules),
+            todos: schedulesParseToTodosResponse(todos)
+        }
     }
 
     async findHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate> {

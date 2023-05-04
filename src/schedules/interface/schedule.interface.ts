@@ -25,7 +25,10 @@ export interface ScheduleResponse extends BaseSchedule {
     category: BaseCategory,
 }
 
-
+export interface GetSchedulesAndTodos {
+    schedules: ScheduleResponse[],
+    todos: TodoResponse[],
+}
 
 export interface GetSchedulesAndTodosResponseByDate {
     data:{

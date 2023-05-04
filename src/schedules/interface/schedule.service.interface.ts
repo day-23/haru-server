@@ -1,6 +1,6 @@
 import { QueryRunner } from "typeorm"
 import { CreateScheduleDto, UpdateSchedulePartialDto } from "../dto/create.schedule.dto"
-import { GetHolidaysByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface"
+import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface"
 import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pagination.dto"
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from "../dto/repeat.schedule.dto"
 import { Schedule } from "src/entity/schedule.entity"
@@ -13,7 +13,7 @@ export interface ScheduleServiceInterface {
     getSchedulesByParent(userId: string, parentId: string): Promise<Schedule[]>
     getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate>
     getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate>
-    getSchedulesBySearch(userId: string, content: string): Promise<ScheduleResponse[]>
+    getSchedulesBySearch(userId: string, content: string): Promise<GetSchedulesAndTodos>
 
     updateSchedule(userId: string, scheduleId: string, createScheduleDto: CreateScheduleDto, queryRunner?: QueryRunner): Promise<ScheduleResponse>
     updateSchedulePartialAndSave(userId: string, schedule: Schedule, updateSchedulePartialDto: UpdateSchedulePartialDto, queryRunner?: QueryRunner): Promise<Schedule>
