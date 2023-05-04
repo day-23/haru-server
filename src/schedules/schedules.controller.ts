@@ -57,6 +57,7 @@ export class ScheduleController {
         return this.scheduleService.getSchedulesBySearch(userId, content)
     }
 
+    @PaginatedResponse()
     @Get('holidays/date')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     async getHolidaysByDate(@Param('userId') userId, @Body() dateTimePaginationDto: DateTimePaginationDto) {

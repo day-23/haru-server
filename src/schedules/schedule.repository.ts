@@ -274,6 +274,7 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
         const { startDate, endDate } = datePaginationDto;
         //make query that schedule that is todo_id is null
         const [datas, count] = await this.holidayRepository.createQueryBuilder('holiday')
+            .select(['holiday.id', 'holiday.content', 'holiday.repeatStart', 'holiday.repeatEnd'])
             .where('((holiday.repeat_start >= :startDate AND holiday.repeat_start < :endDate) OR (holiday.repeat_end > :startDate AND holiday.repeat_end <= :endDate) OR (holiday.repeat_start <= :startDate AND holiday.repeat_end >= :endDate) OR (holiday.repeat_start <= :endDate AND holiday.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
             .orderBy('holiday.repeat_start', 'ASC')
