@@ -5,6 +5,7 @@ import { User } from 'src/entity/user.entity';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.gaurd';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/profile.dto';
 
 
 @Controller('user')
@@ -51,4 +52,9 @@ export class UserController {
         return req.user
     }
 
+    @Patch(':userId/profile')
+    @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
+    async updateProfile(@Param('userId') userId: string, @Body() updateProfileDto: UpdateProfileDto): Promise<void> {
+        return await this.userService.updateProfile(userId, updateProfileDto)
+    }
 }

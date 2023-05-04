@@ -55,6 +55,9 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
     name: string;
 
+    @Column({ type: 'varchar', length: 100, comment: '자기소개' })
+    introduction: string;
+
     @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 

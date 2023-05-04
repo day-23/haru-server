@@ -7,7 +7,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     catch(exception: HttpException, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
-        const request = ctx.getRequest<Request>();
+        // const request = ctx.getRequest<Request>();
 
         if (exception instanceof UnauthorizaedException) {
             return response.status(HttpStatus.UNAUTHORIZED).json({
@@ -17,20 +17,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
             });
         }
 
-        console.log("here")
         const status = exception.getStatus();
         const error = exception.getResponse() as
             | string
             | { error: string; statusCode: number; message: string | string[] };
 
-        console.log('http-exception:', exception)
-
 
         if (typeof error === 'string') {
             response.status(status).json({
                 success: false,
-                // timestamp: new Date().toISOString(),
-                // path: request.url,
                 error : {
                     code: status,
                     messeage : error
@@ -39,7 +34,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         } else {
             response.status(status).json({
                 success: false,
-                // timestamp: new Date().toISOString(),
                 error: {
                     code: error.statusCode,
                     message: error.error,
