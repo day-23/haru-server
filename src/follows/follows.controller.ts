@@ -9,7 +9,6 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 export class FollowsController {
     constructor(@Inject('FollowServiceInterface') private readonly followsService: FollowServiceInterface) { }
 
-
     @Post('follow')
     @ApiOperation({ summary: '팔로잉 추가 API', description: '팔로잉을 추가한다.' })
     async createFollow(@Param('userId') userId: string, @Body() createFollowDto: CreateFollowDto): Promise<void> {
@@ -28,9 +27,7 @@ export class FollowsController {
     @ApiOperation({ summary: '유저의 팔로우 목록 조회', description: '유저의 팔로우 목록 조회' })
     async getFollowByUserId(@Param('userId') userId: string, @Query() paginationDto: PaginationDto): Promise<any> {
         return await this.followsService.getFollowByUserId(userId, paginationDto);
-    }
-
-    
+    }    
 
     @Delete('following')
     @ApiOperation({ summary: '유저의 팔로잉 삭제', description: '유저의 팔로잉 삭제' })

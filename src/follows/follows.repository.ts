@@ -20,6 +20,7 @@ export class FollowRepository implements FollowRepositoryInterface {
 
     async createFollowing(userId: string, createFollowDto: CreateFollowDto): Promise<void> {
         const { followId } = createFollowDto
+
         const userRelationship = new UserRelationship();
         userRelationship.following = new User({ id: userId });
         userRelationship.follower = new User({ id: followId });
@@ -145,7 +146,7 @@ export class FollowRepository implements FollowRepositoryInterface {
     }
 
     async isFollowing(userId: string, followId: string): Promise<boolean> {
-        const follow = await this.repository.findOne({ where: { follower: { id: userId }, following: { id: followId } } });
+        const follow = await this.repository.findOne({ where: { follower: { id: followId }, following: { id: userId } } });
         return follow ? true : false;
     }
 

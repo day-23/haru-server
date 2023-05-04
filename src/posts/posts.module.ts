@@ -10,9 +10,10 @@ import { PostService } from './posts.service';
 import { HashtagsModule } from 'src/hashtags/hashtags.module';
 import { Liked } from 'src/entity/liked.entity';
 import { Comment } from 'src/entity/comment.entity';
+import { User } from 'src/entity/user.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Liked, Comment])],
+    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Liked, Comment, User])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })

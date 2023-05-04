@@ -78,12 +78,12 @@ export class UserRepository {
         //find user by name and if already exists that name is not user's name throw error
         const user = await this.repository.findOne({ where: { name } })
 
-        if (user && user.id !== userId) {
-            throw new HttpException(
-                '이미 존재하는 닉네임입니다.',
-                HttpStatus.CONFLICT,
-            );
-        }
+        // if (user && user.id !== userId) {
+        //     throw new HttpException(
+        //         '이미 존재하는 닉네임입니다.',
+        //         HttpStatus.CONFLICT,
+        //     );
+        // }
         
         await this.repository.update({ id: userId }, { ...updateProfileDto });
     }

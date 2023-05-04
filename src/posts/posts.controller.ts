@@ -8,6 +8,7 @@ import { ImageResponse } from './interface/post-image.interface';
 import { BaseHashTag } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
+import { UserInfoResponse } from './interface/user-info.interface';
 
 @Controller('post/:userId')
 @ApiTags('게시물 API')
@@ -112,6 +113,11 @@ export class PostsController {
         return await this.postService.getHashtagsByUserId(userId)
     }
 
+    @Get('info')
+    @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
+    async getUserInfo(@Param('userId') userId: string) : Promise<UserInfoResponse>{
+        return await this.postService.getUserInfo(userId)
+    }
 
     @Patch(':postId')
     @ApiOperation({ summary: '게시물 수정 API', description: '게시물을 수정한다.' })
@@ -130,4 +136,5 @@ export class PostsController {
     async likePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
         return await this.postService.likePost(userId, postId)
     }
+
 }

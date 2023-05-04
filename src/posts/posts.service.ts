@@ -6,6 +6,7 @@ import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, PostCreateResponse } from './interface/post.interface';
+import { UserInfoResponse } from './interface/user-info.interface';
 
 @Injectable()
 export class PostService {
@@ -68,6 +69,10 @@ export class PostService {
 
     async getHashtagsByUserId(userId: string): Promise<BaseHashTag[]> {
         return await this.postRepository.getHashtagsByUserId(userId)
+    }
+
+    async getUserInfo(userId: string) : Promise<UserInfoResponse>{
+        return await this.postRepository.getUserInfo(userId)
     }
 
     async likePost(userId: string, postId: string) : Promise<void>{
