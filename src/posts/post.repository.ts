@@ -15,11 +15,14 @@ import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
+import { UserInfoResponse } from "./interface/user-info.interface";
 
 export class PostRepository {
     public readonly S3_URL: string;
 
-    constructor(@InjectRepository(Post) private readonly repository: Repository<Post>,
+    constructor(
+        @InjectRepository(Post) private readonly repository: Repository<Post>,
+        @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
@@ -221,6 +224,7 @@ export class PostRepository {
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
         return {
@@ -434,6 +438,48 @@ export class PostRepository {
             .getRawMany();
 
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
+    }
+
+    // 여기 해야함
+    async getUserInfo(userId: string): Promise<UserInfoResponse> {
+        const result = await this.userRepository.manager.query(`
+            SELECT user.name, user.introduction,
+                (SELECT image.url
+                    FROM image
+                    WHERE image.user_id = user.id
+                    ORDER BY image.created_at DESC
+                    LIMIT 1) AS profileImage,
+                (SELECT COUNT(following.id)
+                    FROM user_relationship following
+                    WHERE following.following_id = user.id) AS followingCount,
+                (SELECT COUNT(follower.id)
+                    FROM user_relationship follower
+                    WHERE follower.follower_id = user.id) AS followerCount,
+                (SELECT COUNT(post.id)
+                    FROM post
+                    WHERE post.user_id = user.id
+                    AND post.deleted_at IS NULL) AS postCount
+            FROM user
+            WHERE user.id = ?
+            AND user.deleted_at IS NULL
+        `, [userId]);
+
+        if (result.length == 0) {
+            throw new HttpException(
+                'User not found',
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return {
+            id : userId,
+            name : result[0].name,
+            introduction : result[0].introduction,
+            profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null,
+            postCount : result[0].postCount,
+            followerCount : result[0].followerCount,
+            followingCount : result[0].followingCount,
+        }
     }
 
 

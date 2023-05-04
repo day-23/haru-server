@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
 import { Comment } from './comment.entity';
-import { Liked } from './liked.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
 
