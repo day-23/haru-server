@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto, UpdateUserDto } from 'src/users/dto/users.dto';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
+import { UpdateProfileDto } from './dto/profile.dto';
 
 @Injectable()
 export class UserRepository {
@@ -69,5 +70,21 @@ export class UserRepository {
             );
         }
         return user;
+    }
+
+    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
+        const { name } = updateProfileDto
+
+        //find user by name and if already exists that name is not user's name throw error
+        const user = await this.repository.findOne({ where: { name } })
+
+        if (user && user.id !== userId) {
+            throw new HttpException(
+                '이미 존재하는 닉네임입니다.',
+                HttpStatus.CONFLICT,
+            );
+        }
+        
+        await this.repository.update({ id: userId }, { ...updateProfileDto });
     }
 }
