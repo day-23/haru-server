@@ -76,7 +76,7 @@ export class ScheduleService implements ScheduleServiceInterface{
         return await this.scheduleRepository.findSchedulesByParentId(userId, parentId)
     }
 
-    async getHolidaysByDate(userId: string, datePaginationDto: DatePaginationDto): Promise<GetHolidaysByDate> {
+    async getHolidaysByDate(userId: string, datePaginationDto: DateTimePaginationDto): Promise<GetHolidaysByDate> {
         return await this.scheduleRepository.findHolidaysByDate(userId, datePaginationDto)
     }
 

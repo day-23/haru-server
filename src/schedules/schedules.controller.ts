@@ -59,10 +59,8 @@ export class ScheduleController {
 
     @Get('holidays/date')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    @ApiQuery({ name: 'endDate', type: String, required: true, description: '마지막 날짜' })
-    @ApiQuery({ name: 'startDate', type: String, required: true, description: '시작 날짜' })
-    async getHolidaysByDate(@Param('userId') userId, @Query() datePaginationDto: DatePaginationDto) {
-        return await this.scheduleService.getHolidaysByDate(userId, datePaginationDto);
+    async getHolidaysByDate(@Param('userId') userId, @Body() dateTimePaginationDto: DateTimePaginationDto) {
+        return await this.scheduleService.getHolidaysByDate(userId, dateTimePaginationDto);
     }
 
     @Put(':scheduleId/repeat/front')
