@@ -55,7 +55,7 @@ export interface GetHolidaysByDate {
     data: Holiday[],
     pagination: {
         totalItems: number,
-        startDate: string,
-        endDate: string
+        startDate: Date,
+        endDate: Date
     },
 }

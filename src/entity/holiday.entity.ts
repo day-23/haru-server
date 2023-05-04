@@ -7,10 +7,13 @@ export class Holiday extends BaseEntity{
     id: string;
 
     @Column()
-    name : string;
+    content : string;
 
     @Column()
-    date : string;
+    repeatStart : string;
+
+    @Column()
+    repeatEnd : string;
 
     @Column()
     country : string;
