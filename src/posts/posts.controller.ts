@@ -137,4 +137,9 @@ export class PostsController {
         return await this.postService.likePost(userId, postId)
     }
 
+    @Post(':postId/report')
+    @ApiOperation({ summary: '게시물 신고하기 API', description: '게시물을 신고한다.' })
+    async reportPost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
+        return await this.postService.reportPost(userId, postId)
+    }
 }

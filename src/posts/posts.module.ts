@@ -11,9 +11,10 @@ import { HashtagsModule } from 'src/hashtags/hashtags.module';
 import { Liked } from 'src/entity/liked.entity';
 import { Comment } from 'src/entity/comment.entity';
 import { User } from 'src/entity/user.entity';
+import { Report } from 'src/entity/report.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Liked, Comment, User])],
+    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Liked, Comment, User, Report])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })

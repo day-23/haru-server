@@ -1,4 +1,3 @@
-import { Alarms } from 'aws-sdk/clients/applicationautoscaling';
 import {
     Entity,
     Column,
@@ -24,6 +23,7 @@ import { Todo } from './todo.entity';
 import { Image } from './image.entity';
 import { Schedule } from './schedule.entity';
 import { PostTags } from './post-tags.entity';
+import { Report } from './report.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -130,9 +130,12 @@ export class User extends BaseEntity {
 
     /* 사용자 : 알람 - 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.user)
-    alarms: Alarms[];
+    alarms: Alarm[];
 
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => Liked, (postlike) => postlike.user)
     postLike: Liked[];
+
+    @OneToMany(()=> Report, (report) => report.post)
+    report: Report[];
 }
