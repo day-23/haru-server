@@ -56,7 +56,10 @@ export class UserRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.repository.delete(id);
+        //update user deleted_at
+        await this.repository.update({ id }, { deletedAt: new Date() });
+
+        
     }
 
     //로그인 유저 조회
@@ -77,14 +80,6 @@ export class UserRepository {
 
         //find user by name and if already exists that name is not user's name throw error
         const user = await this.repository.findOne({ where: { name } })
-
-        // if (user && user.id !== userId) {
-        //     throw new HttpException(
-        //         '이미 존재하는 닉네임입니다.',
-        //         HttpStatus.CONFLICT,
-        //     );
-        // }
-        
         await this.repository.update({ id: userId }, { ...updateProfileDto });
     }
 }

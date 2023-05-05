@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable, Column } from 'typeorm';
-import { Post } from './post.entity';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Tag } from './tag.entity';
 import { Todo } from './todo.entity';
 import { User } from './user.entity';
@@ -25,7 +24,7 @@ export class TodoTags extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
-    @ManyToOne(() => User, (user) => user.todoTags, { onDelete: 'CASCADE' })
+    @ManyToOne(() => User, (user) => user.todoTags)
     @JoinColumn({ name: 'user_id' })
     user: User;
 

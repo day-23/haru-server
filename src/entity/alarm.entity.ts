@@ -1,7 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Schedule } from './schedule.entity';
-// import { Schedule } from './schedule.entity';
-import { Todo } from './todo.entity';
 import { User } from './user.entity';
 
 /* 일정이나 투두에 대한 개별 알람 */

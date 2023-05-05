@@ -44,11 +44,16 @@ export class UserController {
         return await this.userService.createUser(createUserDto)
     }
 
+    /* 회원가입 */
+    @Delete('/:userId')
+    @ApiOperation({ summary: '회원탈퇴 API', description: '유저를 생성한다.' })
+    async deleteAccount(@Param('userId') userId : string): Promise<void> {
+        return await this.userService.deleteUser(userId)
+    }
+
     @UseGuards(LocalAuthGuard)
     @Post('/auth/login')
     async login(@Req() req) {
-        console.log('Login Route')
-
         return req.user
     }
 
