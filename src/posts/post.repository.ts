@@ -16,6 +16,7 @@ import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
+import { Report } from "src/entity/report.entity";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -27,6 +28,7 @@ export class PostRepository {
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
+        @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -494,4 +496,20 @@ export class PostRepository {
         await this.likedRepository.save(newLike)
     }
 
+    async reportPost(userId: string, postId: string): Promise<void> {
+        //if user already reported the post, then delete report and return, else create report
+        const report = await this.reportRepository.findOne({ where: { user: { id: userId }, post: { id: postId } } })
+        if (report) {
+            return
+        }
+
+        const count = await this.reportRepository.count({ where: { post: { id: postId } } })
+        if (count >= 2) {
+            await this.repository.delete({ id: postId })
+            return
+        }
+
+        const newReport = this.reportRepository.create({ user: { id: userId }, post: { id: postId } })
+        await this.reportRepository.save(newReport)
+    }
 }

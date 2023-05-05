@@ -78,4 +78,8 @@ export class PostService {
     async likePost(userId: string, postId: string) : Promise<void>{
         return await this.postRepository.likePost(userId, postId)
     }
+
+    async reportPost(userId: string, postId: string) : Promise<void>{
+        return await this.postRepository.reportPost(userId, postId)
+    }
 }

@@ -4,6 +4,7 @@ import { Image } from './image.entity';
 import { Liked } from './liked.entity';
 import { PostTags } from './post-tags.entity';
 import { User } from './user.entity';
+import { Report } from './report.entity';
 
 @Entity()
 export class Post extends BaseEntity {
@@ -44,6 +45,9 @@ export class Post extends BaseEntity {
     /* 게시물 : 좋아요 = 1:N */
     @OneToMany(() => Liked, (like) => like.post)
     liked: Liked[];
+
+    @OneToMany(()=> Report, (report) => report.post)
+    report: Report[];
 
     likedCount: number;
     commentCount : number;
