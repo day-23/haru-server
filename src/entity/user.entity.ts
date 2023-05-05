@@ -1,4 +1,3 @@
-import { Alarms } from 'aws-sdk/clients/applicationautoscaling';
 import {
     Entity,
     Column,
@@ -131,7 +130,7 @@ export class User extends BaseEntity {
 
     /* 사용자 : 알람 - 1:N */
     @OneToMany(() => Alarm, (alarm) => alarm.user)
-    alarms: Alarms[];
+    alarms: Alarm[];
 
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => Liked, (postlike) => postlike.user)
