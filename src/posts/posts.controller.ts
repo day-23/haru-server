@@ -5,7 +5,7 @@ import { PaginatedResponse } from 'src/common/decorators/paginated-response.deco
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
-import { BaseHashTag } from './interface/post.interface';
+import { BaseHashTag, PostUserResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
 import { UserInfoResponse } from './interface/user-info.interface';
@@ -117,6 +117,12 @@ export class PostsController {
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
     async getUserInfo(@Param('userId') userId: string) : Promise<UserInfoResponse>{
         return await this.postService.getUserInfo(userId)
+    }
+
+    @Get('search/user/:email')
+    @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
+    async getUserByEmail(@Param('userId') userId: string, @Param('email') email: string) : Promise<PostUserResponse>{
+        return await this.postService.getUserByEmail(userId, email)
     }
 
     @Patch(':postId')
