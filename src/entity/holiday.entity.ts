@@ -1,5 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
-import { User } from './user.entity';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, Column } from 'typeorm';
 
 @Entity()
 export class Holiday extends BaseEntity{

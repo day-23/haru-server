@@ -13,7 +13,7 @@ import { User } from "src/entity/user.entity";
 import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
 import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
-import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse } from "src/posts/interface/post.interface";
+import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
@@ -481,6 +481,33 @@ export class PostRepository {
             postCount : result[0].postCount,
             followerCount : result[0].followerCount,
             followingCount : result[0].followingCount,
+        }
+    }
+
+    async getUserByEmail(userId: string, email: string) : Promise<PostUserResponse>{
+        const result = await this.userRepository.manager.query(`
+            SELECT user.name, user.introduction,
+                (SELECT image.url
+                    FROM image
+                    WHERE image.user_id = user.id
+                    ORDER BY image.created_at DESC
+                    LIMIT 1) AS profileImage
+            FROM user
+            WHERE user.email = ?
+            AND user.deleted_at IS NULL
+        `, [email]);
+
+        if (result.length == 0) {
+            throw new HttpException(
+                'User not found',
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        return {
+            id : userId,
+            name : result[0].name,
+            profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null
         }
     }
 

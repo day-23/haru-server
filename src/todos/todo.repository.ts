@@ -251,7 +251,9 @@ export class TodoRepository implements TodoRepositoryInterface {
 
     getBaseQueryBuilderTodos(userId: string) {
         return this.repository.createQueryBuilder('todo')
+            .addSelect('user.id', 'user_id')
             .innerJoinAndSelect('todo.schedule', 'schedule')
+            .innerJoin('todo.user', 'user')
             .leftJoinAndSelect('schedule.parent', 'parent')
             .leftJoinAndSelect('schedule.alarms', 'alarms')
             .leftJoinAndSelect('todo.todoTags', 'todoTags')
@@ -371,7 +373,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     /* 투두 데이트 페이지네이션 함수 */
     async findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> {
         const { startDate, endDate } = dateTimePaginationDto
-
+        console.log('here')
         // todo and schedule, alarm inner join and pagination
         const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('schedule.repeat_start IS NOT NULL')
@@ -382,6 +384,8 @@ export class TodoRepository implements TodoRepositoryInterface {
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
         
+        console.log(todos)
+
         return {
             data: todosParseToTodoResponse(todos),
             pagination: {

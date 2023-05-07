@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, OneToMany, Column } from 'typeorm';
 import { PostTags } from './post-tags.entity';
 
 @Entity()

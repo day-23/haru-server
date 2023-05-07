@@ -10,7 +10,7 @@ export class PostTags extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
-    @ManyToOne(() => User, (user) => user.postTags, { onDelete:'CASCADE' })
+    @ManyToOne(() => User, (user) => user.postTags)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
