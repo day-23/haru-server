@@ -7,6 +7,7 @@ import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
+import { UpdateProfileDto } from 'src/users/dto/profile.dto';
 
 @Injectable()
 export class PostService {
@@ -49,13 +50,22 @@ export class PostService {
         return await this.postRepository.updatePost(userId, postId, updatePostDto)
     }
 
+
     async deletePost(userId: string, postId: string) : Promise<void>{
         return await this.postRepository.deletePost(userId, postId)
     }
 
-    async uploadProfileImage(userId: string, file: Express.Multer.File): Promise<ImageResponse>{
+    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse> {
+        await this.postRepository.updateProfile(userId, updateProfileDto)
+        return await this.getUserInfo(userId, userId)
+    }
+
+    async uploadProfileWithImage(userId: string, file: Express.Multer.File, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
+        await this.updateProfile(userId, updateProfileDto)
         const image = await this.awsService.uploadFileToS3('profile', file)
-        return await this.postRepository.createProfileImage(userId, image)
+        await this.postRepository.createProfileImage(userId, image)
+
+        return await this.getUserInfo(userId, userId)
     }
 
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {

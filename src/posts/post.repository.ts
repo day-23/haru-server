@@ -17,6 +17,7 @@ import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetRes
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
+import { UpdateProfileDto } from "src/users/dto/profile.dto";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -382,6 +383,11 @@ export class PostRepository {
                 HttpStatus.NOT_FOUND
             );
         }
+    }
+
+    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
+        //find user by name and if already exists that name is not user's name throw error
+        await this.userRepository.update({ id: userId }, { ...updateProfileDto });
     }
 
     async deletePost(userId: string, postId: string): Promise<void> {

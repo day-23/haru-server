@@ -9,6 +9,7 @@ import { BaseHashTag, PostUserResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
 import { UserInfoResponse } from './interface/user-info.interface';
+import { UpdateProfileDto } from 'src/users/dto/profile.dto';
 
 @Controller('post/:userId')
 @ApiTags('게시물 API')
@@ -30,8 +31,14 @@ export class PostsController {
         return await this.postService.createPost(userId, files, createPostDto)
     }
 
+    @Patch('profile')
+    @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
+    async updateProfile(@Param('userId') userId: string, @Body() updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse> {
+        return await this.postService.updateProfile(userId, updateProfileDto)
+    }
+
     /* 프로필 사진 추가(이미지 하나 추가) */
-    @Post('profile/image')
+    @Patch('profile/image')
     @ApiOperation({ summary: '사용자 프로필 이미지 설정', description: '프로필 이미지를 추가한다.' })
     @UseInterceptors(FileInterceptor('image',
         {
@@ -41,8 +48,8 @@ export class PostsController {
             // Validate the file types
             fileFilter: imageFileFilter,
         }))
-    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File): Promise<ImageResponse>{
-        return await this.postService.uploadProfileImage(userId, file)
+    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
+        return await this.postService.uploadProfileWithImage(userId, file, updateProfileDto)
     }
 
     @PaginatedResponse()
