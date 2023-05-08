@@ -483,7 +483,7 @@ export class PostRepository {
             FROM user
             WHERE user.id = ?
             AND user.deleted_at IS NULL
-        `, [specificUserId, userId, userId]);
+        `, [specificUserId, userId, specificUserId]);
 
         if (result.length == 0) {
             throw new HttpException(
