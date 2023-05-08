@@ -20,6 +20,7 @@ export interface PostUserResponse {
 export interface PostGetResponse extends PostCreateResponse{
     user : PostUserResponse,
     isLiked : boolean,
+    isCommented : boolean,
     likedCount : number,
     commentCount : number,
 }

@@ -98,6 +98,7 @@ export class PostRepository {
             })),
             hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
             isLiked: post.liked.length > 0 ? true : false,
+            isCommented : post.comments.length > 0 ? true : false,
             likedCount: post.likedCount,
             commentCount: post.commentCount,
             createdAt: post.createdAt,
@@ -221,11 +222,15 @@ export class PostRepository {
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
             .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
             .addSelect(['liked.id'])
+            .leftJoin('post.comments', 'comment', 'comment.user = :userId', { userId })
+            .addSelect(['comment.id'])
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
             .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
+
+        console.log(posts)
 
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 

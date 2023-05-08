@@ -58,8 +58,6 @@ export class UserRepository {
     async delete(id: string): Promise<void> {
         //update user deleted_at
         await this.repository.update({ id }, { deletedAt: new Date() });
-
-        
     }
 
     //로그인 유저 조회
