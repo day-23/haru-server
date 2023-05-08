@@ -16,6 +16,12 @@ export class PostService {
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
+    async uploadTemplate(userId: string, files: Express.Multer.File[]){
+        const images = await this.awsService.uploadFilesToS3('template', files)
+        const post = await this.postRepository.createTemplate(userId, images)
+        return post
+    }
+
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto) : Promise<PostCreateResponse>{
         const images = await this.awsService.uploadFilesToS3('sns', files)
 

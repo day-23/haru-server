@@ -16,6 +16,22 @@ import { UpdateProfileDto } from 'src/users/dto/profile.dto';
 export class PostsController {
     constructor(private readonly postService: PostService) { }
 
+    @Post('template')
+    @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
+    @UseInterceptors(FilesInterceptor('templates', 10,
+        {
+            limits: {
+                fileSize: 40 * 1024 * 1024, // 40MB
+                files: 10, // 파일 10개로 제한
+            },
+            // Validate the file types
+            fileFilter: imageFileFilter,
+        }))
+    async uploadTemplatesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[]) {
+        return await this.postService.uploadTemplate(userId, files)
+    }
+
+
     @Post()
     @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
     @UseInterceptors(FilesInterceptor('images', 10,

@@ -18,6 +18,7 @@ import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
+import { Template } from "src/entity/template.entity";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -25,6 +26,7 @@ export class PostRepository {
     constructor(
         @InjectRepository(Post) private readonly repository: Repository<Post>,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(Template) private readonly templateRepository: Repository<Template>,
         @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
@@ -64,6 +66,20 @@ export class PostRepository {
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt,
         };
+    }
+
+    async createTemplate(userId: string, images: CreatedS3ImageFiles){
+        const templates = []
+        images.uploadedFiles.forEach((image) => {
+            const template = this.templateRepository.create({originalName: image.originalName, url: image.key, mimeType: image.contentType, size: image.size });
+            templates.push(template)
+        })
+        const ret =  await this.templateRepository.save(templates)
+        ret.map((template) => {
+            template.url = this.S3_URL + template.url
+        })
+
+        return ret
     }
 
     async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
