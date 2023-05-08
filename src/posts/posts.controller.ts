@@ -113,10 +113,10 @@ export class PostsController {
         return await this.postService.getHashtagsByUserId(userId)
     }
 
-    @Get('info')
+    @Get('info/:specificUserId')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserInfo(@Param('userId') userId: string) : Promise<UserInfoResponse>{
-        return await this.postService.getUserInfo(userId)
+    async getUserInfo(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string) : Promise<UserInfoResponse>{
+        return await this.postService.getUserInfo(userId, specificUserId)
     }
 
     @Get('search/user/:email')
