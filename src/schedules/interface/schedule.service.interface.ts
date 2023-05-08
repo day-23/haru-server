@@ -1,6 +1,6 @@
 import { QueryRunner } from "typeorm"
 import { CreateScheduleDto, UpdateSchedulePartialDto } from "../dto/create.schedule.dto"
-import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface"
+import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseAndHolidaysByDate, GetSchedulesResponseByDate, ScheduleResponse } from "./schedule.interface"
 import { DateTimePaginationDto } from "src/common/dto/date-pagination.dto"
 import { RepeatScheduleSplitBackDto, RepeatScheduleSplitFrontDto, RepeatScheduleSplitMiddleDto, UpdateRepeatBackScheduleBySplitDto, UpdateRepeatFrontScheduleBySplitDto, UpdateRepeatMiddleScheduleBySplitDto } from "../dto/repeat.schedule.dto"
 import { Schedule } from "src/entity/schedule.entity"
@@ -9,7 +9,7 @@ export interface ScheduleServiceInterface {
     createSchedule(userId: string, createScheduleDto: CreateScheduleDto, queryRunner?: QueryRunner): Promise<ScheduleResponse>
     createNewNextRepeatSchedule(userId: string, schedule: Schedule, nextRepeatStart: Date, queryRunner?: QueryRunner): Promise<ScheduleResponse>
 
-    getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate>
+    getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseAndHolidaysByDate>
     getSchedulesByParent(userId: string, parentId: string): Promise<Schedule[]>
     getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate>
     getHolidaysByDate(userId: string, datePaginationDto: DateTimePaginationDto): Promise<GetHolidaysByDate>

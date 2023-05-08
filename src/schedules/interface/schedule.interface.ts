@@ -30,10 +30,37 @@ export interface GetSchedulesAndTodos {
     todos: TodoResponse[],
 }
 
+
+export interface GetSchedulesAndTodosAndHolidaysResponseByDate {
+    data:{
+        schedules: ScheduleResponse[],
+        todos: TodoResponse[],
+        holidays: Holiday[],
+    }
+    pagination: {
+        totalItems: number,
+        startDate: Date,
+        endDate: Date
+    },
+}
+
+
 export interface GetSchedulesAndTodosResponseByDate {
     data:{
         schedules: ScheduleResponse[],
         todos: TodoResponse[],
+    }
+    pagination: {
+        totalItems: number,
+        startDate: Date,
+        endDate: Date
+    },
+}
+
+export interface GetSchedulesResponseAndHolidaysByDate {
+    data:{
+        schedules: ScheduleResponse[],
+        holidays: Holiday[],
     }
     pagination: {
         totalItems: number,
