@@ -74,10 +74,7 @@ export class UserRepository {
     }
 
     async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
-        const { name } = updateProfileDto
-
         //find user by name and if already exists that name is not user's name throw error
-        const user = await this.repository.findOne({ where: { name } })
         await this.repository.update({ id: userId }, { ...updateProfileDto });
     }
 }
