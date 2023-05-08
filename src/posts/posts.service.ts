@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/posts/post.repository';
-import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
+import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, PostCreateResponse, PostUserResponse } from './interface/post.interface';
@@ -24,6 +24,13 @@ export class PostService {
 
     async getTemplates(userId: string){
         return await this.postRepository.getTemplates(userId)
+    }
+
+    async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto) {
+        const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
+        const post = await this.postRepository.createTemplatePost(userId, createPostDto)
+        const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)
+        return post
     }
 
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto) : Promise<PostCreateResponse>{
