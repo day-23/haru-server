@@ -71,8 +71,8 @@ export class PostService {
         return await this.postRepository.getHashtagsByUserId(userId)
     }
 
-    async getUserInfo(userId: string) : Promise<UserInfoResponse>{
-        return await this.postRepository.getUserInfo(userId)
+    async getUserInfo(userId: string, specificUserId : string) : Promise<UserInfoResponse>{
+        return await this.postRepository.getUserInfo(userId, specificUserId)
     }
 
     async getUserByEmail(userId: string, email: string) : Promise<PostUserResponse>{

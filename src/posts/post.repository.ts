@@ -448,7 +448,7 @@ export class PostRepository {
     }
 
     // 여기 해야함
-    async getUserInfo(userId: string): Promise<UserInfoResponse> {
+    async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
             SELECT user.name, user.introduction,
                 (SELECT image.url
@@ -465,11 +465,15 @@ export class PostRepository {
                 (SELECT COUNT(post.id)
                     FROM post
                     WHERE post.user_id = user.id
-                    AND post.deleted_at IS NULL) AS postCount
+                    AND post.deleted_at IS NULL) AS postCount,
+                (SELECT COUNT(user_relationship.follower_id)
+                    FROM user_relationship
+                    WHERE ((user_relationship.follower_id = ?) AND (user_relationship.following_id = ?))
+                    ) AS isFollowing
             FROM user
             WHERE user.id = ?
             AND user.deleted_at IS NULL
-        `, [userId]);
+        `, [specificUserId, userId, userId]);
 
         if (result.length == 0) {
             throw new HttpException(
@@ -483,9 +487,10 @@ export class PostRepository {
             name : result[0].name,
             introduction : result[0].introduction,
             profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null,
-            postCount : result[0].postCount,
-            followerCount : result[0].followerCount,
-            followingCount : result[0].followingCount,
+            isFollowing : result[0].isFollowing > 0 ? true : false,
+            postCount : Number(result[0].postCount),
+            followerCount : Number(result[0].followerCount),
+            followingCount : Number(result[0].followingCount),
         }
     }
 
