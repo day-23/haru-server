@@ -38,13 +38,16 @@ export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 50, comment: '유저 아이디' })
+    @Column({ type: 'varchar', length: 100, comment: '유저의 소셜 가입 이메일' })
     email: string;
+
+    @Column({ nullable : true, type: 'varchar', length: 50, comment: '유저 아이디 사용자 검색용', default : null})
+    haruId: string;
 
     @Column({
         nullable: true,
         type: 'varchar',
-        length: 255,
+        length: 30,
         comment: '유저 비밀번호',
     })
     password: string;
