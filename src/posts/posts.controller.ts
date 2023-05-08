@@ -17,7 +17,7 @@ export class PostsController {
     constructor(private readonly postService: PostService) { }
 
     @Post('template')
-    @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
+    @ApiOperation({ summary: '어드민용 템플릿 이미지 생성 API (이미지 업로드 포함)', description: '템플릿을 생성한다.' })
     @UseInterceptors(FilesInterceptor('templates', 10,
         {
             limits: {
@@ -31,6 +31,11 @@ export class PostsController {
         return await this.postService.uploadTemplate(userId, files)
     }
 
+    @Get('template')
+    @ApiOperation({ summary: '템플릿 이미지 불러오기 API (이미지 업로드 포함)', description: '템플릿 이미지를 불러온다.' })
+    async getTemplates(@Param('userId') userId: string) {
+        return await this.postService.getTemplates(userId)
+    }
 
     @Post()
     @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })

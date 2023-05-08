@@ -82,6 +82,14 @@ export class PostRepository {
         return ret
     }
 
+    async getTemplates(userId: string){
+        const templates = await this.templateRepository.find({order: {createdAt: 'ASC'}})
+        templates.map((template) => {
+            template.url = this.S3_URL + template.url
+        })
+        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
+    }
+
     async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
         const post = this.repository.create({ user: { id: userId }, content });

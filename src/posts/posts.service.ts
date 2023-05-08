@@ -22,6 +22,10 @@ export class PostService {
         return post
     }
 
+    async getTemplates(userId: string){
+        return await this.postRepository.getTemplates(userId)
+    }
+
     async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto) : Promise<PostCreateResponse>{
         const images = await this.awsService.uploadFilesToS3('sns', files)
 
