@@ -493,7 +493,7 @@ export class PostRepository {
         }
 
         return {
-            id : userId,
+            id : specificUserId,
             name : result[0].name,
             introduction : result[0].introduction,
             profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null,
