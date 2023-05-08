@@ -6,7 +6,7 @@ import { Subtodo } from 'src/entity/subtodo.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { TagsService } from 'src/tags/tags.service';
 import { DataSource, QueryRunner } from 'typeorm';
-import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
+import { DeleteRepeatSplitMiddleDto, NotRepeatTodoCompleteDto, RepeatSplitBackDto, RepeatSplitFrontDto, RepeatSplitMiddleDto, UpdateRepeatBackTodoBySplitDto, UpdateRepeatByDivide, UpdateRepeatFrontTodoBySplitDto, UpdateRepeatMiddleTodoBySplitDto } from './dto/repeat.todo.dto';
 import { UpdateSubTodoDto } from './dto/create.subtodo.dto';
 import { CreateTodoDto, UpdateTodoDto } from './dto/create.todo.dto';
 import { GetByTagDto } from './dto/geybytag.todo.dto';
@@ -443,7 +443,7 @@ export class TodosService implements TodosServiceInterface {
         }
     }
 
-    async updateRepeatTodoMiddle(userId: string, todoId : string, updateRepeatMiddleTodoBySplitDto: UpdateRepeatMiddleTodoBySplitDto,  queryRunner? : QueryRunner): Promise<void>{
+    async updateRepeatTodoMiddle(userId: string, todoId : string, updateRepeatMiddleTodoBySplitDto: UpdateRepeatMiddleTodoBySplitDto, queryRunner? : QueryRunner): Promise<void>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { changedDate, nextEndDate, ...updateTodoDto } = updateRepeatMiddleTodoBySplitDto
         const { schedule } = existingTodo

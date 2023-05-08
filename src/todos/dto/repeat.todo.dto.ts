@@ -67,7 +67,16 @@ export class UpdateRepeatMiddleTodoBySplitDto extends UpdateTodoDto{
     nextEndDate: Date;
 }
 
+
 export class UpdateRepeatBackTodoBySplitDto extends UpdateTodoDto{
+    @ApiProperty({ description: '이전 마감일'})
+    @IsDate()
+    @Transform(({ value }) => new Date(value))
+    preRepeatEnd: Date;
+}
+
+
+export class UpdateRepeatByDivide extends UpdateTodoDto{
     @ApiProperty({ description: '이전 마감일'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
