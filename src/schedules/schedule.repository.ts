@@ -4,7 +4,7 @@ import { DatePaginationDto, DateTimePaginationDto } from "src/common/dto/date-pa
 import { Holiday } from "src/entity/holiday.entity";
 import { Schedule } from "src/entity/schedule.entity";
 import { CreateScheduleWithoutAlarmsDto, UpdateSchedulePartialDto } from "src/schedules/dto/create.schedule.dto";
-import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
+import { GetHolidaysByDate, GetSchedulesAndTodos, GetSchedulesAndTodosAndHolidaysResponseByDate, GetSchedulesAndTodosResponseByDate, GetSchedulesResponseAndHolidaysByDate, GetSchedulesResponseByDate, ScheduleResponse } from "src/schedules/interface/schedule.interface";
 import { Between, In, QueryRunner, Repository } from "typeorm";
 import { schedulesParseToSchedulesResponse, schedulesParseToTodosResponse } from "./schedule.util";
 import { ScheduleRepositoryInterface } from "./interface/schedule.repository.interface";
@@ -159,7 +159,7 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
     }
 
     /* 스케줄 데이터 불러오기 order : 1.repeat_start, 2.repeat_end, 3.created_at */
-    async findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseByDate> {
+    async findSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseAndHolidaysByDate> {
         const { startDate, endDate } = dateTimePaginationDto
         
         //make query that schedule that is todo_id is null
@@ -176,8 +176,13 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
             .addOrderBy('schedule.created_at', 'ASC')
             .getManyAndCount()
 
+        const holidays = await this.findHolidaysByDate(userId, dateTimePaginationDto)
+
         return {
-            data: schedulesParseToSchedulesResponse(schedules),
+            data: {
+                schedules : schedulesParseToSchedulesResponse(schedules),
+                holidays: holidays.data
+            },
             pagination: {
                 totalItems: count,
                 startDate,
@@ -188,7 +193,7 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
 
 
     /* 스케줄 & 투두 데이터 불러오기 */
-    async findSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate> {
+    async findSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosAndHolidaysResponseByDate> {
         const { startDate, endDate } = dateTimePaginationDto
 
         //make query that schedule that is todo_id is null
@@ -210,6 +215,8 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
 
         const todos = []
         const schedules = []
+        const holidays = await this.findHolidaysByDate(userId, dateTimePaginationDto)
+
 
         // if todo of data is null, push data to schedules else to todos
         datas.forEach(data => {
@@ -223,7 +230,8 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
         return {
             data: {
                 schedules: schedulesParseToSchedulesResponse(schedules),
-                todos: schedulesParseToTodosResponse(todos)
+                todos: schedulesParseToTodosResponse(todos),
+                holidays: holidays.data
             },
             pagination: {
                 totalItems: count,
