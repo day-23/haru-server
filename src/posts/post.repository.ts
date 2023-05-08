@@ -97,17 +97,19 @@ export class PostRepository {
                 mimeType,
                 comments
             })),
-            hashTags: post.postTags.map(({ hashtag }) => hashtag.content),
-            isLiked: post.liked.length > 0 ? true : false,
-            isCommented : post.comments.length > 0 ? true : false,
-            likedCount: post.likedCount,
-            commentCount: post.commentCount,
-            createdAt: post.createdAt,
-            updatedAt: post.updatedAt,
+            hashTags: post?.postTags?.map(({ hashtag }) => hashtag.content),
+            isLiked: post?.liked?.length > 0 ? true : false,
+            isCommented : post?.comments?.length > 0 ? true : false,
+            likedCount: post?.likedCount,
+            commentCount: post?.commentCount,
+            createdAt: post?.createdAt,
+            updatedAt: post?.updatedAt,
         };
     }
 
     async setCountsToPosts(posts: Post[]) : Promise<void> {
+        if(posts.length === 0) return;
+
         const postIds = posts.map(post => post.id);
 
         const likedCounts = await this.likedRepository.createQueryBuilder('liked')
@@ -134,6 +136,8 @@ export class PostRepository {
     }
 
     async getComments(postImageIds : string[]) : Promise<Comment[]> {
+        if(postImageIds.length === 0) return [];
+
         const comments = await this.commentRepository.query(`
             SELECT ranked_comments.*, user.id user_id, user.name user_name, image.url user_profile_image_url
             FROM (
