@@ -13,9 +13,10 @@ import { Comment } from 'src/entity/comment.entity';
 import { User } from 'src/entity/user.entity';
 import { Report } from 'src/entity/report.entity';
 import { Template } from 'src/entity/template.entity';
+import { UserRelationship } from 'src/entity/follow.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report])],
+    imports: [AwsModule, HashtagsModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, UserRelationship])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })

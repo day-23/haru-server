@@ -17,12 +17,12 @@ export class FollowsService implements FollowServiceInterface {
         }
     }
 
-    async getFollowByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
-        return await this.followRepositoryInterface.findFollowByUserId(userId, paginationDto);
+    async getFollowByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        return await this.followRepositoryInterface.findFollowByUserId(userId, specificUserId, paginationDto);
     }
 
-    async getFollowingByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
-        return await this.followRepositoryInterface.findFollowingByUserId(userId, paginationDto);
+    async getFollowingByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+        return await this.followRepositoryInterface.findFollowingByUserId(userId, specificUserId, paginationDto);
     }
 
     async deleteFollowing(userId: string, deleteFollowingDto: DeleteFollowingDto): Promise<void> {

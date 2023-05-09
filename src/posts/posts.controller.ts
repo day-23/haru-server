@@ -16,6 +16,21 @@ import { UpdateProfileDto } from 'src/users/dto/profile.dto';
 export class PostsController {
     constructor(private readonly postService: PostService) { }
 
+    @Post()
+    @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
+    @UseInterceptors(FilesInterceptor('images', 10,
+        {
+            limits: {
+                fileSize: 40 * 1024 * 1024, // 40MB
+                files: 10, // 파일 10개로 제한
+            },
+            // Validate the file types
+            fileFilter: imageFileFilter,
+        }))
+    async uploadFilesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[], @Body() createPostDto:CreatePostDto) {
+        return await this.postService.createPost(userId, files, createPostDto)
+    }
+
     @Post('template')
     @ApiOperation({ summary: '템플릿으로 게시물 생성 API', description: '게시물을 생성한다.' })
     async uploadTemplatePost(@Param('userId') userId: string, @Body() createPostDto: CreateTemplatePostDto) {
@@ -42,8 +57,6 @@ export class PostsController {
     async getTemplates(@Param('userId') userId: string) {
         return await this.postService.getTemplates(userId)
     }
-
-
 
     @Patch('profile')
     @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
@@ -94,6 +107,16 @@ export class PostsController {
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
     async getSpecificUserFeedByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PaginationDto) {
         return await this.postService.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
+    }
+
+    @PaginatedResponse()
+    @Get('posts/follow/feed')
+    @ApiOperation({ summary: '유저의 팔로잉 게시물 페이지네이션 조회 API', description: '유저의 팔로잉 게시물 페이지네이션 조회 API' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getFollowingFeedByPagination(@Param('userId') userId: string, @Query() paginationDto: PaginationDto) {
+        return await this.postService.getFollowingFeedByPagination(userId, paginationDto);
     }
 
     @PaginatedResponse()
