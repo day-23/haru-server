@@ -359,6 +359,14 @@ export class PostRepository {
             .orderBy('userRelationship.createdAt', 'DESC')
             .getManyAndCount();
 
+        //if there is no following users, return empty array
+        if (followCount == 0) {
+            return {
+                data: [],
+                pagination: createPaginationObject(0, paginationDto.limit, paginationDto.page)
+            };
+        }
+
         // get following users' posts
         const { page, limit } = paginationDto;
         const skip = (page - 1) * limit
