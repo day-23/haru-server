@@ -1,7 +1,6 @@
-import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsString, MaxLength, MinLength } from "class-validator";
+
 
 
 export class CreatePostDto {
@@ -14,6 +13,12 @@ export class CreatePostDto {
     @IsString({ each: true })
     hashTags: string[];
 }
+
+export class CreateTemplatePostDto extends CreatePostDto {
+    @IsString()
+    templateUrl: string;
+}
+
 
 export class UpdatePostDto extends PartialType(CreatePostDto) {}
 

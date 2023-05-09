@@ -3,7 +3,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { CreatePostDto, UpdatePostDto } from './dto/create.post.dto';
+import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
 import { BaseHashTag, PostUserResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
@@ -16,9 +16,15 @@ import { UpdateProfileDto } from 'src/users/dto/profile.dto';
 export class PostsController {
     constructor(private readonly postService: PostService) { }
 
-    @Post()
-    @ApiOperation({ summary: '게시물 생성 API (이미지 업로드 포함)', description: '게시물을 생성한다.' })
-    @UseInterceptors(FilesInterceptor('images', 10,
+    @Post('template')
+    @ApiOperation({ summary: '템플릿으로 게시물 생성 API', description: '게시물을 생성한다.' })
+    async uploadTemplatePost(@Param('userId') userId: string, @Body() createPostDto: CreateTemplatePostDto) {
+        return await this.postService.createTemplatePost(userId, createPostDto)
+    }
+
+    @Post('template/admin')
+    @ApiOperation({ summary: '어드민용 템플릿 이미지 생성 API (이미지 업로드 포함)', description: '템플릿을 생성한다.' })
+    @UseInterceptors(FilesInterceptor('templates', 10,
         {
             limits: {
                 fileSize: 40 * 1024 * 1024, // 40MB
@@ -27,9 +33,17 @@ export class PostsController {
             // Validate the file types
             fileFilter: imageFileFilter,
         }))
-    async uploadFilesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[], @Body() createPostDto:CreatePostDto) {
-        return await this.postService.createPost(userId, files, createPostDto)
+    async uploadTemplatesToS3(@Param('userId') userId: string, @UploadedFiles() files: Express.Multer.File[]) {
+        return await this.postService.uploadTemplate(userId, files)
     }
+
+    @Get('template')
+    @ApiOperation({ summary: '템플릿 이미지 불러오기 API (이미지 업로드 포함)', description: '템플릿 이미지를 불러온다.' })
+    async getTemplates(@Param('userId') userId: string) {
+        return await this.postService.getTemplates(userId)
+    }
+
+
 
     @Patch('profile')
     @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
@@ -48,7 +62,7 @@ export class PostsController {
             // Validate the file types
             fileFilter: imageFileFilter,
         }))
-    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
+    async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse> {
         return await this.postService.uploadProfileWithImage(userId, file, updateProfileDto)
     }
 
@@ -58,7 +72,7 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsByPagination(@Param('userId') userId : string, @Query() paginationDto: PaginationDto){
+    async getPostsByPagination(@Param('userId') userId: string, @Query() paginationDto: PaginationDto) {
         return await this.postService.getPostsByPagination(userId, paginationDto);
     }
 
@@ -68,7 +82,7 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId : string, @Param('hashTagId') hashTagId : string, @Query() paginationDto: PaginationDto){
+    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId: string, @Param('hashTagId') hashTagId: string, @Query() paginationDto: PaginationDto) {
         return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
     }
 
@@ -113,7 +127,7 @@ export class PostsController {
     async getHashtags(): Promise<BaseHashTag[]> {
         return await this.postService.getHashtags()
     }
-    
+
     @Get('hashtags/:userId')
     @ApiOperation({ summary: '사용자의 해시태그를 조회', description: '해시태그를 조회한다.' })
     async getHashtagsByUserId(@Param('userId') userId: string): Promise<BaseHashTag[]> {
@@ -122,13 +136,13 @@ export class PostsController {
 
     @Get('info/:specificUserId')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserInfo(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string) : Promise<UserInfoResponse>{
+    async getUserInfo(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string): Promise<UserInfoResponse> {
         return await this.postService.getUserInfo(userId, specificUserId)
     }
 
     @Get('search/user/:email')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserByEmail(@Param('userId') userId: string, @Param('email') email: string) : Promise<PostUserResponse>{
+    async getUserByEmail(@Param('userId') userId: string, @Param('email') email: string): Promise<PostUserResponse> {
         return await this.postService.getUserByEmail(userId, email)
     }
 
@@ -140,19 +154,19 @@ export class PostsController {
 
     @Delete(':postId')
     @ApiOperation({ summary: '게시물 삭제 API', description: '게시물을 삭제한다.' })
-    async deletePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
-        return await this.postService.deletePost(userId , postId)
+    async deletePost(@Param('userId') userId: string, @Param('postId') postId: string): Promise<void> {
+        return await this.postService.deletePost(userId, postId)
     }
 
     @Post(':postId/like')
     @ApiOperation({ summary: '게시물 좋아요 API', description: '게시물을 좋아요한다.' })
-    async likePost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
+    async likePost(@Param('userId') userId: string, @Param('postId') postId: string): Promise<void> {
         return await this.postService.likePost(userId, postId)
     }
 
     @Post(':postId/report')
     @ApiOperation({ summary: '게시물 신고하기 API', description: '게시물을 신고한다.' })
-    async reportPost(@Param('userId') userId: string, @Param('postId') postId: string) : Promise<void>{
+    async reportPost(@Param('userId') userId: string, @Param('postId') postId: string): Promise<void> {
         return await this.postService.reportPost(userId, postId)
     }
 }

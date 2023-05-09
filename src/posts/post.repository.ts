@@ -11,13 +11,14 @@ import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
 import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
-import { CreatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
+import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
+import { Template } from "src/entity/template.entity";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -25,6 +26,7 @@ export class PostRepository {
     constructor(
         @InjectRepository(Post) private readonly repository: Repository<Post>,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(Template) private readonly templateRepository: Repository<Template>,
         @InjectRepository(Image) private readonly imageRepository: Repository<Image>,
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
@@ -61,14 +63,44 @@ export class PostRepository {
             images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments:[] })),
             hashTags: createPostDto.hashTags,
             content: savedPost.content,
+            templateUrl: savedPost.templateUrl,
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt,
         };
     }
 
+    async createTemplate(userId: string, images: CreatedS3ImageFiles){
+        const templates = []
+        images.uploadedFiles.forEach((image) => {
+            const template = this.templateRepository.create({originalName: image.originalName, url: image.key, mimeType: image.contentType, size: image.size });
+            templates.push(template)
+        })
+        const ret =  await this.templateRepository.save(templates)
+        ret.map((template) => {
+            template.url = this.S3_URL + template.url
+        })
+
+        return ret
+    }
+
+    async getTemplates(userId: string){
+        const templates = await this.templateRepository.find({order: {createdAt: 'ASC'}})
+        templates.map((template) => {
+            template.url = this.S3_URL + template.url
+        })
+        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
+    }
+
+    async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto): Promise<PostCreateResponse> {
+        const { content, templateUrl } = createPostDto
+        const post = this.repository.create({ user: { id: userId }, content, templateUrl });
+        const savedPost = await this.repository.save(post)
+        return this.createPostResponse(savedPost, [], createPostDto);
+    }
+
     async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content });
+        const post = this.repository.create({ user: { id: userId }, content, templateUrl: null });
         const savedPost = await this.repository.save(post)
         const savedPostImages = await this.savePostImages(images, savedPost)
         return this.createPostResponse(savedPost, savedPostImages, createPostDto);
@@ -90,6 +122,7 @@ export class PostRepository {
                 profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null,
             },
             content: post.content,
+            templateUrl : post.templateUrl,
             images: post.postImages.map(({ id, originalName, url, mimeType, comments }) => ({
                 id,
                 originalName,

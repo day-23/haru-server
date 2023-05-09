@@ -20,6 +20,9 @@ export class Post extends BaseEntity {
     @Column()
     content: string
 
+    @Column({nullable: true, length: 200})
+    templateUrl: string
+
     @CreateDateColumn()
     createdAt: Date;
 

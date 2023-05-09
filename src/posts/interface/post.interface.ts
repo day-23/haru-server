@@ -5,6 +5,7 @@ import { ImageResponse, PostImageResponse } from "./post-image.interface";
 export interface PostCreateResponse {
     id: string,
     content: string,
+    templateUrl: string,
     images : PostImageResponse[],
     hashTags: string[],
     createdAt: Date,
