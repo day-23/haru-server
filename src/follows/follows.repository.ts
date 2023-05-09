@@ -29,7 +29,7 @@ export class FollowRepository implements FollowRepositoryInterface {
     }
 
     //specificUserId의 follow 찾기
-    async findFollowByUserId(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+    async findFollowingByUserId(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
@@ -96,8 +96,8 @@ export class FollowRepository implements FollowRepositoryInterface {
             },
         }
     }
-
-    async findFollowingByUserId(userId: string, specificUserId: string , paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+    
+    async findFollowByUserId(userId: string, specificUserId: string , paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
