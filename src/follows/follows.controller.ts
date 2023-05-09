@@ -16,17 +16,17 @@ export class FollowsController {
     }
 
     @PaginatedResponse()
-    @Get('following')
+    @Get(':specificUserId/following')
     @ApiOperation({ summary: '유저의 팔로잉 목록 조회', description: '유저의 팔로잉 목록 조회' })
-    async getFollowingByUserId(@Param('userId') userId: string, @Query() paginationDto: PaginationDto): Promise<any> {
-        return await this.followsService.getFollowingByUserId(userId, paginationDto);
+    async getFollowingByUserId(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PaginationDto): Promise<any> {
+        return await this.followsService.getFollowingByUserId(userId, specificUserId, paginationDto);
     }
 
     @PaginatedResponse()
-    @Get('follow')
+    @Get(':specificUserId/follow')
     @ApiOperation({ summary: '유저의 팔로우 목록 조회', description: '유저의 팔로우 목록 조회' })
-    async getFollowByUserId(@Param('userId') userId: string, @Query() paginationDto: PaginationDto): Promise<any> {
-        return await this.followsService.getFollowByUserId(userId, paginationDto);
+    async getFollowByUserId(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PaginationDto): Promise<any> {
+        return await this.followsService.getFollowByUserId(userId,specificUserId, paginationDto);
     }    
 
     @Delete('following')

@@ -6,8 +6,8 @@ import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from "./follow.user.interf
 export interface FollowRepositoryInterface {
     createFollowing(userId: string, createFollowDto: CreateFollowDto): Promise<void>;
 
-    findFollowByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto>;
-    findFollowingByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto>;
+    findFollowByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto>;
+    findFollowingByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto>;
 
     isFollowing(userId: string, followId: string): Promise<boolean>
 

@@ -28,39 +28,61 @@ export class FollowRepository implements FollowRepositoryInterface {
         const ret = await this.repository.save(userRelationship);
     }
 
-    async findFollowByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+    //specificUserId의 follow 찾기
+    async findFollowByUserId(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
         const [followers, count] = await this.repository
             .createQueryBuilder('userRelationship')
             .leftJoinAndSelect('userRelationship.following', 'following')
-            .leftJoinAndSelect('following.profileImages', 'profileImages')
+            .leftJoinAndSelect('userRelationship.follower', 'follower')
+            .leftJoinAndSelect('follower.profileImages', 'profileImages')
             .select([
                 'userRelationship.id',
                 'userRelationship.createdAt',
-                'following.id',
-                'following.name',
-                'following.email',
+                'follower.id',
+                'follower.name',
+                'follower.email',
                 'profileImages.id',
                 'profileImages.url',
             ])
-            .where('userRelationship.follower = :userId', { userId })
+            .where('userRelationship.following = :specificUserId', { specificUserId })
+            .andWhere('userRelationship.follower != :userId', { userId })
             .orderBy('userRelationship.createdAt', 'DESC')
             .skip(skip)
             .take(limit)
             .getManyAndCount();
 
-        console.log(followers)
+        const followersIds = [followers.map((userRelationship) => userRelationship.follower.id)]
 
+        let followingsByUser = [];
+        if (followers.length > 0) {
+            // find common followings
+            followingsByUser = await this.repository
+                .createQueryBuilder('userRelationship')
+                .leftJoinAndSelect('userRelationship.following', 'following')
+                .leftJoinAndSelect('userRelationship.follower', 'follower')
+                .leftJoinAndSelect('follower.profileImages', 'profileImages')
+                .select([
+                    'userRelationship.id',
+                    'follower.id',
+                ])
+                .where('userRelationship.following = :userId', { userId })
+                .andWhere('userRelationship.follower IN (:...followersIds)', { followersIds })
+                .getMany();
+        }
+
+        const commonFollowings = followingsByUser.map((userRelationship) => userRelationship.follower.id)
         const totalPages = Math.ceil(count / limit);
 
         const ret = followers.map((userRelationship) => {
             return {
-                id: userRelationship.following.id,
-                name: userRelationship.following.name,
-                email: userRelationship.following.email,
-                profileImage: userRelationship.following?.profileImages?.length > 0 ? this.S3_URL + userRelationship.following.profileImages[0].url : null,
+                id: userRelationship.follower.id,
+                name: userRelationship.follower.name,
+                email: userRelationship.follower.email,
+                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
+                isFollowing: commonFollowings.includes(userRelationship.follower.id)
             }
         })
 
@@ -75,37 +97,60 @@ export class FollowRepository implements FollowRepositoryInterface {
         }
     }
 
-    async findFollowingByUserId(userId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
+    async findFollowingByUserId(userId: string, specificUserId: string , paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
         const [followings, count] = await this.repository
             .createQueryBuilder('userRelationship')
             .leftJoinAndSelect('userRelationship.follower', 'follower')
+            .leftJoinAndSelect('userRelationship.following', 'following')
             .leftJoinAndSelect('follower.profileImages', 'profileImages')
             .select([
                 'userRelationship.id',
                 'userRelationship.createdAt',
-                'follower.id',
-                'follower.name',
-                'follower.email',
+                'following.id',
+                'following.name',
+                'following.email',
                 'profileImages.id',
                 'profileImages.url',
             ])
-            .where('userRelationship.following = :userId', { userId })
+            .where('userRelationship.follower = :specificUserId', { specificUserId })
+            .andWhere('userRelationship.following != :userId', { userId })
             .orderBy('userRelationship.createdAt', 'DESC')
             .skip(skip)
             .take(limit)
             .getManyAndCount();
 
+        const followingsIds = [followings.map((userRelationship) => userRelationship.following.id)]
+
+        let followingsByUser = [];
+        if (followings.length > 0) {
+            //find common followings
+            followingsByUser = await this.repository
+                .createQueryBuilder('userRelationship')
+                .leftJoinAndSelect('userRelationship.following', 'following')
+                .leftJoinAndSelect('userRelationship.follower', 'follower')
+                .leftJoinAndSelect('follower.profileImages', 'profileImages')
+                .select([
+                    'userRelationship.id',
+                    'follower.id',
+                ])
+                .where('userRelationship.following = :userId', { userId })
+                .andWhere('userRelationship.follower IN (:...followingsIds)', { followingsIds })
+                .getMany();
+        }
+
+        const commonFollowings = followingsByUser.map((userRelationship) => userRelationship.follower.id)
         const totalPages = Math.ceil(count / limit);
 
         const ret = followings.map((userRelationship) => {
             return {
-                id: userRelationship.follower.id,
-                name: userRelationship.follower.name,
-                email: userRelationship.follower.email,
-                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
+                id: userRelationship.following.id,
+                name: userRelationship.following.name,
+                email: userRelationship.following.email,
+                profileImage: userRelationship.following?.profileImages?.length > 0 ? this.S3_URL + userRelationship.following.profileImages[0].url : null,
+                isFollowing: commonFollowings.includes(userRelationship.following.id)
             }
         })
 
