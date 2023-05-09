@@ -19,6 +19,7 @@ import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
+import { UserRelationship } from "src/entity/follow.entity";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -32,6 +33,7 @@ export class PostRepository {
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
+        @InjectRepository(UserRelationship) private readonly userRelationshipRepository: Repository<UserRelationship>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -330,6 +332,47 @@ export class PostRepository {
             .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
             .addSelect(['liked.id'])
             .where('user.id = :specificUserId', { specificUserId })
+            .skip(skip)
+            .take(limit)
+            .orderBy('post.createdAt', 'DESC')
+            .addOrderBy('posttags.createdAt', 'ASC')
+            .getManyAndCount();
+
+        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
+
+        return {
+            data: posts.map((post) => this.createPostData(post)),
+            pagination: createPaginationObject(count, limit, page)
+        };
+    }
+
+    async getFollowingFeedByPagination(userId: string, paginationDto: PaginationDto) {
+        // get following users
+        const [followingUsers, followCount] = await this.userRelationshipRepository.createQueryBuilder('userRelationship')
+            .leftJoinAndSelect('userRelationship.follower', 'follower')
+            .select([
+                'userRelationship.id',
+                'userRelationship.createdAt',
+                'follower.id',
+            ])
+            .where('userRelationship.following = :userId', { userId })
+            .orderBy('userRelationship.createdAt', 'DESC')
+            .getManyAndCount();
+
+        // get following users' posts
+        const { page, limit } = paginationDto;
+        const skip = (page - 1) * limit
+
+        const [posts, count] = await this.repository.createQueryBuilder('post')
+            .leftJoinAndSelect('post.postImages', 'postimage')
+            .innerJoin('post.user', 'user')
+            .addSelect(['user.id', 'user.name', 'user.email'])
+            .leftJoinAndSelect('user.profileImages', 'profileImages')
+            .leftJoinAndSelect('post.postTags', 'posttags')
+            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
+            .addSelect(['liked.id'])
+            .where('user.id IN (:...followingUsers)', { followingUsers: [followingUsers.map(user => user.follower.id)] })
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')

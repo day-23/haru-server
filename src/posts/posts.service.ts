@@ -51,6 +51,10 @@ export class PostService {
         return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
     }
 
+    async getFollowingFeedByPagination(userId: string, paginationDto: PaginationDto) {
+        return await this.postRepository.getFollowingFeedByPagination(userId, paginationDto);
+    }
+
     async getSpecificUserFeedByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto) {
         return await this.postRepository.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
     }
