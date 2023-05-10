@@ -253,6 +253,8 @@ export class PostRepository {
         const { page, limit } = paginationDto;
         const skip = (page - 1) * limit
 
+        console.log(page, limit)
+
         const [posts, count] = await this.repository.createQueryBuilder('post')
             .innerJoinAndSelect('post.postImages', 'postimage')
             .innerJoin('post.user', 'user')
@@ -260,17 +262,34 @@ export class PostRepository {
             .leftJoinAndSelect('user.profileImages', 'profileImages')
             .leftJoinAndSelect('post.postTags', 'posttags')
             .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+            .skip(skip)
+            .take(limit)
             .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
             .addSelect(['liked.id'])
             .leftJoin('post.comments', 'comment', 'comment.user = :userId', { userId })
             .addSelect(['comment.id'])
-            .skip(skip)
-            .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
-        console.log(posts)
+        // console.log('---------test---------')
+
+        // const [_posts, _count] = await this.repository.createQueryBuilder('post')
+        //     .innerJoinAndSelect('post.postImages', 'postimage')
+        //     .innerJoin('post.user', 'user')
+        //     .addSelect(['user.id', 'user.name', 'user.email'])
+        //     .leftJoinAndSelect('user.profileImages', 'profileImages')
+        //     .leftJoinAndSelect('post.postTags', 'posttags')
+        //     .leftJoinAndSelect('posttags.hashtag', 'hashtag')
+        //     .skip(skip)
+        //     .take(limit)
+        //     .orderBy('post.createdAt', 'DESC')
+        //     // .addOrderBy('posttags.createdAt', 'ASC')
+        //     .getManyAndCount()
+
+        // console.log(posts)
+        // console.log("-------------------------------")
+        // console.log(_posts, _count, count)
 
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
@@ -307,7 +326,7 @@ export class PostRepository {
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
 
@@ -335,7 +354,7 @@ export class PostRepository {
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
@@ -384,10 +403,11 @@ export class PostRepository {
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
 
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
+
 
         return {
             data: posts.map((post) => this.createPostData(post)),
@@ -412,7 +432,7 @@ export class PostRepository {
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
         
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
@@ -449,7 +469,7 @@ export class PostRepository {
             .skip(skip)
             .take(limit)
             .orderBy('post.createdAt', 'DESC')
-            .addOrderBy('posttags.createdAt', 'ASC')
+            // .addOrderBy('posttags.createdAt', 'ASC')
             .getManyAndCount();
         
         await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
