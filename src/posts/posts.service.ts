@@ -89,8 +89,7 @@ export class PostService {
         await this.postRepository.createProfileImage(userId, image)
 
         const profileImageUrl = getS3ImageUrl(this.configService, image.uploadedFile.key)
-        await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
-        return await this.getUserInfo(userId, userId)
+        return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
     }
 
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
