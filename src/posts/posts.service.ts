@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
+import { ConfigService } from "@nestjs/config";
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from './dto/create.post.dto';
@@ -8,11 +9,13 @@ import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.
 import { BaseHashTag, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
 import { UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { getS3ImageUrl } from 'src/common/utils/s3';
 
 @Injectable()
 export class PostService {
     constructor(private readonly postRepository: PostRepository,
         private readonly awsService: AwsService,
+        private readonly configService : ConfigService,
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
@@ -82,10 +85,11 @@ export class PostService {
     }
 
     async uploadProfileWithImage(userId: string, file: Express.Multer.File, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
-        await this.updateProfile(userId, updateProfileDto)
         const image = await this.awsService.uploadFileToS3('profile', file)
         await this.postRepository.createProfileImage(userId, image)
 
+        const profileImageUrl = getS3ImageUrl(this.configService, image.uploadedFile.key)
+        await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
         return await this.getUserInfo(userId, userId)
     }
 

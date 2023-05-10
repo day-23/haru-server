@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateProfileDto {
     @ApiProperty({ description: '이름' })
@@ -9,4 +9,7 @@ export class UpdateProfileDto {
     @ApiProperty({ description: '이름' })
     @IsString()
     introduction: string;
+
+    @IsOptional()
+    profileImageUrl: string;
 }

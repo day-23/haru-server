@@ -564,12 +564,7 @@ export class PostRepository {
     // 여기 해야함
     async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
-            SELECT user.name, user.introduction,
-                (SELECT image.url
-                    FROM image
-                    WHERE image.user_id = user.id
-                    ORDER BY image.created_at DESC
-                    LIMIT 1) AS profileImage,
+            SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
                 (SELECT COUNT(following.id)
                     FROM user_relationship following
                     WHERE following.following_id = user.id) AS followingCount,
@@ -600,7 +595,7 @@ export class PostRepository {
             id : specificUserId,
             name : result[0].name,
             introduction : result[0].introduction,
-            profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null,
+            profileImage : result[0].profileImage,
             isFollowing : result[0].isFollowing > 0 ? true : false,
             postCount : Number(result[0].postCount),
             followerCount : Number(result[0].followerCount),

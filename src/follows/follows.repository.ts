@@ -28,7 +28,7 @@ export class FollowRepository implements FollowRepositoryInterface {
         const ret = await this.repository.save(userRelationship);
     }
 
-    //specificUserId의 follow 찾기
+    /* 팔로잉 목록 보기 */
     async findFollowingByUserId(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
@@ -97,9 +97,12 @@ export class FollowRepository implements FollowRepositoryInterface {
         }
     }
     
+    /* 팔로우 목록 보기 */
     async findFollowByUserId(userId: string, specificUserId: string , paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
+
+        console.log('heres')
 
         const [followings, count] = await this.repository
             .createQueryBuilder('userRelationship')
