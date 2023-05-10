@@ -373,11 +373,14 @@ export class TodoRepository implements TodoRepositoryInterface {
     /* 투두 데이트 페이지네이션 함수 */
     async findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> {
         const { startDate, endDate } = dateTimePaginationDto
-        console.log('here')
+
         // todo and schedule, alarm inner join and pagination
         const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
             .andWhere('schedule.repeat_start IS NOT NULL')
-            .andWhere('(schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate)')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
+            OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
+            OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
+            OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
             .addOrderBy('todoTags.tagOrder', 'ASC')

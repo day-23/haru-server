@@ -248,7 +248,7 @@ export class PostRepository {
         this.assignCommentsToPostImages(posts, postImageIdToCommentsMap);
     }
 
-
+    //raw query로 수정 필요
     async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit } = paginationDto;
         const skip = (page - 1) * limit
