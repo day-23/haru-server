@@ -37,15 +37,13 @@ export class FollowRepository implements FollowRepositoryInterface {
             .createQueryBuilder('userRelationship')
             .leftJoinAndSelect('userRelationship.following', 'following')
             .leftJoinAndSelect('userRelationship.follower', 'follower')
-            .leftJoinAndSelect('follower.profileImages', 'profileImages')
             .select([
                 'userRelationship.id',
                 'userRelationship.createdAt',
                 'follower.id',
                 'follower.name',
                 'follower.email',
-                'profileImages.id',
-                'profileImages.url',
+                'follower.profileImageUrl',
             ])
             .where('userRelationship.following = :specificUserId', { specificUserId })
             .andWhere('userRelationship.follower != :userId', { userId })
@@ -81,7 +79,7 @@ export class FollowRepository implements FollowRepositoryInterface {
                 id: userRelationship.follower.id,
                 name: userRelationship.follower.name,
                 email: userRelationship.follower.email,
-                profileImage: userRelationship.follower?.profileImages?.length > 0 ? this.S3_URL + userRelationship.follower.profileImages[0].url : null,
+                profileImage: userRelationship.follower?.profileImageUrl,
                 isFollowing: commonFollowings.includes(userRelationship.follower.id)
             }
         })
@@ -102,21 +100,17 @@ export class FollowRepository implements FollowRepositoryInterface {
         const { page, limit } = paginationDto
         const skip = (page - 1) * limit;
 
-        console.log('heres')
-
         const [followings, count] = await this.repository
             .createQueryBuilder('userRelationship')
             .leftJoinAndSelect('userRelationship.follower', 'follower')
             .leftJoinAndSelect('userRelationship.following', 'following')
-            .leftJoinAndSelect('follower.profileImages', 'profileImages')
             .select([
                 'userRelationship.id',
                 'userRelationship.createdAt',
                 'following.id',
                 'following.name',
                 'following.email',
-                'profileImages.id',
-                'profileImages.url',
+                'following.profileImageUrl',
             ])
             .where('userRelationship.follower = :specificUserId', { specificUserId })
             .andWhere('userRelationship.following != :userId', { userId })
@@ -134,7 +128,6 @@ export class FollowRepository implements FollowRepositoryInterface {
                 .createQueryBuilder('userRelationship')
                 .leftJoinAndSelect('userRelationship.following', 'following')
                 .leftJoinAndSelect('userRelationship.follower', 'follower')
-                .leftJoinAndSelect('follower.profileImages', 'profileImages')
                 .select([
                     'userRelationship.id',
                     'follower.id',
@@ -152,7 +145,7 @@ export class FollowRepository implements FollowRepositoryInterface {
                 id: userRelationship.following.id,
                 name: userRelationship.following.name,
                 email: userRelationship.following.email,
-                profileImage: userRelationship.following?.profileImages?.length > 0 ? this.S3_URL + userRelationship.following.profileImages[0].url : null,
+                profileImage: userRelationship.following.profileImageUrl,
                 isFollowing: commonFollowings.includes(userRelationship.following.id)
             }
         })
