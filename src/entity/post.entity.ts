@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, Index } from 'typeorm';
 import { Comment } from './comment.entity';
 import { Image } from './image.entity';
 import { Liked } from './liked.entity';
@@ -23,6 +23,7 @@ export class Post extends BaseEntity {
     @Column({nullable: true, length: 200})
     templateUrl: string
 
+    @Index()
     @CreateDateColumn()
     createdAt: Date;
 

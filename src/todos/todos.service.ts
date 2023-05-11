@@ -344,7 +344,7 @@ export class TodosService implements TodosServiceInterface {
         const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
 
         const parent = schedule?.parent ? schedule?.parent?.id : schedule.id
-
+        console.log(parent)
         /* 다음 할일을 만듦 */
         return await this.createTodo(userId, { ...createTodoDto, endDate, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
     }
@@ -458,10 +458,14 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             
+            
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(changedDate) }, queryRunner)
             await this.createTodoForUpdateBySplit(userId, updateTodoDto, queryRunner)
+            console.log('here--------------------')
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, nextEndDate, queryRunner)
 
+
+            
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
