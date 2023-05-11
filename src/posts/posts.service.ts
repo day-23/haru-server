@@ -1,18 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ConfigService } from "@nestjs/config";
+import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { PostRepository } from 'src/posts/post.repository';
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
-import { BaseHashTag, PostCreateResponse, PostUserResponse } from './interface/post.interface';
+import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
 import { UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { getS3ImageUrl } from 'src/common/utils/s3';
 
 @Injectable()
 export class PostService {
     constructor(private readonly postRepository: PostRepository,
         private readonly awsService: AwsService,
+        private readonly configService : ConfigService,
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
@@ -43,28 +46,28 @@ export class PostService {
         return post
     }
 
-    async getPostsByPagination(userId : string, paginationDto: PaginationDto){
-        return await this.postRepository.getPostsByPagination(userId, paginationDto);
+    async getPostsByPagination(userId : string, postPaginationDto: PostPaginationDto){
+        return await this.postRepository.getPostsByPagination(userId, postPaginationDto);
     }
 
-    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto){
-        return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
+    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, postPaginationDto: PostPaginationDto){
+        return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, postPaginationDto);
     }
 
-    async getFollowingFeedByPagination(userId: string, paginationDto: PaginationDto) {
+    async getFollowingFeedByPagination(userId: string, paginationDto: PostPaginationDto) {
         return await this.postRepository.getFollowingFeedByPagination(userId, paginationDto);
     }
 
-    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto) {
-        return await this.postRepository.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
+    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto) {
+        return await this.postRepository.getSpecificUserFeedByPagination(userId, specificUserId, postPaginationDto);
     }
 
-    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto) {
-        return await this.postRepository.getSpecificUserMediaByPagination(userId, specificUserId, paginationDto);
+    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        return await this.postRepository.getSpecificUserMediaByPagination(userId, specificUserId, postPaginationDto);
     }
 
-    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, paginationDto: PaginationDto) {
-        return await this.postRepository.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, paginationDto);
+    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, postPaginationDto: PostPaginationDto) {
+        return await this.postRepository.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, postPaginationDto);
     }
 
     async updatePost(userId: string, postId: string, updatePostDto: UpdatePostDto): Promise<void> {
@@ -82,11 +85,11 @@ export class PostService {
     }
 
     async uploadProfileWithImage(userId: string, file: Express.Multer.File, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
-        await this.updateProfile(userId, updateProfileDto)
         const image = await this.awsService.uploadFileToS3('profile', file)
         await this.postRepository.createProfileImage(userId, image)
 
-        return await this.getUserInfo(userId, userId)
+        const profileImageUrl = getS3ImageUrl(this.configService, image.uploadedFile.key)
+        return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
     }
 
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {

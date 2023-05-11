@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
-import { PaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
+import { PaginationDto, PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
@@ -20,6 +20,8 @@ import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
 import { UserRelationship } from "src/entity/follow.entity";
+import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
+import { getS3ImageUrl } from "src/common/utils/s3";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -115,34 +117,7 @@ export class PostRepository {
         await this.postTagsRepository.save(postTags)
     }
 
-    createPostData(post: Post) : PostGetResponse {
-        return {
-            id: post.id,
-            user: {
-                id: post.user.id,
-                name: post.user.name,
-                profileImage: post.user?.profileImages.length > 0 ? this.S3_URL + post.user?.profileImages[0].url : null,
-            },
-            content: post.content,
-            templateUrl : post.templateUrl,
-            images: post.postImages.map(({ id, originalName, url, mimeType, comments }) => ({
-                id,
-                originalName,
-                url: this.S3_URL + url,
-                mimeType,
-                comments
-            })),
-            hashTags: post?.postTags?.map(({ hashtag }) => hashtag.content),
-            isLiked: post?.liked?.length > 0 ? true : false,
-            isCommented : post?.comments?.length > 0 ? true : false,
-            likedCount: post?.likedCount,
-            commentCount: post?.commentCount,
-            createdAt: post?.createdAt,
-            updatedAt: post?.updatedAt,
-        };
-    }
-
-    async setCountsToPosts(posts: Post[]) : Promise<void> {
+    async setCountsToPosts(userId : string, posts: PostGetResponse[]) : Promise<void> {
         if(posts.length === 0) return;
 
         const postIds = posts.map(post => post.id);
@@ -154,6 +129,13 @@ export class PostRepository {
             .groupBy('liked.post_id')
             .getRawMany();
 
+        const isUserLikedPosts = await this.likedRepository.createQueryBuilder('liked')
+            .select('liked.post_id', 'postId')
+            .where('liked.post_id IN (:...postIds)', { postIds })
+            .andWhere('liked.user_id = :userId', { userId })
+            .getRawMany();
+
+
         const commentCounts = await this.commentRepository.createQueryBuilder('comment')
             .select('comment.post_id', 'postId')
             .addSelect('COUNT(*)', 'count')
@@ -161,12 +143,25 @@ export class PostRepository {
             .groupBy('comment.post_id')
             .getRawMany();
 
+        const isUserCommentedPosts = await this.commentRepository.createQueryBuilder('comment')
+            .select('comment.post_id', 'postId')
+            .where('comment.post_id IN (:...postIds)', { postIds })
+            .andWhere('comment.user_id = :userId', { userId })
+            .getRawMany();
+
+
         for (const post of posts) {
             const likedCount = likedCounts.find(item => item.postId === post.id);
             post.likedCount = likedCount ? Number(likedCount.count) : 0;
 
             const commentCount = commentCounts.find(item => item.postId === post.id);
             post.commentCount = commentCount ? Number(commentCount.count) : 0;
+
+            const isUserLikedPost = isUserLikedPosts.find(item => item.postId === post.id);
+            post.isLiked = isUserLikedPost ? true : false;
+
+            const isUserCommentedPost = isUserCommentedPosts.find(item => item.postId === post.id);
+            post.isCommented = isUserCommentedPost ? true : false;
         }
     }
 
@@ -231,16 +226,16 @@ export class PostRepository {
         }, {});
     }
 
-    assignCommentsToPostImages(posts: Post[], postImageIdToCommentsMap: Record<string, Comment[]>): void {
+    assignCommentsToPostImages(posts: PostGetResponse[], postImageIdToCommentsMap: Record<string, Comment[]>): void {
         for (const post of posts) {
-            for (const postImage of post.postImages) {
+            for (const postImage of post.images) {
                 postImage.comments = postImageIdToCommentsMap[postImage.id] || [];
             }
         }
     }
 
-    async addCommentsToPostImages(posts: Post[]): Promise<void> {
-        const postImageIds = posts.flatMap(post => post.postImages.map(postImage => postImage.id));
+    async addCommentsToPostImages(posts: PostGetResponse[]): Promise<void> {
+        const postImageIds = posts.flatMap(post => post.images.map(postImage => postImage.id));
 
         const comments = await this.getComments(postImageIds);
         const postImageIdToCommentsMap = this.createPostImageIdToCommentsMap(comments);
@@ -248,124 +243,197 @@ export class PostRepository {
         this.assignCommentsToPostImages(posts, postImageIdToCommentsMap);
     }
 
-    //raw query로 수정 필요
-    async getPostsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
-        const { page, limit } = paginationDto;
+    mergeRawPostToPosts(rawPosts: RawPost[], rawHashTags: RawHashTag[], rawImages: RawImage[]): PostGetResponse[] {
+        const posts: PostGetResponse[] = []
+
+        rawPosts.forEach((rawPost) => {
+            const user: PostUserResponse = {
+                id: rawPost.user_id,
+                name: rawPost.name,
+                profileImage: rawPost.profile_image_url,
+            }
+            const post: PostGetResponse = {
+                id: rawPost.id,
+                user,
+                content: rawPost.content,
+                templateUrl: rawPost.template_url,
+                images: [],
+                hashTags: [],
+                isLiked: false,
+                isCommented: false,
+                likedCount: 0,
+                commentCount: 0,
+                createdAt: rawPost.created_at,
+                updatedAt: rawPost.updated_at,
+            }
+            posts.push(post)
+        })
+
+        rawHashTags.forEach((rawHashTag) => {
+            //find post and push rawHashTag.content to post.hashTags
+            const post = posts.find((post) => post.id === rawHashTag.post_id)
+            if (post) {
+                post.hashTags.push(rawHashTag.content)
+            }
+        })
+
+        rawImages.forEach((rawImage) => {
+            //find post and push rawImage to post.images
+            const post = posts.find((post) => post.id === rawImage.post_id)
+            if (post) {
+                post.images.push({
+                    id: rawImage.image_id,
+                    originalName: rawImage.image_original_name,
+                    url: getS3ImageUrl(this.configService, rawImage.image_url),
+                    mimeType: rawImage.image_mime_type,
+                    comments: []
+                })
+            }
+        })
+        return posts
+    }
+
+    async addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts: RawPost[]): Promise<PostGetResponse[]> {
+        if(posts.length === 0) return;
+
+        // Fetch hashtags for these posts
+        const hashtagQuery = `
+            SELECT post_tags.post_id, hashtag_id, hashtag.content, post_tags.created_at as post_tags_created_at
+            FROM post_tags
+            INNER JOIN hashtag
+            ON post_tags.hashtag_id = hashtag.id
+            WHERE post_tags.post_id IN (?)
+            ORDER BY post_tags.created_at ASC
+        `;
+        const hashtags : RawHashTag[] = await this.repository.query(hashtagQuery, [posts.map(post => post.id)]);
+
+        // Fetch images for these posts
+        const imageQuery = `
+            SELECT post_id, id as image_id, original_name as image_original_name, url as image_url, mime_type as image_mime_type, created_at as image_created_at
+            FROM image
+            WHERE post_id IN (?)
+            ORDER BY image_created_at ASC
+        `;
+
+        const images : RawImage[] = await this.repository.query(imageQuery, [posts.map(post => post.id)]);
+        return this.mergeRawPostToPosts(posts, hashtags, images);
+    }
+
+
+    async fetchAllPosts(whereClause : string, lastCreatedAt: string, limit : number, skip : number) : Promise<PostGetResponse[]> {
+        // Fetch posts with user information
+        const postQuery = `
+            SELECT post.*, user.name, user.email, user.profile_image_url
+            FROM post
+            INNER JOIN user
+            ON post.user_id = user.id
+            WHERE post.created_at < ?
+            AND ${whereClause}
+            ORDER BY post.created_at DESC
+            LIMIT ? OFFSET ?
+        `;
+
+        const posts : RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        if(posts.length === 0) return [];
+
+        return await this.addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts);
+    }
+
+
+    async fetchPostsByHashTag(whereClause : string, lastCreatedAt: string, limit : number, skip : number) : Promise<PostGetResponse[]> {
+        // Fetch posts with hashtag information
+        const postQuery = `
+            SELECT post.*, user.name, user.email, user.profile_image_url, post_tags.hashtag_id
+            FROM post_tags
+            INNER join post
+            ON post_tags.post_id = post.id
+            INNER join user
+            ON post_tags.user_id = user.id
+            WHERE post.created_at < ?
+            AND ${whereClause}
+            ORDER BY post.created_at DESC
+            LIMIT ? OFFSET ?
+        `
+
+        const posts : RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        if(posts.length === 0) return [];
+
+        return await this.addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts);
+    }
+
+
+    async countPosts(whereClause : string, lastCreatedAt : string) : Promise<number> {
+        const countQuery = `
+            SELECT COUNT(*) as count
+            FROM post
+            WHERE post.created_at < ?
+            AND ${whereClause}
+            `;
+        const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
+        return Number(count[0].count);
+    }
+
+    async countPostsByHashTag(whereClause : string, lastCreatedAt : string) : Promise<number> {
+        const countQuery = `
+            SELECT count(distinct post.id) as count
+            FROM post_tags
+            INNER JOIN post
+            ON post_tags.post_id = post.id
+            WHERE post.created_at < ?
+            AND ${whereClause}
+        `
+        const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
+        return Number(count[0].count);
+    }
+
+    //둘러보기(전체 게시물 보기) - 사진만
+    async getPostsByPagination(userId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = (page - 1) * limit
 
-        console.log(page, limit)
+        const whereClause = `template_url IS NULL`
+        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        
+        return {
+            data: posts,
+            pagination: createPaginationObject(count, limit, page)
+        }
+    }
 
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .innerJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .skip(skip)
-            .take(limit)
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .leftJoin('post.comments', 'comment', 'comment.user = :userId', { userId })
-            .addSelect(['comment.id'])
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
 
-        // console.log('---------test---------')
+    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
+        const skip = (page - 1) * limit
 
-        // const [_posts, _count] = await this.repository.createQueryBuilder('post')
-        //     .innerJoinAndSelect('post.postImages', 'postimage')
-        //     .innerJoin('post.user', 'user')
-        //     .addSelect(['user.id', 'user.name', 'user.email'])
-        //     .leftJoinAndSelect('user.profileImages', 'profileImages')
-        //     .leftJoinAndSelect('post.postTags', 'posttags')
-        //     .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-        //     .skip(skip)
-        //     .take(limit)
-        //     .orderBy('post.createdAt', 'DESC')
-        //     // .addOrderBy('posttags.createdAt', 'ASC')
-        //     .getManyAndCount()
-
-        // console.log(posts)
-        // console.log("-------------------------------")
-        // console.log(_posts, _count, count)
-
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
+        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}'`
+        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
 
         return {
-            data: posts.map((post) => this.createPostData(post)),
+            data: posts,
             pagination: createPaginationObject(count, limit, page)
         };
     }
 
-
-    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
-        const { page, limit } = paginationDto;
+    //특정 사용자 피드보기 - 템플릿 + 사진
+    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = (page - 1) * limit
 
-        //get posts that include the hashtagId and also include other hashtags not only the hashtagId
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .innerJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .where(qb => {
-                const subQuery = qb.subQuery()
-                    .select('postTag.post')
-                    .from('post_tags', 'postTag')
-                    .leftJoin('postTag.hashtag', 'hashtag')
-                    .where('hashtag.id = :hashTagId', { hashTagId })
-                    .getQuery();
-                return 'post.id IN ' + subQuery;
-            })
-            .skip(skip)
-            .take(limit)
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
-
+        const whereClause = `post.user_id = '${specificUserId}'`
+        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        
         return {
-            data: posts.map((post) => this.createPostData(post)),
+            data: posts,
             pagination: createPaginationObject(count, limit, page)
-        };
+        }
     }
 
-
-    async getSpecificUserFeedByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
-        const { page, limit } = paginationDto;
-        const skip = (page - 1) * limit
-
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .leftJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .where('user.id = :specificUserId', { specificUserId })
-            .skip(skip)
-            .take(limit)
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
-
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
-
-        return {
-            data: posts.map((post) => this.createPostData(post)),
-            pagination: createPaginationObject(count, limit, page)
-        };
-    }
-
-    async getFollowingFeedByPagination(userId: string, paginationDto: PaginationDto) {
+    // 친구 피드보기 - 템플릿 + 사진 
+    async getFollowingFeedByPagination(userId: string, postPaginationDto: PostPaginationDto) {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
         // get following users
         const [followingUsers, followCount] = await this.userRelationshipRepository.createQueryBuilder('userRelationship')
             .leftJoinAndSelect('userRelationship.follower', 'follower')
@@ -382,100 +450,49 @@ export class PostRepository {
         if (followCount == 0) {
             return {
                 data: [],
-                pagination: createPaginationObject(0, paginationDto.limit, paginationDto.page)
+                pagination: createPaginationObject(0, limit, page)
             };
         }
 
-        // get following users' posts
-        const { page, limit } = paginationDto;
+        const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
+
         const skip = (page - 1) * limit
-
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .leftJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .where('user.id IN (:...followingUsers)', { followingUsers: [followingUsers.map(user => user.follower.id)] })
-            .skip(skip)
-            .take(limit)
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
-
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
-
-
+        const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
+        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        
         return {
-            data: posts.map((post) => this.createPostData(post)),
+            data: posts,
             pagination: createPaginationObject(count, limit, page)
-        };
+        }
     }
 
-    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
-        const { page, limit } = paginationDto;
+    //특정 사용자 미디어(전체) 보기 - 사진만
+    async getSpecificUserMediaByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = (page - 1) * limit
 
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .innerJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .where('user.id = :specificUserId', { specificUserId })
-            .skip(skip)
-            .take(limit)
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
+        const whereClause = `post.user_id = '${specificUserId}' AND template_url IS NULL`
+        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
         
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
-
         return {
-            data: posts.map((post) => this.createPostData(post)),
+            data: posts,
             pagination: createPaginationObject(count, limit, page)
-        };
+        }
     }
 
-    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, paginationDto: PaginationDto): Promise<GetPostsPaginationResponse> {
-        const { page, limit } = paginationDto;
+    //특정 사용자 미디어(해시태그 필터링) 보기 - 사진만
+    async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = (page - 1) * limit
 
-        const [posts, count] = await this.repository.createQueryBuilder('post')
-            .innerJoinAndSelect('post.postImages', 'postimage')
-            .innerJoin('post.user', 'user')
-            .addSelect(['user.id', 'user.name', 'user.email'])
-            .leftJoinAndSelect('user.profileImages', 'profileImages')
-            .leftJoinAndSelect('post.postTags', 'posttags')
-            .leftJoinAndSelect('posttags.hashtag', 'hashtag')
-            .leftJoin('post.liked', 'liked', 'liked.user = :userId', { userId })
-            .addSelect(['liked.id'])
-            .where('user.id = :specificUserId', { specificUserId })
-            .andWhere(qb => {
-                const subQuery = qb.subQuery()
-                    .select('postTag.post')
-                    .from('post_tags', 'postTag')
-                    .leftJoin('postTag.hashtag', 'hashtag')
-                    .where('hashtag.id = :hashTagId', { hashTagId })
-                    .getQuery();
-                return 'post.id IN ' + subQuery;
-            })
-            .skip(skip)
-            .take(limit)
-            .orderBy('post.createdAt', 'DESC')
-            // .addOrderBy('posttags.createdAt', 'ASC')
-            .getManyAndCount();
-        
-        await Promise.all([this.setCountsToPosts(posts), this.addCommentsToPostImages(posts)])
+        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
+        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
 
         return {
-            data: posts.map((post) => this.createPostData(post)),
+            data: posts,
             pagination: createPaginationObject(count, limit, page)
         };
     }
@@ -561,15 +578,10 @@ export class PostRepository {
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
     }
 
-    // 여기 해야함
+    
     async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
-            SELECT user.name, user.introduction,
-                (SELECT image.url
-                    FROM image
-                    WHERE image.user_id = user.id
-                    ORDER BY image.created_at DESC
-                    LIMIT 1) AS profileImage,
+            SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
                 (SELECT COUNT(following.id)
                     FROM user_relationship following
                     WHERE following.following_id = user.id) AS followingCount,
@@ -600,7 +612,7 @@ export class PostRepository {
             id : specificUserId,
             name : result[0].name,
             introduction : result[0].introduction,
-            profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null,
+            profileImage : result[0].profileImage,
             isFollowing : result[0].isFollowing > 0 ? true : false,
             postCount : Number(result[0].postCount),
             followerCount : Number(result[0].followerCount),

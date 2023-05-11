@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch,
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from './dto/create.post.dto';
 import { ImageResponse } from './interface/post-image.interface';
 import { BaseHashTag, PostUserResponse } from './interface/post.interface';
@@ -85,8 +85,8 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsByPagination(@Param('userId') userId: string, @Query() paginationDto: PaginationDto) {
-        return await this.postService.getPostsByPagination(userId, paginationDto);
+    async getPostsByPagination(@Param('userId') userId: string, @Query() postPaginationDto: PostPaginationDto) {
+        return await this.postService.getPostsByPagination(userId, postPaginationDto);
     }
 
     @PaginatedResponse()
@@ -95,8 +95,8 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId: string, @Param('hashTagId') hashTagId: string, @Query() paginationDto: PaginationDto) {
-        return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, paginationDto);
+    async getPostsFilterByHashTagIdAndPagination(@Param('userId') userId: string, @Param('hashTagId') hashTagId: string, @Query() postPaginationDto: PostPaginationDto) {
+        return await this.postService.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, postPaginationDto);
     }
 
     @PaginatedResponse()
@@ -105,8 +105,8 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getSpecificUserFeedByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PaginationDto) {
-        return await this.postService.getSpecificUserFeedByPagination(userId, specificUserId, paginationDto);
+    async getSpecificUserFeedByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() postPaginationDto: PostPaginationDto) {
+        return await this.postService.getSpecificUserFeedByPagination(userId, specificUserId, postPaginationDto);
     }
 
     @PaginatedResponse()
@@ -115,7 +115,7 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getFollowingFeedByPagination(@Param('userId') userId: string, @Query() paginationDto: PaginationDto) {
+    async getFollowingFeedByPagination(@Param('userId') userId: string, @Query() paginationDto: PostPaginationDto) {
         return await this.postService.getFollowingFeedByPagination(userId, paginationDto);
     }
 
@@ -125,7 +125,7 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getSpecificUserMediaByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PaginationDto) {
+    async getSpecificUserMediaByPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Query() paginationDto: PostPaginationDto) {
         return await this.postService.getSpecificUserMediaByPagination(userId, specificUserId, paginationDto);
     }
 
@@ -135,8 +135,8 @@ export class PostsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getSpecificUserMediaFilterByHashTagAndPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Param('hashTagId') hashTagId: string, @Query() paginationDto: PaginationDto) {
-        return await this.postService.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, paginationDto);
+    async getSpecificUserMediaFilterByHashTagAndPagination(@Param('userId') userId: string, @Param('specificUserId') specificUserId: string, @Param('hashTagId') hashTagId: string, @Query() postPaginationDto: PostPaginationDto) {
+        return await this.postService.getSpecificUserMediaFilterByHashTagAndPagination(userId, specificUserId, hashTagId, postPaginationDto);
     }
 
     @Get('profile/images')

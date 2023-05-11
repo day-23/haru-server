@@ -4,7 +4,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/comments/dto/create.comment.dto";
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto } from "src/common/dto/pagination.dto";
-import { getS3ImageUrl } from "src/common/utils/s3";
 import { Comment } from "src/entity/comment.entity";
 import { Repository } from "typeorm";
 
@@ -58,14 +57,8 @@ export class CommentRepository {
             comment.created_at createdAt, 
             comment.updated_at updatedAt, 
             user.id AS userId, 
-            user.name, 
-            (
-                SELECT profileImage.url
-                FROM image profileImage
-                WHERE profileImage.user_id = user.id
-                ORDER BY profileImage.created_at DESC
-                LIMIT 1
-            ) AS profileImage
+            user.name,
+            user.profile_image_url AS profileImage
             FROM 
                 comment
                 LEFT JOIN user ON comment.user_id = user.id
@@ -80,7 +73,7 @@ export class CommentRepository {
                 user: {
                     id: row.userId,
                     name: row.name,
-                    profileImage: getS3ImageUrl(this.configService, row.profileImage),
+                    profileImage: row.profileImage,
                 },
                 content: row.content,
                 x: row.x,

@@ -61,6 +61,9 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 100, comment: '자기소개', default: '' })
     introduction: string;
 
+    @Column({ type: 'varchar', length: 200, comment: '프로필 이미지 url', default: null, nullable: true })
+    profileImageUrl: string;
+
     @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 
