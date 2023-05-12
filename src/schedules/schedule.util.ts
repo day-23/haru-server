@@ -8,10 +8,12 @@ import { parseTodoResponse } from "src/todos/todo.util";
 import { CreateScheduleDto } from "./dto/create.schedule.dto";
 import { ScheduleResponse } from "./interface/schedule.interface";
 import { getMinusOneDay } from "src/common/makeDate";
+import { Todo } from "src/entity/todo.entity";
 
 
 export function parseScheduleResponse(newSchedule: Schedule, category: Category, alarms: Alarm[]): ScheduleResponse {
     const baseAlarms: BaseAlarm[] = [];
+    
     alarms.forEach(({ id, time }) => {
         baseAlarms.push({ id, time })
     })
@@ -45,7 +47,7 @@ export function schedulesParseToSchedulesResponse(schedules: Schedule[]) : Sched
 }
 
 
-export function schedulesParseToTodosResponse(schedules: Schedule[]) : TodoResponse[]{
+export function schedulesParseToTodosResponse(schedules: Schedule[] | Todo[]) : TodoResponse[]{
     const todoResponses : TodoResponse[] = schedules.map(schedule => {
         const { category, alarms, todo } = schedule;
         const scheduleResponse = parseScheduleResponse(schedule, category, alarms);
