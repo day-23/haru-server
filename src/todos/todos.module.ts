@@ -8,9 +8,10 @@ import { TodosService } from './todos.service';
 import { TagsModule } from 'src/tags/tags.module';
 import { SchedulesModule } from 'src/schedules/schedules.module';
 import { TodoTags } from 'src/entity/todo-tags.entity';
+import { Schedule } from 'src/entity/schedule.entity';
 
 @Module({
-    imports: [SchedulesModule, TagsModule, TypeOrmModule.forFeature([Todo, Subtodo, TodoTags])],
+    imports: [SchedulesModule, TagsModule, TypeOrmModule.forFeature([Todo, Subtodo, Schedule, TodoTags])],
     controllers: [TodosController],
     providers: [
         {

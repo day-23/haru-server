@@ -16,9 +16,12 @@ import { LIMIT_DATA_LENGTH } from "src/common/utils/constants";
 import { UpdateSubTodoDto } from "./dto/create.subtodo.dto";
 import { todosParseToTodoResponse } from "./todo.util";
 import { TodoRepositoryInterface } from "./interface/todo.repository.interface";
+import { schedulesParseToTodosResponse } from "src/schedules/schedule.util";
+import { Schedule } from "src/entity/schedule.entity";
 
 export class TodoRepository implements TodoRepositoryInterface {
     constructor(@InjectRepository(Todo) private readonly repository: Repository<Todo>,
+        @InjectRepository(Schedule) private readonly scheduleRepository: Repository<Schedule>,
         @InjectRepository(Subtodo) private readonly subTodoRepository: Repository<Subtodo>,
         @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>,
         private readonly dataSource : DataSource
@@ -374,23 +377,29 @@ export class TodoRepository implements TodoRepositoryInterface {
     async findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> {
         const { startDate, endDate } = dateTimePaginationDto
 
-        // todo and schedule, alarm inner join and pagination
-        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
-            .andWhere('schedule.repeat_start IS NOT NULL')
+        //make query that schedule that is todo_id is null
+        const [todos, count] = await this.scheduleRepository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.category', 'category')
+            .leftJoinAndSelect('schedule.alarms', 'alarm')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .leftJoinAndSelect('todo.todoTags', 'todoTags')
+            .leftJoinAndSelect('todoTags.tag', 'tag')
+            .leftJoinAndSelect('todo.subTodos', 'subTodos')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('schedule.todo IS NOT NULL')
             .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
             OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
             OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
             OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
             .orderBy('schedule.repeat_start', 'ASC')
-            .addOrderBy('todoTags.tagOrder', 'ASC')
+            .addOrderBy('schedule.repeat_end', 'DESC')
+            .addOrderBy('schedule.created_at', 'ASC')
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
-            .getManyAndCount();
-        
-        console.log(todos)
+            .getManyAndCount()
 
         return {
-            data: todosParseToTodoResponse(todos),
+            data: schedulesParseToTodosResponse(todos),
             pagination: {
                 totalItems: count,
                 startDate,
