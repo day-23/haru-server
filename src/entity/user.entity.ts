@@ -64,6 +64,30 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 200, comment: '프로필 이미지 url', default: null, nullable: true })
     profileImageUrl: string;
 
+    @Column({ default: true })
+    isPublicAccount: boolean;
+
+    @Column({ default: true })
+    isPostBrowsingEnabled : boolean;
+
+    // 피드 좋아요, 코멘트 허용 여부
+    // 전체 : 2
+    // 팔로잉만 : 1
+    // 아무도 : 0
+    @Column({
+        type: "tinyint",
+        unsigned: true,
+        default : 2
+    })
+    isAllowFeedLike: number;
+
+    @Column({
+        type: "tinyint",
+        unsigned: true,
+        default : 2
+    })
+    isAllowFeedComment: number;
+
     @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 

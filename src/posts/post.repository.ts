@@ -328,12 +328,15 @@ export class PostRepository {
             INNER JOIN user
             ON post.user_id = user.id
             WHERE post.created_at < ?
+            AND user.is_post_browsing_enabled = true
             AND ${whereClause}
             ORDER BY post.created_at DESC
             LIMIT ? OFFSET ?
         `;
 
         const posts : RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        console.log(posts)
+        
         if(posts.length === 0) return [];
 
         return await this.addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts);
@@ -350,6 +353,7 @@ export class PostRepository {
             INNER join user
             ON post_tags.user_id = user.id
             WHERE post.created_at < ?
+            AND user.is_post_browsing_enabled = true
             AND ${whereClause}
             ORDER BY post.created_at DESC
             LIMIT ? OFFSET ?
@@ -366,7 +370,10 @@ export class PostRepository {
         const countQuery = `
             SELECT COUNT(*) as count
             FROM post
-            WHERE post.created_at < ?
+            INNER JOIN user
+            ON post.user_id = user.id
+            WHERE user.is_post_browsing_enabled = true
+            AND post.created_at < ?
             AND ${whereClause}
             `;
         const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
@@ -379,7 +386,10 @@ export class PostRepository {
             FROM post_tags
             INNER JOIN post
             ON post_tags.post_id = post.id
-            WHERE post.created_at < ?
+            INNER JOIN user
+            ON post.user_id = user.id
+            WHERE user.is_post_browsing_enabled = true
+            AND post.created_at < ?
             AND ${whereClause}
         `
         const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
