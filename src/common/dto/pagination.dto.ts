@@ -19,8 +19,6 @@ export class PostPaginationDto extends PaginationDto {
     lastCreatedAt: string = "2222-08-26T00:00:00.000Z";
 }
 
-
-
 export function createPaginationObject(count: number, limit: number, page: number) {
     const totalPages = Math.ceil(count / limit);
     return {
