@@ -14,11 +14,12 @@ import { UserService } from 'src/users/users.service';
 import { NaverStrategy } from './strategies/auth.naver.strategy';
 import { KakaoStrategy } from './strategies/auth.kakao.strategy';
 import { Image } from 'src/entity/image.entity';
-import { AwsModule } from 'src/aws/aws.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
     controllers: [AuthController],
     imports: [
+        HttpModule,
         TypeOrmModule.forFeature([User, Image]),
         PassportModule,
         JwtModule.register({

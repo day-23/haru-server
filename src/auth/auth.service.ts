@@ -5,6 +5,7 @@ import { UserRepository } from 'src/users/user.repository';
 import { CreateUserDto } from 'src/users/dto/users.dto';
 import { UserService } from 'src/users/users.service';
 import axios from 'axios';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
         private userRepository: UserRepository,
         private readonly jwtService: JwtService,
         private userService: UserService,
+        private readonly httpService: HttpService,
     ) {}
 
     /**
@@ -79,6 +81,45 @@ export class AuthService {
 
         const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${process.env.JWT_EXPIRATION_TIME}`;
 
+        console.log(token, cookie)
         return { cookie: cookie, accessToken: token };
+    }
+
+
+    async verifyKakaoToken(accessToken: string) {
+        //parsing bearer token
+        const token = accessToken.split(' ')[1];
+
+        const response = await this.httpService
+            .get('https://kapi.kakao.com/v2/user/me', {
+                headers: { Authorization: `Bearer ${token}` },
+            })
+            .toPromise();
+        return response.data;
+    }
+
+    async validateKakaoUser(accessToken: string): Promise<any> {
+        // Fetch user information from Kakao's User API
+        const kakaoUser = await this.verifyKakaoToken(accessToken);
+
+        // Extract the email from the user's Kakao profile
+        const email = kakaoUser.kakao_account.email;
+
+        // Check if a user with this email already exists in your database
+        let user = await this.userRepository.findByEmail(email);
+
+        console.log(user)
+
+        // If the user is logging in for the first time
+        if (!user) {
+            // Create a new user record in the database
+            user = await this.signUp(email, "새로운_가입자");
+        }
+
+        // Issue your own JWT
+        const jwt = await this.getAccessToken(user);
+
+        // Return the JWT
+        return jwt;
     }
 }
