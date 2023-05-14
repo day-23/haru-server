@@ -12,10 +12,23 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
         });
     }
 
-    validate(accessToken: string, refreshToken: string, profile: any) {
-        return {
-            email: profile._json.email,
-            name: profile.username,
-        };
+    async validate(accessToken: string, refreshToken: string, profile: any, done: Function) {
+        try {
+            // You should transform the profile into your User entity and feed it into done callback.
+            // This is an example. You should replace 'user' with a real User entity from your database.
+            const user = {
+                email: profile._json.email,
+                name: profile.username,
+            };
+
+            // Here, you can handle the user data and do whatever you want: 
+            // - Save the user into your database
+            // - Check if the user already exists and then return it
+            // - Return an error if something went wrong
+
+            done(null, user);
+        } catch (err) {
+            done(err, false);
+        }
     }
 }

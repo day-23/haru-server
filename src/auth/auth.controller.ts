@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { User } from 'src/entity/user.entity';
 import { UserService } from 'src/users/users.service';
@@ -61,9 +61,16 @@ export class AuthController {
         return res.send(accessToken);
     }
 
-    @Get('kakao')
-    @UseGuards(KakaoAuthGuard)
-    async kakaoLogin(@Req() req) {}
+    // @Get('kakao')
+    // @UseGuards(KakaoAuthGuard)
+    // async kakaoLogin(@Req() req) {}
+
+    @Post('kakao')
+    async kakaoLogin(@Headers('authorization') accessToken: string) {
+        const kakaoUser = await this.authService.validateKakaoUser(accessToken);
+        // implement your sign-up / login logic here
+        // you can use kakaoUser to find or create a user in your database
+    }
 
     @Get('kakao/callback')
     @UseGuards(KakaoAuthGuard)
