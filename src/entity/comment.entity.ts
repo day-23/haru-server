@@ -33,6 +33,9 @@ export class Comment extends BaseEntity {
     @Column({ nullable: true })
     y: number;
 
+    @Column({ default: true })
+    isPublic: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 
