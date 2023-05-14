@@ -109,8 +109,7 @@ export class CommentRepository {
     }
 
     async updateComment(userId: string, commentId: string, updateCommentDto: UpdateCommentDto): Promise<void> {
-        const { content } = updateCommentDto
-        const updatedComment = await this.repository.update({ id: commentId, user: { id: userId } }, { content })
+        const updatedComment = await this.repository.update({ id: commentId, user: { id: userId } }, { ...updateCommentDto })
 
         if (updatedComment.affected == 0) {
             throw new HttpException(
