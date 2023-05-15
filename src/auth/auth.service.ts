@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/users/user.repository';
@@ -71,18 +71,59 @@ export class AuthService {
         return await this.userService.createUser(createUserDto);
     }
 
+    async getRefreshToken(user: User) {
+        const payload = {
+            sub: 'refresh',
+            email: user.email,
+            id: user.id,
+        };
+
+        // Note: You should use a different secret for access and refresh tokens.
+        const refreshToken = this.jwtService.sign(payload, {
+            secret: process.env.JWT_REFRESH_SECRET,
+            expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
+        });
+
+        return refreshToken;
+    }
+
+    async validateRefreshToken(token: string) {
+        try {
+            return this.jwtService.verify(token, {
+                secret: process.env.JWT_REFRESH_SECRET,
+            });
+        } catch (error) {
+            throw new UnauthorizedException('Refresh token is invalid or expired');
+        }
+    }
+
     async getAccessToken(user: User) {
         const payload = {
             email: user.email,
-            name: user.name,
+            id: user.id,
         };
 
         const token = this.jwtService.sign(payload);
-
         const cookie = `Authentication=${token}; HttpOnly; Path=/; Max-Age=${process.env.JWT_EXPIRATION_TIME}`;
 
         console.log(token, cookie)
         return { cookie: cookie, accessToken: token };
+    }
+
+    async createAccessTokenFromRefreshToken(refreshToken: string) {
+        try {
+            const decoded = this.jwtService.verify(refreshToken, {
+                secret: process.env.JWT_REFRESH_SECRET,
+            });
+
+            if (decoded) {
+                const user = await this.userService.getUserByEmail(decoded.email);
+                return await this.getAccessToken(user);
+            }
+        } catch (error) {
+            return null;
+        }
+        return null;
     }
 
 
@@ -108,18 +149,22 @@ export class AuthService {
         // Check if a user with this email already exists in your database
         let user = await this.userRepository.findByEmail(email);
 
-        console.log(user)
-
         // If the user is logging in for the first time
         if (!user) {
             // Create a new user record in the database
             user = await this.signUp(email, "새로운_가입자");
         }
 
-        // Issue your own JWT
-        const jwt = await this.getAccessToken(user);
+        console.log(user)
 
-        // Return the JWT
-        return jwt;
+        const refreshToken = await this.getRefreshToken(user);
+        const serverAccessToken = await this.getAccessToken(user);
+
+        // Issue your own JWT
+        return {
+            id: user.id,
+            ...serverAccessToken,
+            refreshToken: refreshToken,
+        };
     }
 }
