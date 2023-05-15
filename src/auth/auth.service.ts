@@ -63,7 +63,7 @@ export class AuthService {
         const createUserDto: CreateUserDto = {
             email: email,
             password: '',
-            name: name,
+            name: "",
             age: 24,
             phone: phone,
         };
@@ -152,10 +152,8 @@ export class AuthService {
         // If the user is logging in for the first time
         if (!user) {
             // Create a new user record in the database
-            user = await this.signUp(email, "새로운_가입자");
+            user = await this.signUp(email, "");
         }
-
-        console.log(user)
 
         const refreshToken = await this.getRefreshToken(user);
         const serverAccessToken = await this.getAccessToken(user);
@@ -163,6 +161,7 @@ export class AuthService {
         // Issue your own JWT
         return {
             id: user.id,
+            name : user.name,
             ...serverAccessToken,
             refreshToken: refreshToken,
         };
