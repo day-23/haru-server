@@ -21,6 +21,7 @@ export class CreateImageCommentDto extends CreateCommentDto{
     y: number;
 
     @IsBoolean()
+    @IsOptional()
     isPublic: boolean;
 }
 

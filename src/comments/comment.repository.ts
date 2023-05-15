@@ -111,6 +111,7 @@ export class CommentRepository {
     async updateComment(userId: string, commentId: string, updateCommentDto: UpdateCommentDto): Promise<void> {
         const updatedComment = await this.repository.update({ id: commentId, user: { id: userId } }, { ...updateCommentDto })
 
+        console.log(updatedComment)
         if (updatedComment.affected == 0) {
             throw new HttpException(
                 'Comment not found',
