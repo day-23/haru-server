@@ -49,22 +49,22 @@ export class AuthController {
         return await this.authService.validateKakaoUser(accessToken);
     }
 
-    @Get('kakao/callback')
-    @UseGuards(KakaoAuthGuard)
-    async kakaoCallback(@Req() req, @Res() res) {
-        let user: User = await this.userService.getUserByEmail(req.user.email);
+    // @Get('kakao/callback')
+    // @UseGuards(KakaoAuthGuard)
+    // async kakaoCallback(@Req() req, @Res() res) {
+    //     let user: User = await this.userService.getUserByEmail(req.user.email);
 
-        if (!user) {
-            user = await this.authService.signUp(req.user.email, req.user.name);
-        }
+    //     if (!user) {
+    //         user = await this.authService.signUp(req.user.email, req.user.name);
+    //     }
 
-        const { cookie, accessToken } = await this.authService.getAccessToken(
-            user,
-        );
+    //     const { cookie, accessToken } = await this.authService.getAccessToken(
+    //         user,
+    //     );
 
-        res.setHeader('Set-Cookie', cookie);
-        return res.send(accessToken);
-    }
+    //     res.setHeader('Set-Cookie', cookie);
+    //     return res.send(accessToken);
+    // }
 
 
     // @Get('google')
