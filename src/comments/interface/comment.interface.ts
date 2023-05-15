@@ -11,6 +11,7 @@ export interface ImageCommentCreateResponse {
     content: string,
     x : number,
     y : number,
+    isPublic : boolean,
     createdAt: Date,
     updatedAt: Date,
 }

@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/comments/dto/create.comment.dto";
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
-import { PaginationDto } from "src/common/dto/pagination.dto";
+import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Repository } from "typeorm";
 
@@ -38,14 +38,15 @@ export class CommentRepository {
             content: savedComment.content,
             x,
             y,
+            isPublic : true,
             createdAt: savedComment.createdAt,
             updatedAt: savedComment.updatedAt
         }
         return ret
     }
 
-    async getCommentsByPagination(userId: string, paginationDto: PaginationDto): Promise<GetCommentsPaginationResponse> {
-        const { page, limit } = paginationDto;
+    async getCommentsByPagination(userId: string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = paginationDto;
         const skip = (page - 1) * limit;
 
         const rawResult = await this.repository.manager.query(`
@@ -53,7 +54,8 @@ export class CommentRepository {
             comment.id, 
             comment.content, 
             comment.x, 
-            comment.y, 
+            comment.y,
+            comment.is_public isPublic, 
             comment.created_at createdAt, 
             comment.updated_at updatedAt, 
             user.id AS userId, 
@@ -62,10 +64,11 @@ export class CommentRepository {
             FROM 
                 comment
                 LEFT JOIN user ON comment.user_id = user.id
-            ORDER BY 
+            WHERE comment.created_at < ?
+            ORDER BY
                 comment.created_at DESC
             LIMIT ?, ?;
-        `, [skip, limit]);
+        `, [lastCreatedAt, skip, limit]);
 
         const comments = rawResult.map(row => {
             return {
@@ -78,6 +81,7 @@ export class CommentRepository {
                 content: row.content,
                 x: row.x,
                 y: row.y,
+                isPublic : row.isPublic,
                 createdAt: row.createdAt,
                 updatedAt: row.updatedAt,
             };
@@ -96,6 +100,7 @@ export class CommentRepository {
                 content: comment.content,
                 x: comment.x,
                 y: comment.y,
+                isPublic : comment.isPublic ? true : false,
                 createdAt: comment.createdAt,
                 updatedAt: comment.updatedAt
             })),

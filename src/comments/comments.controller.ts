@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
 import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
@@ -29,7 +29,7 @@ export class CommentsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getCommentsByPagination(@Param('userId') userId: string, @Query() paginationDto: PaginationDto): Promise<GetCommentsPaginationResponse> {
+    async getCommentsByPagination(@Param('userId') userId: string, @Query() paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
         return await this.commentService.getCommentsByPagination(userId, paginationDto);
     }
 
