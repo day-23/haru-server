@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { CommentRepository } from 'src/comments/comment.repository';
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
 import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
@@ -16,7 +16,7 @@ export class CommentsService {
         return await this.commentRepository.createImageComment(userId, postId, postImageId, createCommentDto)
     }
 
-    async getCommentsByPagination(userId : string, paginationDto: PaginationDto): Promise<GetCommentsPaginationResponse>{
+    async getCommentsByPagination(userId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse>{
         return await this.commentRepository.getCommentsByPagination(userId, paginationDto);
     }
 
