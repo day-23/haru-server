@@ -165,38 +165,29 @@ export class PostRepository {
         }
     }
 
-    async getComments(postImageIds : string[]) : Promise<Comment[]> {
+    async getComments(userId : string, postImageIds : string[]) : Promise<Comment[]> {
         if(postImageIds.length === 0) return [];
 
         const comments = await this.commentRepository.query(`
-            SELECT ranked_comments.*, user.id user_id, user.name user_name, image.url user_profile_image_url
+            SELECT ranked_comments.*, user.id user_id, user.name user_name, user.profile_image_url user_profile_image_url
             FROM (
             SELECT
                 comment.*,
                 ROW_NUMBER() OVER (PARTITION BY post_image_id ORDER BY created_at DESC) as row_num
             FROM comment
-            WHERE x IS NOT NULL
+            WHERE x IS NOT NULL AND is_public = true
             ) ranked_comments
             JOIN user ON ranked_comments.user_id = user.id
-            LEFT JOIN (
-            SELECT i1.*
-            FROM image i1
-            INNER JOIN (
-                SELECT user_id, MAX(created_at) as latest_created_at
-                FROM image
-                GROUP BY user_id
-            ) i2 ON i1.user_id = i2.user_id AND i1.created_at = i2.latest_created_at
-            ) image ON user.id = image.user_id
-            WHERE ranked_comments.row_num <= 10
+            WHERE (ranked_comments.row_num <= 10 OR ranked_comments.user_id = ?)
             AND post_image_id IN (?)
-        `, [postImageIds]);
+        `, [userId, postImageIds]);
 
         return comments.map((commentRow: any) => {
             const user : SnsBaseUser = {
                 id : commentRow.user_id,
                 name : commentRow.user_name,
                 email : commentRow.user_email,
-                profileImage : commentRow.user_profile_image_url ? this.S3_URL + commentRow.user_profile_image_url : null,
+                profileImage : commentRow.user_profile_image_url
             };
 
             const comment = {
@@ -234,10 +225,10 @@ export class PostRepository {
         }
     }
 
-    async addCommentsToPostImages(posts: PostGetResponse[]): Promise<void> {
+    async addCommentsToPostImages(userId : string, posts: PostGetResponse[]): Promise<void> {
         const postImageIds = posts.flatMap(post => post.images.map(postImage => postImage.id));
 
-        const comments = await this.getComments(postImageIds);
+        const comments = await this.getComments(userId, postImageIds);
         const postImageIdToCommentsMap = this.createPostImageIdToCommentsMap(comments);
 
         this.assignCommentsToPostImages(posts, postImageIdToCommentsMap);
@@ -403,7 +394,7 @@ export class PostRepository {
 
         const whereClause = `template_url IS NULL`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
         
         return {
             data: posts,
@@ -418,7 +409,7 @@ export class PostRepository {
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}'`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
         return {
             data: posts,
@@ -433,7 +424,7 @@ export class PostRepository {
 
         const whereClause = `post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
         
         return {
             data: posts,
@@ -469,7 +460,7 @@ export class PostRepository {
         const skip = (page - 1) * limit
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
         
         return {
             data: posts,
@@ -484,7 +475,7 @@ export class PostRepository {
 
         const whereClause = `post.user_id = '${specificUserId}' AND template_url IS NULL`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
         
         return {
             data: posts,
@@ -499,7 +490,7 @@ export class PostRepository {
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
         return {
             data: posts,
