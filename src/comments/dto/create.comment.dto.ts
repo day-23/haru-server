@@ -19,6 +19,10 @@ export class CreateImageCommentDto extends CreateCommentDto{
     @ApiProperty({ description: '댓글 y좌표' })
     @IsNumber()
     y: number;
+
+    @IsBoolean()
+    @IsOptional()
+    isPublic: boolean;
 }
 
 export class UpdateCommentDto extends PartialType(CreateImageCommentDto) {}
