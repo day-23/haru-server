@@ -45,7 +45,7 @@ export class Todo extends BaseEntity {
     @OneToMany(() => Subtodo, (subtodo) => subtodo.todo, { cascade: true })
     subTodos: Subtodo[];
 
-    @OneToOne(() => Schedule, (schedule) => schedule.todo)
+    @OneToOne(() => Schedule, (schedule) => schedule.todo, {onDelete : 'CASCADE'})
     schedule: Schedule
 
     @UpdateDateColumn()

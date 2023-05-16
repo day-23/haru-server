@@ -22,6 +22,7 @@ import { Template } from "src/entity/template.entity";
 import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
 import { getS3ImageUrl } from "src/common/utils/s3";
+import { calculateSkip } from "./post.util";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -390,7 +391,7 @@ export class PostRepository {
     //둘러보기(전체 게시물 보기) - 사진만
     async getPostsByPagination(userId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        const skip = (page - 1) * limit
+        const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
@@ -405,7 +406,7 @@ export class PostRepository {
 
     async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        const skip = (page - 1) * limit
+        const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}'`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
@@ -420,7 +421,7 @@ export class PostRepository {
     //특정 사용자 피드보기 - 템플릿 + 사진
     async getSpecificUserFeedByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        const skip = (page - 1) * limit
+        const skip = calculateSkip(page, limit)
 
         const whereClause = `post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
@@ -457,7 +458,8 @@ export class PostRepository {
 
         const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
 
-        const skip = (page - 1) * limit
+        const skip = calculateSkip(page, limit)
+
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
@@ -471,7 +473,8 @@ export class PostRepository {
     //특정 사용자 미디어(전체) 보기 - 사진만
     async getSpecificUserMediaByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        const skip = (page - 1) * limit
+        
+        const skip = calculateSkip(page, limit)
 
         const whereClause = `post.user_id = '${specificUserId}' AND template_url IS NULL`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
@@ -486,7 +489,8 @@ export class PostRepository {
     //특정 사용자 미디어(해시태그 필터링) 보기 - 사진만
     async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        const skip = (page - 1) * limit
+        
+        const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])

@@ -5,6 +5,7 @@ import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/c
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
+import { calculateSkip } from "src/posts/post.util";
 import { Repository } from "typeorm";
 
 export class CommentRepository {
@@ -47,7 +48,7 @@ export class CommentRepository {
 
     async getCommentsByPagination(userId: string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
         const { page, limit, lastCreatedAt } = paginationDto;
-        const skip = (page - 1) * limit;
+        const skip = calculateSkip(page, limit)
 
         const rawResult = await this.repository.manager.query(`
             SELECT 

@@ -449,6 +449,8 @@ export class TodoRepository implements TodoRepositoryInterface {
             .addOrderBy('subTodos.subTodoOrder', 'ASC')
             .getManyAndCount();
 
+        console.log(todos)
+        
         const totalPages = Math.ceil(count / limit);
 
         return {
