@@ -1,11 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ParseIntPipe, ValidationPipe, DefaultValuePipe, ParseUUIDPipe, UseGuards, Req, UseInterceptors, HttpException, HttpStatus, UploadedFiles, UploadedFile, } from '@nestjs/common';
 import { UserService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
+import { CreateUserDto } from './dto/users.dto';
 import { User } from 'src/entity/user.entity';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UpdateProfileDto } from './dto/profile.dto';
 
 
 @Controller('user')
@@ -44,7 +43,8 @@ export class UserController {
         return await this.userService.createUser(createUserDto)
     }
 
-    /* 회원가입 */
+    
+    /* 회원탈퇴 */
     @Delete('/:userId')
     @ApiOperation({ summary: '회원탈퇴 API', description: '유저를 생성한다.' })
     async deleteAccount(@Param('userId') userId : string): Promise<void> {
@@ -55,11 +55,5 @@ export class UserController {
     @Post('/auth/login')
     async login(@Req() req) {
         return req.user
-    }
-
-    @Patch(':userId/profile')
-    @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
-    async updateProfile(@Param('userId') userId: string, @Body() updateProfileDto: UpdateProfileDto): Promise<void> {
-        return await this.userService.updateProfile(userId, updateProfileDto)
     }
 }

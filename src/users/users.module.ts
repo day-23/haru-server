@@ -13,6 +13,7 @@ import { UserService } from './users.service';
     providers: [UserService, UserRepository, {
         provide: APP_GUARD,
         useClass: ThrottlerGuard,
-    }]
+    }],
+    exports: [UserService]
 })
 export class UsersModule { }
