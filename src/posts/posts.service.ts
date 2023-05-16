@@ -109,8 +109,8 @@ export class PostService {
         return await this.postRepository.getUserInfo(userId, specificUserId)
     }
 
-    async getUserByEmail(userId: string, email: string) : Promise<PostUserResponse>{
-        return await this.postRepository.getUserByEmail(userId, email)
+    async getUserByHaruId(userId: string, haruId: string) : Promise<PostUserResponse>{
+        return await this.postRepository.getUserByHaruId(userId, haruId)
     }
 
     async likePost(userId: string, postId: string) : Promise<void>{

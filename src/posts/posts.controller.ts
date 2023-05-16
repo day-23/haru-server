@@ -163,10 +163,10 @@ export class PostsController {
         return await this.postService.getUserInfo(userId, specificUserId)
     }
 
-    @Get('search/user/:email')
+    @Get('search/user/:haruId')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserByEmail(@Param('userId') userId: string, @Param('email') email: string): Promise<PostUserResponse> {
-        return await this.postService.getUserByEmail(userId, email)
+    async getUserByHaruId(@Param('userId') userId: string, @Param('haruId') haruId: string): Promise<PostUserResponse> {
+        return await this.postService.getUserByHaruId(userId, haruId)
     }
 
     @Patch(':postId')
