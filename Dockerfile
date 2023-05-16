@@ -1,10 +1,7 @@
 FROM node:18
 RUN mkdir -p /var/app
 
-ENV NODE_OPTIONS="--max-old-space-size=1536"
-
-
-ENV NODE_OPTIONS="--max-old-space-size=1536"
+ENV NODE_OPTIONS="--max-old-space-size=5120"
 
 WORKDIR /var/app
 COPY . .
@@ -23,4 +20,4 @@ RUN npm run build
 ENV HOST 0.0.0.0
 EXPOSE 3000
 
-CMD ["pm2-runtime", "dist/main.js"]
+CMD ["pm2-runtime", "start", "dist/main.js", "-i", "max"]

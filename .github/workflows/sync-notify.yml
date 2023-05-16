@@ -61,7 +61,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:latest
-          memory: '2g'
+          memory: '4g'
   # 배포 Job
   deploy:
     needs: build  # build 후에 실행되도록 정의
