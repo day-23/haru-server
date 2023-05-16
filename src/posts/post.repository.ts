@@ -13,7 +13,7 @@ import { User } from "src/entity/user.entity";
 import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
-import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse } from "src/posts/interface/post.interface";
+import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
@@ -621,30 +621,29 @@ export class PostRepository {
         }
     }
 
-    async getUserByEmail(userId: string, email: string) : Promise<PostUserResponse>{
-        const result = await this.userRepository.manager.query(`
-            SELECT user.name, user.introduction,
-                (SELECT image.url
-                    FROM image
-                    WHERE image.user_id = user.id
-                    ORDER BY image.created_at DESC
-                    LIMIT 1) AS profileImage
+    async getUserByHaruId(userId: string, haruId: string) : Promise<SearchUserResponse>{
+        const user = await this.userRepository.manager.query(`
+            SELECT user.id, user.name, user.introduction, user.profile_image_url AS profileImage
             FROM user
-            WHERE user.email = ?
+            WHERE user.haru_id = ?
             AND user.deleted_at IS NULL
-        `, [email]);
+        `, [haruId]);
 
-        if (result.length == 0) {
+        if (user.length == 0) {
             throw new HttpException(
                 'User not found',
                 HttpStatus.NOT_FOUND
             );
         }
 
+        const isFriend = await this.userRelationshipRepository.findOne({ where: { follower: { id: userId }, following: { id: user[0].id } } })
+
         return {
-            id : userId,
-            name : result[0].name,
-            profileImage : result[0].profileImage ? this.S3_URL + result[0].profileImage : null
+            id: user[0].id,
+            name: user[0].name,
+            introduction: user[0].introduction,
+            profileImage: user[0].profileImage,
+            isFriend: isFriend ? true : false
         }
     }
 

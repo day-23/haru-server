@@ -73,8 +73,21 @@ export class UserRepository {
         return user;
     }
 
-    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
-        //find user by name and if already exists that name is not user's name throw error
-        await this.repository.update({ id: userId }, { ...updateProfileDto });
+    async updateHaruId(userId: string, haruId: string) {
+        //find haruId if exists that not with userId then throw error
+        const user = await this.repository.findOne({ where: { haruId } })
+        console.log(user, userId, haruId)
+        if (user && user.id !== userId) {
+            throw new HttpException(
+                {
+                    message: '이미 존재하는 아이디입니다.',
+                    error: '이미 존재하는 아이디입니다.',
+                },
+                HttpStatus.FORBIDDEN,
+            );
+        }
+
+        await this.repository.update({ id: userId }, { haruId: haruId })
     }
+
 }

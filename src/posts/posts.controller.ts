@@ -9,7 +9,8 @@ import { BaseHashTag, PostUserResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
 import { UserInfoResponse } from './interface/user-info.interface';
-import { UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { UpdateInitialProfileDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
 
 @Controller('post/:userId')
 @ApiTags('게시물 API')
@@ -78,6 +79,29 @@ export class PostsController {
     async uploadProfileImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse> {
         return await this.postService.uploadProfileWithImage(userId, file, updateProfileDto)
     }
+
+    //after signup, input user informantion
+    @Patch('/profile/init')
+    @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
+    async updateProfileInit(@Param('userId') userId: string, @Body() updateProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
+        return await this.postService.updateInitialProfile(userId, updateProfileDto)
+    }
+
+    /* 프로필 사진 추가(이미지 하나 추가) */
+    @Patch('/profile/image/init')
+    @ApiOperation({ summary: '사용자 프로필 이미지 설정', description: '프로필 이미지를 추가한다.' })
+    @UseInterceptors(FileInterceptor('image',
+        {
+            limits: {
+                fileSize: 40 * 1024 * 1024, // 40MB
+            },
+            // Validate the file types
+            fileFilter: imageFileFilter,
+        }))
+    async uploadInitialProfileWithImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
+        return await this.postService.uploadInitialProfileWithImage(userId, file, updateProfileDto)
+    }
+
 
     @PaginatedResponse()
     @Get('posts/all')
@@ -163,10 +187,10 @@ export class PostsController {
         return await this.postService.getUserInfo(userId, specificUserId)
     }
 
-    @Get('search/user/:email')
+    @Get('search/user/:haruId')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserByEmail(@Param('userId') userId: string, @Param('email') email: string): Promise<PostUserResponse> {
-        return await this.postService.getUserByEmail(userId, email)
+    async getUserByHaruId(@Param('userId') userId: string, @Param('haruId') haruId: string): Promise<PostUserResponse> {
+        return await this.postService.getUserByHaruId(userId, haruId)
     }
 
     @Patch(':postId')

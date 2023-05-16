@@ -8,14 +8,17 @@ import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
-import { UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { UpdateInitialProfileDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
 import { getS3ImageUrl } from 'src/common/utils/s3';
+import { UserService } from 'src/users/users.service';
+import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
 
 @Injectable()
 export class PostService {
     constructor(private readonly postRepository: PostRepository,
         private readonly awsService: AwsService,
         private readonly configService : ConfigService,
+        private readonly userService : UserService,
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
         ) { }
 
@@ -92,6 +95,34 @@ export class PostService {
         return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
     }
 
+    async updateInitialProfile(userId: string, updateInitialProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
+        const { haruId, ...updateProfileDto } = updateInitialProfileDto
+
+        await this.userService.updateHaruId(userId, haruId)
+        const ret =  await this.updateProfile(userId, updateProfileDto)
+
+        return {
+            name: ret.name,
+            introduction: ret.introduction,
+            profileImageUrl: ret.profileImage,
+            haruId
+        }
+    }
+
+    async uploadInitialProfileWithImage(userId: string, file: Express.Multer.File, updateInitialProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
+        const { haruId, ...updateProfileDto } = updateInitialProfileDto
+
+        await this.userService.updateHaruId(userId, haruId)
+        const ret =  await this.uploadProfileWithImage(userId, file, updateProfileDto)
+
+        return {
+            name: ret.name,
+            introduction: ret.introduction,
+            profileImageUrl: ret.profileImage,
+            haruId
+        }
+    }
+
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
         return await this.postRepository.getProfileImagesByUserId(userId)
     }
@@ -109,8 +140,8 @@ export class PostService {
         return await this.postRepository.getUserInfo(userId, specificUserId)
     }
 
-    async getUserByEmail(userId: string, email: string) : Promise<PostUserResponse>{
-        return await this.postRepository.getUserByEmail(userId, email)
+    async getUserByHaruId(userId: string, haruId: string) : Promise<PostUserResponse>{
+        return await this.postRepository.getUserByHaruId(userId, haruId)
     }
 
     async likePost(userId: string, postId: string) : Promise<void>{

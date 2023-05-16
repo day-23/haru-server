@@ -67,6 +67,11 @@ export class ScheduleService implements ScheduleServiceInterface{
         /* 다음 할일을 만듦 */
         return await this.createSchedule(userId, { ...createScheduleDto, repeatStart: nextRepeatStart, repeatEnd: schedule.repeatEnd, parent }, queryRunner)
     }
+
+    async getScheduleByScheduleId(userId: string, scheduleId: string): Promise<Schedule> {
+        return this.scheduleRepository.findScheduleByUserAndScheduleId(userId, scheduleId);
+    }
+
     ///
     async getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseAndHolidaysByDate> {
         return await this.scheduleRepository.findSchedulesByDate(userId, dateTimePaginationDto)

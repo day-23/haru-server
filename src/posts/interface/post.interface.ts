@@ -18,6 +18,14 @@ export interface PostUserResponse {
     profileImage : string,
 }
 
+export interface SearchUserResponse{
+    id : string,
+    name : string,
+    introduction : string,
+    profileImage : string,
+    isFriend : boolean
+}
+
 export interface PostGetResponse extends PostCreateResponse{
     user : PostUserResponse,
     isLiked : boolean,

@@ -9,6 +9,7 @@ export interface ScheduleServiceInterface {
     createSchedule(userId: string, createScheduleDto: CreateScheduleDto, queryRunner?: QueryRunner): Promise<ScheduleResponse>
     createNewNextRepeatSchedule(userId: string, schedule: Schedule, nextRepeatStart: Date, queryRunner?: QueryRunner): Promise<ScheduleResponse>
 
+    getScheduleByScheduleId(userId: string, scheduleId: string): Promise<Schedule>
     getSchedulesByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesResponseAndHolidaysByDate>
     getSchedulesByParent(userId: string, parentId: string): Promise<Schedule[]>
     getSchedulesAndTodosByDate(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetSchedulesAndTodosResponseByDate>
@@ -31,4 +32,5 @@ export interface ScheduleServiceInterface {
     deleteRepeatScheduleBack(userId: string, scheduleId: string, repeatTodoCompleteBySplitDto: RepeatScheduleSplitBackDto, queryRunner?: QueryRunner): Promise<void>
 
     deleteSchedule(userId: string, scheduleId: string): Promise<void>
+    deleteSchedule(userId: string, scheduleId: string, queryRunner?: QueryRunner) : Promise<void>
 }

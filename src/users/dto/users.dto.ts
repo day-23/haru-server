@@ -48,12 +48,10 @@ export class CreateUserDto {
     phone: string;
 }
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {
-    @IsNumber()
-    @IsOptional()
-    nextTagOrder?: number; 
 
-    @IsNumber()
-    @IsOptional()
-    nextCategoryOrder?: number; 
+
+export class UpdateUserDto {
+    @IsString()
+    @IsNotEmpty()
+    name: string; // 유저 이름
 }

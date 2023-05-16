@@ -29,6 +29,7 @@ export class TodosService implements TodosServiceInterface {
     async createTodo(userId: string, createTodoDto: CreateTodoDto, queryRunner?: QueryRunner): Promise<TodoResponse> {
         const { todayTodo, flag, completed, tags, subTodos, endDate, ...createScheduleDto } = createTodoDto
 
+        console.log('debug', createScheduleDto)
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
@@ -256,9 +257,14 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
+            const updatedSchedule = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+
+            // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
+            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart > updatedSchedule.repeatEnd) {
+                await this.scheduleService.deleteSchedule(userId, schedule.id, queryRunner);
+            }
 
             await queryRunner.commitTransaction();
         } catch (error) {
@@ -340,11 +346,12 @@ export class TodosService implements TodosServiceInterface {
 
     async createNewNextRepeatTodoByExistingTodo(userId: string ,existingTodo : Todo, endDate:Date, queryRunner?: QueryRunner): Promise<TodoResponse>{
         const { id, user, schedule, ...todoData } = existingTodo
+        // if schedule.repeatEnd is not null and schedule.repeatEnd is less than endDate return
+        if(schedule.repeatEnd && schedule.repeatEnd < endDate) return
 
         const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
-
-        const parent = schedule?.parent ? schedule?.parent?.id : schedule.id
-        console.log(parent)
+        const parent = schedule?.parent ? schedule?.parent?.id : schedule?.id
+        
         /* 다음 할일을 만듦 */
         return await this.createTodo(userId, { ...createTodoDto, endDate, repeatEnd: schedule.repeatEnd, parent}, queryRunner)
     }
@@ -404,6 +411,8 @@ export class TodosService implements TodosServiceInterface {
     async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto): Promise<void> {
         return this.todoRepository.updateSubTodosOrder(userId, updateTodosOrderDto)
     }
+
+
 
     async updateRepeatTodoFront(userId: string, todoId : string, updateRepeatFrontTodoBySplitDto: UpdateRepeatFrontTodoBySplitDto, queryRunner? : QueryRunner) : Promise<void>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
@@ -519,7 +528,6 @@ export class TodosService implements TodosServiceInterface {
                 queryRunner.release();
             }
         }
-    
     }
 
     async deleteRepeatTodoFront(userId: string, todoId: string, repeatSplitFrontDto: RepeatSplitFrontDto, queryRunner?: QueryRunner): Promise<void>{

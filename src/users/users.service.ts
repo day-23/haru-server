@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { AwsService } from 'src/aws/aws.service';
 import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/users/user.repository';
 import { CreateUserDto, UpdateUserDto } from './dto/users.dto';
-import { UpdateProfileDto } from './dto/profile.dto';
 
 
 @Injectable()
 export class UserService {
-    constructor(private readonly userRepository: UserRepository) { }
+    constructor(private readonly userRepository: UserRepository
+    ) { }
 
     async findOne(id: string): Promise<User> {
         return await this.userRepository.findOne(id);
@@ -34,7 +33,7 @@ export class UserService {
         return await this.userRepository.delete(id);
     }
 
-    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
-        return await this.userRepository.updateProfile(userId, updateProfileDto)
+    async updateHaruId(userId: string, haruId: string){
+        return await this.userRepository.updateHaruId(userId, haruId);
     }
 }
