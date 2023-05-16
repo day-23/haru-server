@@ -638,6 +638,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         //get all todos that have parentTodoId
         const schedules = await this.scheduleRepository.find({where: {parent: {id: parentTodoId}}})
 
+        
         if(schedules.length == 0){
             return
         }else if(schedules.length == 1){
