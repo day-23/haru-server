@@ -634,6 +634,40 @@ export class TodoRepository implements TodoRepositoryInterface {
         }
     }
 
+    async resetParentIdOfTodos(parentTodoId : string){
+        //get all todos that have parentTodoId
+        const schedules = await this.scheduleRepository.find({where: {parent: {id: parentTodoId}}})
+
+        if(schedules.length == 0){
+            return
+        }else if(schedules.length == 1){
+            const schedule = schedules[0]
+            schedule.parent = null
+            await this.scheduleRepository.save(schedule)
+            return
+        }
+
+        //sort by schedules end date
+        const sortedSchedules = schedules.sort((a,b) => {
+            if(a.repeatEnd === null) return 1
+            if(b.repeatEnd === null) return -1
+            return b.repeatEnd.getTime() - a.repeatEnd.getTime()
+        })
+
+        console.log(sortedSchedules)
+
+        // change all sortedSchedules parent to sortedSchedules[0] and sortedSchedule[0] parent to null
+        const promises = sortedSchedules.map((schedule, index) => {
+            if(index === 0){
+                schedule.parent = null
+            }else{
+                schedule.parent = sortedSchedules[0]
+            }
+            return this.scheduleRepository.save(schedule)
+        }
+        )
+        await Promise.all(promises)
+    }
 
     /* 미반복 투두 완료처리 */
     async updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
@@ -652,6 +686,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             await Promise.all([
                 todoRepository.update({ id: todoId }, notRepeatTodoCompleteDto),
                 subtodoRepository.update({ todo: { id: todoId } }, notRepeatTodoCompleteDto),
+                this.resetParentIdOfTodos(todoId)
             ]);
             // Commit transaction
             await queryRunner.commitTransaction();

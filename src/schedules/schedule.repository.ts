@@ -62,15 +62,9 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
                 ...updateSchedulePartialDto,
                 parent: { id: parent },
             });
-            let savedSchedule: Schedule = null;
-
-            // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
-            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart > updatedSchedule.repeatEnd) {
-                this.deleteSchedule(userId, schedule.id, queryRunner);
-            } else {
-                savedSchedule = await scheduleRepository.save(updatedSchedule);
-            }
-
+            
+            const savedSchedule = await scheduleRepository.save(updatedSchedule);
+            
             // Commit transaction if it was started in this function
             if (transactionStarted) {
                 await queryRunner.commitTransaction();
