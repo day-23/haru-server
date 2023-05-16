@@ -20,7 +20,7 @@ export class Comment extends BaseEntity {
     postImage: Image;
 
     /* 댓글 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.comments)
     @JoinColumn({ name: 'user_id' })
     user: User;
 

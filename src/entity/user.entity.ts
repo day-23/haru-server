@@ -129,8 +129,8 @@ export class User extends BaseEntity {
     post_id: Post[];
 
     /* 사용자 : 댓글 - 1:N */
-    @OneToMany(() => Comment, (comment) => comment.user)
-    comment_id: Comment[];
+    @OneToMany(() => Comment, (comments) => comments.user)
+    comments: Comment[];
 
     /* 사용자 : Task  -  1:N  */
     @OneToMany(() => Schedule, (schedules) => schedules.user)
