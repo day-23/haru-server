@@ -21,7 +21,7 @@ import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
 import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
-import { getS3ImageUrl } from "src/common/utils/s3";
+import { getImageUrl } from "src/common/utils/s3";
 import { calculateSkip } from "./post.util";
 
 export class PostRepository {
@@ -276,7 +276,7 @@ export class PostRepository {
                 post.images.push({
                     id: rawImage.image_id,
                     originalName: rawImage.image_original_name,
-                    url: getS3ImageUrl(this.configService, rawImage.image_url),
+                    url: getImageUrl(this.configService, rawImage.image_url),
                     mimeType: rawImage.image_mime_type,
                     comments: []
                 })
