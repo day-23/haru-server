@@ -163,8 +163,8 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
             .leftJoinAndSelect('schedule.alarms', 'alarm')
             .where('schedule.user = :userId', { userId })
             .andWhere('schedule.todo_id IS NULL')
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
-            OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start <= :endDate) \
+            OR (schedule.repeat_end >= :startDate AND schedule.repeat_end <= :endDate) \
             OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
             OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
@@ -202,8 +202,8 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('schedule.user = :userId', { userId })
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
-            OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start <= :endDate) \
+            OR (schedule.repeat_end >= :startDate AND schedule.repeat_end <= :endDate) \
             OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
             OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
@@ -283,7 +283,7 @@ export class ScheduleRepository implements ScheduleRepositoryInterface {
         //make query that schedule that is todo_id is null
         const [datas, count] = await this.holidayRepository.createQueryBuilder('holiday')
             .select(['holiday.id', 'holiday.content', 'holiday.repeatStart', 'holiday.repeatEnd'])
-            .where('((holiday.repeat_start >= :startDate AND holiday.repeat_start < :endDate) OR (holiday.repeat_end > :startDate AND holiday.repeat_end <= :endDate) OR (holiday.repeat_start <= :startDate AND holiday.repeat_end >= :endDate) OR (holiday.repeat_start <= :endDate AND holiday.repeat_end IS NULL))')
+            .where('((holiday.repeat_start >= :startDate AND holiday.repeat_start <= :endDate) OR (holiday.repeat_end >= :startDate AND holiday.repeat_end <= :endDate) OR (holiday.repeat_start <= :startDate AND holiday.repeat_end >= :endDate) OR (holiday.repeat_start <= :endDate AND holiday.repeat_end IS NULL))')
             .setParameters({ startDate, endDate })
             .orderBy('holiday.repeat_start', 'ASC')
             .getManyAndCount()
