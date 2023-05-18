@@ -9,7 +9,7 @@ import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
 import { UpdateInitialProfileDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
-import { getS3ImageUrl } from 'src/common/utils/s3';
+import { getImageUrl } from 'src/common/utils/s3';
 import { UserService } from 'src/users/users.service';
 import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
 
@@ -91,7 +91,7 @@ export class PostService {
         const image = await this.awsService.uploadFileToS3('profile', file)
         await this.postRepository.createProfileImage(userId, image)
 
-        const profileImageUrl = getS3ImageUrl(this.configService, image.uploadedFile.key)
+        const profileImageUrl = getImageUrl(this.configService, image.uploadedFile.key)
         return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
     }
 
