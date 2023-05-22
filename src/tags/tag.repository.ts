@@ -1,6 +1,7 @@
 import { ConflictException, HttpException, HttpStatus } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Tag } from "src/entity/tag.entity";
+import { TodoTags } from "src/entity/todo-tags.entity";
 import { CreateTagDto, CreateTagsDto, DeleteTagsDto, UpdateTagDto, UpdateTagsOrderDto } from "src/tags/dto/create.tag.dto";
 import { BaseTag } from "src/tags/interface/tag.interface";
 import { In, QueryRunner, Repository } from "typeorm";
@@ -8,6 +9,7 @@ import { In, QueryRunner, Repository } from "typeorm";
 
 export class TagRepository {
     constructor(@InjectRepository(Tag) private readonly repository: Repository<Tag>,
+    @InjectRepository(TodoTags) private readonly todoTagsRepository: Repository<TodoTags>
     ) { }
 
     async saveTag(userId: string, createTagDto: CreateTagDto) : Promise<Tag> {
@@ -109,6 +111,17 @@ export class TagRepository {
 
     async findTagByUserAndTagId(userId: string, tagId: string): Promise<Tag> {
         return this.repository.findOne({ where: { id: tagId, user: { id: userId } } });
+    }
+
+
+    async getTodoCntByUserIdAndTagId(userId : string, tagId : string){
+        // count id userId and tagId in todoTags
+        const result = await this.todoTagsRepository.createQueryBuilder('todoTags')
+            .select('COUNT(todoTags.todo)', 'todoCnt')
+            .where('todoTags.tag = :tagId', { tagId })
+            .andWhere('todoTags.user = :userId', { userId })
+            .getRawOne()
+        return Number(result.todoCnt)
     }
 
     async updateTag(userId: string, tagId: string, updateTagDto: UpdateTagDto): Promise<Tag> {

@@ -36,6 +36,10 @@ export class TagsService {
         return this.tagRepository.findAllTagsByUserId(userId);
     }
 
+    async getTodoCntByUserIdAndTagId(userId : string, tagId : string){
+        return this.tagRepository.getTodoCntByUserIdAndTagId(userId, tagId)
+    }
+
     async updateTagsOrder(userId: string, updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
         return this.tagRepository.updateTagsOrder(userId, updateTagsOrderDto);
     }

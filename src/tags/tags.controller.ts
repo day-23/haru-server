@@ -27,6 +27,12 @@ export class TagsController {
         return await this.tagService.getTagsByUserId(userId)
     }
 
+    @Get(':tagId/todoCnt')
+    @ApiOperation({ summary: '사용자의 모든 태그 조회 API' })
+    async getTodoCntByUserIdAndTagId(@Param('userId') userId: string, @Param('tagId') tagId: string) {
+        return await this.tagService.getTodoCntByUserIdAndTagId(userId, tagId)
+    }
+
     @Patch('order')
     @ApiOperation({ summary: '태그 순서 업데이트 API' })
     async updateTagsOrder(@Param('userId') userId: string, @Body() updateTagsOrderDto: UpdateTagsOrderDto): Promise<void> {
