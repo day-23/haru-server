@@ -49,6 +49,11 @@ export class AuthController {
         return await this.authService.validateKakaoUser(accessToken);
     }
 
+    @Post('apple')
+    async appleSignIn(@Headers('authCode') authCode: string) {
+       return await this.authService.validateAppleUser(authCode);
+    }
+
     // @Get('kakao/callback')
     // @UseGuards(KakaoAuthGuard)
     // async kakaoCallback(@Req() req, @Res() res) {

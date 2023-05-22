@@ -6,6 +6,7 @@ import { CreateUserDto } from 'src/users/dto/users.dto';
 import { UserService } from 'src/users/users.service';
 import axios from 'axios';
 import { HttpService } from '@nestjs/axios';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -165,5 +166,67 @@ export class AuthService {
             ...serverAccessToken,
             refreshToken: refreshToken,
         };
+    }
+
+    async validateAppleUser(authCode: string): Promise<any> {
+        const appleIdUrl = 'https://appleid.apple.com/auth/token';
+        const clientId = process.env.APPLE_CLIENT_ID;
+        const teamId = process.env.APPLE_TEAM_ID;
+        const keyId = process.env.APPLE_KEY_ID;
+
+        // The private key contents are stored as a Base64 encoded string
+        const keyFileContentBase64 = process.env.APPLE_PRIVATE_KEY_BASE64;
+        // Decode the Base64 string to get the actual key contents
+        const keyFileContent = keyFileContentBase64.replace(/\\n/g, '\n');
+        
+        // Generate the client secret
+        const clientSecret = jwt.sign({}, keyFileContent, {
+            algorithm: 'ES256',
+            expiresIn: '1h', // Apple accepts client secret JWTs with an expiry time of up to 6 months.
+            audience: 'https://appleid.apple.com',
+            issuer: teamId,
+            subject: clientId,
+            keyid: keyId
+        });
+
+        const params = new URLSearchParams();
+        params.append('client_id', clientId);
+        params.append('client_secret', clientSecret);
+        params.append('code', authCode);
+        params.append('grant_type', 'authorization_code');
+        params.append('scope', 'email');
+
+        try {
+            const response = await this.httpService.post(appleIdUrl, params).toPromise();
+            
+            // Decode the id_token
+            const idToken = response.data.id_token;
+            const decodedToken = jwt.decode(idToken) as jwt.JwtPayload;
+            const email = decodedToken.email;
+            
+            // Check if a user with this email already exists in your database
+            let user = await this.userRepository.findByEmail(email);
+
+            // If the user is logging in for the first time
+            if (!user) {
+                // Create a new user record in the database
+                user = await this.signUp(email, "");
+            }
+
+            const refreshToken = await this.getRefreshToken(user);
+            const serverAccessToken = await this.getAccessToken(user);
+
+            // Issue your own JWT
+            return {
+                id: user.id,
+                name: user.name,
+                ...serverAccessToken,
+                refreshToken: refreshToken,
+            };
+
+        } catch (error) {
+            console.error(error.message);
+            console.error(error.response?.data);  // Log the response body
+        }
     }
 }
