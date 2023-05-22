@@ -179,8 +179,6 @@ export class AuthService {
         // Decode the Base64 string to get the actual key contents
         const keyFileContent = keyFileContentBase64.replace(/\\n/g, '\n');
         
-        console.log(keyFileContent, authCode, clientId, teamId, keyId)
-
         // Generate the client secret
         const clientSecret = jwt.sign({}, keyFileContent, {
             algorithm: 'ES256',
@@ -196,12 +194,36 @@ export class AuthService {
         params.append('client_secret', clientSecret);
         params.append('code', authCode);
         params.append('grant_type', 'authorization_code');
+        params.append('scope', 'email');
 
         try {
             const response = await this.httpService.post(appleIdUrl, params).toPromise();
-            console.log(response.data);
+            
+            // Decode the id_token
+            const idToken = response.data.id_token;
+            const decodedToken = jwt.decode(idToken) as jwt.JwtPayload;
+            const email = decodedToken.email;
+            
+            // Check if a user with this email already exists in your database
+            let user = await this.userRepository.findByEmail(email);
 
-            return response.data
+            // If the user is logging in for the first time
+            if (!user) {
+                // Create a new user record in the database
+                user = await this.signUp(email, "");
+            }
+
+            const refreshToken = await this.getRefreshToken(user);
+            const serverAccessToken = await this.getAccessToken(user);
+
+            // Issue your own JWT
+            return {
+                id: user.id,
+                name: user.name,
+                ...serverAccessToken,
+                refreshToken: refreshToken,
+            };
+
         } catch (error) {
             console.error(error.message);
             console.error(error.response?.data);  // Log the response body
