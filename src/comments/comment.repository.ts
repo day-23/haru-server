@@ -46,16 +46,18 @@ export class CommentRepository {
         return ret
     }
 
-    async getCommentsByPagination(userId: string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+    async getCommentsByPagination(userId: string, postId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
         const { page, limit, lastCreatedAt } = paginationDto;
         const skip = calculateSkip(page, limit)
 
+        console.log(postId)
         const rawResult = await this.repository.manager.query(`
             SELECT 
             comment.id, 
             comment.content, 
             comment.x, 
             comment.y,
+            comment.post_id,
             comment.is_public isPublic, 
             comment.created_at createdAt, 
             comment.updated_at updatedAt, 
@@ -65,11 +67,12 @@ export class CommentRepository {
             FROM 
                 comment
                 LEFT JOIN user ON comment.user_id = user.id
-            WHERE comment.created_at < ?
+            WHERE post_id = ?
+            AND comment.created_at < ?
             ORDER BY
                 comment.created_at DESC
             LIMIT ?, ?;
-        `, [lastCreatedAt, skip, limit]);
+        `, [postId, lastCreatedAt, skip, limit]);
 
         const comments = rawResult.map(row => {
             return {
@@ -90,7 +93,8 @@ export class CommentRepository {
 
         const rawCount = await this.repository.manager.query(`
             SELECT COUNT(*) as count FROM comment
-        `);
+            WHERE post_id = ?
+        `, [postId]);
         const count = Number(rawCount[0].count)
 
         const totalPages = Math.ceil(count / limit);

@@ -29,8 +29,8 @@ export class CommentsController {
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
     @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
-    async getCommentsByPagination(@Param('userId') userId: string, @Query() paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
-        return await this.commentService.getCommentsByPagination(userId, paginationDto);
+    async getCommentsByPagination(@Param('userId') userId: string, @Param('postId') postId: string, @Query() paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        return await this.commentService.getCommentsByPagination(userId, postId, paginationDto);
     }
 
     @Patch(':commentId')
