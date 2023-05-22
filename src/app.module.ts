@@ -19,6 +19,7 @@ import { CommentsModule } from './comments/comments.module';
 import { FollowsModule } from './follows/follows.module';
 import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
 import { HashtagsModule } from './hashtags/hashtags.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
     imports: [
@@ -44,6 +45,7 @@ import { HashtagsModule } from './hashtags/hashtags.module';
         CommentsModule,
         FollowsModule,
         HashtagsModule,
+        FriendsModule
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware],
