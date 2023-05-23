@@ -41,7 +41,7 @@ export class FriendsService {
         const request = await this.freindRepository.findRequest(createFollowDto.requesterId, userId)
 
         if (request) {
-            request.status = 1
+            request.status = FriendStatus.Friends
             await this.freindRepository.save(request);
         } else {
             // Throw 404 error

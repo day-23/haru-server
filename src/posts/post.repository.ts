@@ -23,6 +23,8 @@ import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
 import { getImageUrl } from "src/common/utils/s3";
 import { calculateSkip } from "./post.util";
+import { Friend } from "src/entity/friend.entity";
+import { FriendStatus } from "src/common/utils/constants";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -37,6 +39,7 @@ export class PostRepository {
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
         @InjectRepository(UserRelationship) private readonly userRelationshipRepository: Repository<UserRelationship>,
+        @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -436,30 +439,23 @@ export class PostRepository {
     // 친구 피드보기 - 템플릿 + 사진 
     async getFollowingFeedByPagination(userId: string, postPaginationDto: PostPaginationDto) {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        // get following users
-        const [followingUsers, followCount] = await this.userRelationshipRepository.createQueryBuilder('userRelationship')
-            .leftJoinAndSelect('userRelationship.follower', 'follower')
-            .select([
-                'userRelationship.id',
-                'userRelationship.createdAt',
-                'follower.id',
-            ])
-            .where('userRelationship.following = :userId', { userId })
-            .orderBy('userRelationship.createdAt', 'DESC')
-            .getManyAndCount();
+        
+        const userFriends = await this.friendRepository.query(`
+            SELECT user.id
+            FROM friend
+            LEFT JOIN user 
+            ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
+            WHERE ((friend.requester_id = ? OR friend.acceptor_id = ?) AND friend.status = ?)
+            `,
+            [userId, userId, userId, FriendStatus.Friends]
+        );
+        const followingUserIds = userFriends.map((friend) => friend.id)
 
-        //if there is no following users, return empty array
-        if (followCount == 0) {
-            return {
-                data: [],
-                pagination: createPaginationObject(0, limit, page)
-            };
-        }
+        // 친구 피드보기에서 내 피드도 같이 보여주기
+        followingUserIds.push(userId)
 
-        const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
-
+        // const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
         const skip = calculateSkip(page, limit)
-
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
         const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
@@ -587,24 +583,25 @@ export class PostRepository {
     async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
             SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
-                (SELECT COUNT(following.id)
-                    FROM user_relationship following
-                    WHERE following.following_id = user.id) AS followingCount,
-                (SELECT COUNT(follower.id)
-                    FROM user_relationship follower
-                    WHERE follower.follower_id = user.id) AS followerCount,
+                (SELECT COUNT(friend.id)
+                    FROM friend
+                    WHERE ((friend.requester_id = user.id OR friend.acceptor_id = user.id) AND friend.status = 2)) AS friendCount,
                 (SELECT COUNT(post.id)
                     FROM post
                     WHERE post.user_id = user.id
-                    AND post.deleted_at IS NULL) AS postCount,
-                (SELECT COUNT(user_relationship.follower_id)
-                    FROM user_relationship
-                    WHERE ((user_relationship.follower_id = ?) AND (user_relationship.following_id = ?))
-                    ) AS isFollowing
+                    AND post.deleted_at IS NULL) AS postCount
             FROM user
             WHERE user.id = ?
             AND user.deleted_at IS NULL
         `, [specificUserId, userId, specificUserId]);
+
+
+        const friendStatus = await this.friendRepository
+            .createQueryBuilder('friend')
+            .where('(friend.requester_id = :userId AND friend.acceptor_id = :specificUserId) \
+            OR (friend.requester_id = :specificUserId AND friend.acceptor_id = :userId)',
+                { userId: userId, specificUserId: specificUserId })
+            .getOne();
 
         if (result.length == 0) {
             throw new HttpException(
@@ -618,14 +615,13 @@ export class PostRepository {
             name : result[0].name,
             introduction : result[0].introduction,
             profileImage : result[0].profileImage,
-            isFollowing : result[0].isFollowing > 0 ? true : false,
             postCount : Number(result[0].postCount),
-            followerCount : Number(result[0].followerCount),
-            followingCount : Number(result[0].followingCount),
+            friendCount : Number(result[0].friendCount),
+            friendStatus : friendStatus ? friendStatus.status : 0
         }
     }
 
-    async getUserByHaruId(userId: string, haruId: string) : Promise<SearchUserResponse>{
+    async getUserByHaruId(userId: string, haruId: string) : Promise<UserInfoResponse>{
         const user = await this.userRepository.manager.query(`
             SELECT user.id, user.name, user.introduction, user.profile_image_url AS profileImage
             FROM user
@@ -639,16 +635,7 @@ export class PostRepository {
                 HttpStatus.NOT_FOUND
             );
         }
-
-        const isFriend = await this.userRelationshipRepository.findOne({ where: { follower: { id: userId }, following: { id: user[0].id } } })
-
-        return {
-            id: user[0].id,
-            name: user[0].name,
-            introduction: user[0].introduction,
-            profileImage: user[0].profileImage,
-            isFriend: isFriend ? true : false
-        }
+        return await this.getUserInfo(userId, user[0].id)
     }
 
 

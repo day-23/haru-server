@@ -17,9 +17,10 @@ import { UserRelationship } from 'src/entity/follow.entity';
 import { UserService } from 'src/users/users.service';
 import { UserRepository } from 'src/users/user.repository';
 import { UsersModule } from 'src/users/users.module';
+import { Friend } from 'src/entity/friend.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, UserRelationship])],
+    imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, UserRelationship, Friend])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })

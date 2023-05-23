@@ -98,6 +98,12 @@ export class TodosController {
         return await this.todoService.getTodosByDateTime(userId, dateTimePaginationDto);
     }
 
+    @Post('todos/statistics')
+    @ApiOperation({ summary: '투두 startDate, endDate 조회 API', description: '투두를 조회한다.' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    async getTodosStatisticsByDateTime(@Param('userId') userId : string, @Body() dateTimePaginationDto: DateTimePaginationDto) {
+        return await this.todoService.getTodosStatisticsByDateTime(userId, dateTimePaginationDto);
+    }
 
     @PaginatedResponse()
     @Get('todos/tag')

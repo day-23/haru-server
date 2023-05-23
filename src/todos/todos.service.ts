@@ -173,6 +173,10 @@ export class TodosService implements TodosServiceInterface {
         return await this.todoRepository.findByDateTime(userId, dateTimePaginationDto)
     }
 
+    async getTodosStatisticsByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<any>{
+        return await this.todoRepository.findStatisticsByDateTime(userId, dateTimePaginationDto)
+    }
+
 
     async getTodosByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         return await this.todoRepository.findByPagination(userId, paginationDto)

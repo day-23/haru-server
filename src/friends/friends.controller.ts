@@ -1,10 +1,12 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Query } from '@nestjs/common';
 import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
-import { ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService as FriendsService } from './friends.service';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 
+
+@ApiTags('친구 API')
 @Controller('friends/:userId')
 export class FriendsController {
     constructor( private readonly freindsService: FriendsService) { }
