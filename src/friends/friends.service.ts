@@ -36,6 +36,7 @@ export class FriendsService {
     }
 
     async acceptFriendRequest(userId: string, createFollowDto: acceptFreindRequestDto): Promise<void> {
+        const { requesterId } = createFollowDto
         const request = await this.freindRepository.findRequest(createFollowDto.requesterId, userId)
 
         if (request) {
@@ -45,6 +46,13 @@ export class FriendsService {
             // Throw 404 error
             throw new HttpException('해당 친구 요청을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
         }
+
+        const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, requesterId)
+
+        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === 0) {
+            await this.freindRepository.delete(isAlreadyMakeRequest.id);
+        }
+
         return
     }
 
