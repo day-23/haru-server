@@ -101,7 +101,7 @@ export class FriendRepository{
                 id : friend.id,
                 name : friend.name,
                 profileImageUrl : friend.profile_image_url,
-                friendStatus : commonFriendsIds.includes(friend.id) ? commonFriendsDict[friend.id] : 0,
+                friendStatus : commonFriendsIds.includes(friend.id) ? commonFriendsDict[friend.id] : FriendStatus.NotFriends,
                 createdAt : friend.created_at
             }
         })
