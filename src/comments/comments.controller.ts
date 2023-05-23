@@ -33,6 +33,16 @@ export class CommentsController {
         return await this.commentService.getCommentsByPagination(userId, postId, paginationDto);
     }
 
+    @PaginatedResponse()
+    @Get(':postId/:postImageId/comments/all')
+    @ApiOperation({ summary: '전체 댓글(둘러보기) 페이지네이션 조회 API', description: '둘러보기 댓글 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getCommentsPerImageByPagination(@Param('userId') userId: string, @Param('postId') postId: string, @Param('postImageId') postImageId: string, @Query() paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        return await this.commentService.getCommentsPerImageByPagination(userId, postId, postImageId, paginationDto);
+    }
+
     @Patch(':commentId')
     @ApiOperation({ summary: '댓글 수정 API', description: '댓글을 수정한다.' })
     async updateComment(@Param('userId') userId: string, @Param('commentId') commentId: string, @Body() updateCommentDto: UpdateCommentDto): Promise<void> {

@@ -20,6 +20,10 @@ export class CommentsService {
         return await this.commentRepository.getCommentsByPagination(userId, postId, paginationDto);
     }
 
+    async getCommentsPerImageByPagination(userId: string, postId: string, postImageId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        return await this.commentRepository.getCommentsPerImageByPagination(userId, postId, postImageId, paginationDto);
+    }
+
     async updateComment(userId: string, commentId: string, updateCommentDto: UpdateCommentDto): Promise<void>{
         return await this.commentRepository.updateComment(userId, commentId, updateCommentDto)
     }
