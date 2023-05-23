@@ -408,6 +408,38 @@ export class TodoRepository implements TodoRepositoryInterface {
         };
     }
 
+    async findStatisticsByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<any> {
+        const { startDate, endDate } = dateTimePaginationDto
+
+        //count todo by date
+        //make query that schedule that is todo_id is null
+        const [todos, count] = await this.scheduleRepository.createQueryBuilder('schedule')
+            .leftJoinAndSelect('schedule.todo', 'todo')
+            .where('schedule.user = :userId', { userId })
+            .andWhere('schedule.todo IS NOT NULL')
+            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
+            OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
+            OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
+            OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
+            .setParameters({ startDate, endDate })
+            .getManyAndCount()
+
+        //count completed todo by date
+        let completed = 0
+        todos.forEach(todo => {
+            if(todo.todo.completed) {
+                completed++
+            }
+        })
+
+        return {
+            completed,
+            totalItems: count,
+            startDate,
+            endDate
+        };
+    }
+
     /* 투두 페이지네이션 함수 */
     async findByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse> {
         const { page, limit } = paginationDto

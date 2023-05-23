@@ -42,6 +42,8 @@ export interface TodoRepositoryInterface {
     findTodayTodos(userId: string, date: TodayTodoDto): Promise<GetTodayTodosResponse>
     findByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate> 
     findByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse>;
+    findStatisticsByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<any>
+
     findCompletedTodoByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse>
     findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag>
     findTodosBySearch(userId: string, content: string): Promise<TodoResponse[]>
