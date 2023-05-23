@@ -7,15 +7,10 @@ export class CreateFreindRequestDto {
 
 export class acceptFreindRequestDto {
     @IsString()
-    requestId: string
+    requesterId: string
 }
 
-export class DeleteFollowDto{
+export class DeleteFriendDto{
     @IsString()
-    followId : string
-}
-
-export class DeleteFollowingDto{
-    @IsString()
-    followingId : string
+    friendId : string
 }

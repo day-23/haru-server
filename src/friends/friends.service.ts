@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, Param, Query } from '@nestjs/common';
 import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from './interface/friends.user.interface';
-import { CreateFreindRequestDto, DeleteFollowDto, DeleteFollowingDto, acceptFreindRequestDto } from './dto/create.freind.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
+import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { FriendRepository } from './friends.repository';
 import { UserService } from 'src/users/users.service';
 
@@ -23,8 +23,20 @@ export class FriendsService {
         }
     }
 
+    async deleteFriendRequest(userId: string, createFollowDto: CreateFreindRequestDto): Promise<void> {
+        const { acceptorId } = createFollowDto
+        //find user by userId and if not exist throw 404 error
+        await this.userService.findOne(acceptorId)
+
+        const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, acceptorId)
+
+        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === 0) {
+            await this.freindRepository.delete(isAlreadyMakeRequest.id);
+        }
+    }
+
     async acceptFriendRequest(userId: string, createFollowDto: acceptFreindRequestDto): Promise<void> {
-        const request = await this.freindRepository.findById(createFollowDto.requestId)
+        const request = await this.freindRepository.findRequest(createFollowDto.requesterId, userId)
 
         if (request) {
             request.status = 1
@@ -34,6 +46,20 @@ export class FriendsService {
             throw new HttpException('해당 친구 요청을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
         }
         return
+    }
+
+    async deleteFriend(userId: string, createFollowDto: DeleteFriendDto){
+        const { friendId } = createFollowDto
+
+        await this.freindRepository.deleteFriend(userId, friendId)
+    }
+
+    async getFreindList(userId: string, specificUserId: string, paginationDto: PostPaginationDto): Promise<any> {
+        return await this.freindRepository.getFriendList(userId, specificUserId, paginationDto);
+    }
+
+    async getFriendRequestList(userId: string, paginationDto: PostPaginationDto): Promise<any> {
+        return await this.freindRepository.getFriendRequestList(userId, paginationDto);
     }
 
 

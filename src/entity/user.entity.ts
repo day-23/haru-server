@@ -24,7 +24,7 @@ import { Image } from './image.entity';
 import { Schedule } from './schedule.entity';
 import { PostTags } from './post-tags.entity';
 import { Report } from './report.entity';
-import { Friend } from './freind.entity';
+import { Friend } from './friend.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
