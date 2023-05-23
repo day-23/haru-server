@@ -4,6 +4,7 @@ import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from 
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { FriendRepository } from './friends.repository';
 import { UserService } from 'src/users/users.service';
+import { FriendStatus } from 'src/common/utils/constants';
 
 @Injectable()
 export class FriendsService {
@@ -30,7 +31,7 @@ export class FriendsService {
 
         const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, acceptorId)
 
-        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === 0) {
+        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === FriendStatus.FriendRequestSent) {
             await this.freindRepository.delete(isAlreadyMakeRequest.id);
         }
     }
@@ -49,7 +50,7 @@ export class FriendsService {
 
         const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, requesterId)
 
-        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === 0) {
+        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === FriendStatus.FriendRequestSent) {
             await this.freindRepository.delete(isAlreadyMakeRequest.id);
         }
 

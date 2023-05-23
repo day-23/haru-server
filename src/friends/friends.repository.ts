@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import { Friend } from "src/entity/friend.entity";
 import { PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { calculateSkip } from "src/posts/post.util";
+import { FriendStatus } from "src/common/utils/constants";
 
 export class FriendRepository{
     public readonly S3_URL: string;
@@ -22,7 +23,7 @@ export class FriendRepository{
         const newFreindRecord = this.repository.create({
             requester: new User({ id: userId }),
             acceptor: new User({ id: acceptorId }),
-            status: 0
+            status: FriendStatus.FriendRequestSent
         });
 
         await this.repository.save(newFreindRecord);
@@ -68,7 +69,7 @@ export class FriendRepository{
             ORDER BY friend.created_at DESC
             LIMIT ? OFFSET ?
             `,
-            [specificUserId, specificUserId, specificUserId, 1, lastCreatedAt, limit, skip]
+            [specificUserId, specificUserId, specificUserId, FriendStatus.Friends, lastCreatedAt, limit, skip]
         );
         
         const specificUserFriendsIds = specificUserFriends.map((friend) => friend.id)
@@ -76,25 +77,31 @@ export class FriendRepository{
         let commonFriends = [];
         if (specificUserFriends.length > 0) {
             commonFriends = await this.repository.query(`
-            SELECT user.id, user.name, user.email, user.profile_image_url, friend.created_at
+            SELECT user.id, user.name, user.email, user.profile_image_url, friend.status, friend.created_at
             FROM friend
             LEFT JOIN user
             ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
-            WHERE ((friend.requester_id = ? OR friend.acceptor_id = ?) AND friend.status = ?)
+            WHERE (friend.requester_id = ? OR friend.acceptor_id = ?)
             AND user.id IN (?)
             ORDER BY friend.created_at DESC
             `,
-                [userId, userId, userId, 1, specificUserFriendsIds]
+                [userId, userId, userId, specificUserFriendsIds]
             );
         }
         const commonFriendsIds = commonFriends.map((friend) => friend.id)
+
+        //make dictionary for common friends key is id and value is status
+        const commonFriendsDict = {}
+        commonFriends.forEach((friend) => {
+            commonFriendsDict[friend.id] = friend.status
+        })
 
         const friendList = specificUserFriends.map((friend) => {
             return {
                 id : friend.id,
                 name : friend.name,
                 profileImageUrl : friend.profile_image_url,
-                isFriend : commonFriendsIds.includes(friend.id),
+                friendStatus : commonFriendsIds.includes(friend.id) ? commonFriendsDict[friend.id] : 0,
                 createdAt : friend.created_at
             }
         })
@@ -119,7 +126,15 @@ export class FriendRepository{
         return count;
     }
 
+    async countFriendsRequestByStatus(userId: string): Promise<number> {
+        const count = await this.repository
+            .createQueryBuilder("friend")
+            .where("friend.acceptor_id = :userId AND friend.status = :status",
+                { userId, status : FriendStatus.FriendRequestSent })
+            .getCount();
 
+        return count;
+    }
 
     //친구 신청 목록 페이지네이션 해서 받기
     async getFriendRequestList(userId: string, postPaginationDto: PostPaginationDto): Promise<any> {
@@ -131,12 +146,12 @@ export class FriendRepository{
             FROM friend
             LEFT JOIN user 
             ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
-            WHERE ((friend.requester_id = ? OR friend.acceptor_id = ?) AND friend.status = ?)
+            WHERE (friend.acceptor_id = ? AND friend.status = ?)
             AND friend.created_at < ?
             ORDER BY friend.created_at DESC
             LIMIT ? OFFSET ?
             `,
-            [userId, userId, userId, 0, lastCreatedAt, limit, skip]
+            [userId, userId, FriendStatus.FriendRequestSent, lastCreatedAt, limit, skip]
         );
         
         const friendList = result.map((friend) => {
@@ -144,12 +159,12 @@ export class FriendRepository{
                 id : friend.id,
                 name : friend.name,
                 profileImageUrl : friend.profile_image_url,
-                isFriend : false,
+                friendStatus : FriendStatus.FriendRequestSent,
                 createdAt : friend.created_at
             }
         })
 
-        const count = await this.countFriendsByStatus(userId, 0)
+        const count = await this.countFriendsRequestByStatus(userId)
 
         return {
             data: friendList,
