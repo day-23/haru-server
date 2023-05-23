@@ -23,6 +23,7 @@ import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
 import { getImageUrl } from "src/common/utils/s3";
 import { calculateSkip } from "./post.util";
+import { Friend } from "src/entity/friend.entity";
 
 export class PostRepository {
     public readonly S3_URL: string;
@@ -37,6 +38,7 @@ export class PostRepository {
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
         @InjectRepository(UserRelationship) private readonly userRelationshipRepository: Repository<UserRelationship>,
+        @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService
     ) {
         this.S3_URL = this.configService.get('AWS_S3_URL'); // nest-s3
@@ -587,24 +589,25 @@ export class PostRepository {
     async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
             SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
-                (SELECT COUNT(following.id)
-                    FROM user_relationship following
-                    WHERE following.following_id = user.id) AS followingCount,
-                (SELECT COUNT(follower.id)
-                    FROM user_relationship follower
-                    WHERE follower.follower_id = user.id) AS followerCount,
+                (SELECT COUNT(friend.id)
+                    FROM friend
+                    WHERE ((friend.requester_id = user.id OR friend.acceptor_id = user.id) AND friend.status = 2)) AS friendCount,
                 (SELECT COUNT(post.id)
                     FROM post
                     WHERE post.user_id = user.id
-                    AND post.deleted_at IS NULL) AS postCount,
-                (SELECT COUNT(user_relationship.follower_id)
-                    FROM user_relationship
-                    WHERE ((user_relationship.follower_id = ?) AND (user_relationship.following_id = ?))
-                    ) AS isFollowing
+                    AND post.deleted_at IS NULL) AS postCount
             FROM user
             WHERE user.id = ?
             AND user.deleted_at IS NULL
         `, [specificUserId, userId, specificUserId]);
+
+
+        const friendStatus = await this.friendRepository
+            .createQueryBuilder('friend')
+            .where('(friend.requester_id = :userId AND friend.acceptor_id = :specificUserId) \
+            OR (friend.requester_id = :specificUserId AND friend.acceptor_id = :userId)',
+                { userId: userId, specificUserId: specificUserId })
+            .getOne();
 
         if (result.length == 0) {
             throw new HttpException(
@@ -618,10 +621,9 @@ export class PostRepository {
             name : result[0].name,
             introduction : result[0].introduction,
             profileImage : result[0].profileImage,
-            isFollowing : result[0].isFollowing > 0 ? true : false,
             postCount : Number(result[0].postCount),
-            followerCount : Number(result[0].followerCount),
-            followingCount : Number(result[0].followingCount),
+            friendCount : Number(result[0].friendCount),
+            friendStatus : friendStatus ? friendStatus.status : 0
         }
     }
 

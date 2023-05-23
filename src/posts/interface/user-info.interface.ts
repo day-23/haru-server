@@ -3,8 +3,7 @@ export interface UserInfoResponse{
     name: string,
     introduction : string,
     profileImage: string,
-    isFollowing: boolean,
     postCount: number,
-    followerCount: number,
-    followingCount: number,
+    friendCount: number,
+    friendStatus: number,
 }
