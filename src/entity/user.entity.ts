@@ -24,6 +24,7 @@ import { Image } from './image.entity';
 import { Schedule } from './schedule.entity';
 import { PostTags } from './post-tags.entity';
 import { Report } from './report.entity';
+import { Friend } from './friend.entity';
 
 @Entity({ name: 'user' })
 @Unique(['email'])
@@ -123,6 +124,13 @@ export class User extends BaseEntity {
     /* 사용자 : 팔로윙  -  1:N  */
     @OneToMany(() => UserRelationship, (userRelationship) => userRelationship.following)
     following: UserRelationship[];
+
+    @OneToMany(() => Friend, (friend) => friend.requester)
+    requesters: Friend[];
+
+    /* 사용자 : 팔로윙  -  1:N  */
+    @OneToMany(() => Friend, (freind) => freind.acceptor)
+    acceptors: Friend[];
 
     /* 사용자 : 게시글  -  1:N  */
     @OneToMany(() => Post, (post) => post.user)

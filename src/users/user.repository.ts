@@ -20,12 +20,7 @@ export class UserRepository {
         try {
             return await this.repository.findOneOrFail({ where: { id } });
         } catch (error) {
-            throw new HttpException(
-                {
-                    message: '해당 id의 사용자를 찾을 수 없습니다.'
-                },
-                HttpStatus.NOT_FOUND
-            )
+            throw new HttpException('해당 사용자를 찾을 수 없습니다.', HttpStatus.NOT_FOUND)
         }
     }
     async findAll(): Promise<User[]> {
