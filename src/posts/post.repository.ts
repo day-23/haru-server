@@ -627,7 +627,7 @@ export class PostRepository {
         }
     }
 
-    async getUserByHaruId(userId: string, haruId: string) : Promise<SearchUserResponse>{
+    async getUserByHaruId(userId: string, haruId: string) : Promise<UserInfoResponse>{
         const user = await this.userRepository.manager.query(`
             SELECT user.id, user.name, user.introduction, user.profile_image_url AS profileImage
             FROM user
@@ -641,16 +641,7 @@ export class PostRepository {
                 HttpStatus.NOT_FOUND
             );
         }
-
-        const isFriend = await this.userRelationshipRepository.findOne({ where: { follower: { id: userId }, following: { id: user[0].id } } })
-
-        return {
-            id: user[0].id,
-            name: user[0].name,
-            introduction: user[0].introduction,
-            profileImage: user[0].profileImage,
-            isFriend: isFriend ? true : false
-        }
+        return await this.getUserInfo(userId, user[0].id)
     }
 
 
