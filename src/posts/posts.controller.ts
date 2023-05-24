@@ -189,7 +189,7 @@ export class PostsController {
 
     @Get('search/user/:haruId')
     @ApiOperation({ summary: '사용자 정보 API', description: '사용자 정보를 가져온다.' })
-    async getUserByHaruId(@Param('userId') userId: string, @Param('haruId') haruId: string): Promise<PostUserResponse> {
+    async getUserByHaruId(@Param('userId') userId: string, @Param('haruId') haruId: string): Promise<UserInfoResponse> {
         return await this.postService.getUserByHaruId(userId, haruId)
     }
 

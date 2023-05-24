@@ -11,7 +11,10 @@ export interface RawPost{
     user_id: string,
     name: string,
     email: string,
-    profile_image_url: string | null
+    profile_image_url: string | null,
+    is_allow_feed_like : number,
+    is_allow_feed_comment : number,
+    friend_status : number,
 }
 
 export interface RawHashTag{

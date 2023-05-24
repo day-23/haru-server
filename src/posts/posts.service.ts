@@ -140,7 +140,7 @@ export class PostService {
         return await this.postRepository.getUserInfo(userId, specificUserId)
     }
 
-    async getUserByHaruId(userId: string, haruId: string) : Promise<PostUserResponse>{
+    async getUserByHaruId(userId: string, haruId: string) : Promise<UserInfoResponse>{
         return await this.postRepository.getUserByHaruId(userId, haruId)
     }
 
