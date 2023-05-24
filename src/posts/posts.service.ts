@@ -95,17 +95,58 @@ export class PostService {
         return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
     }
 
+
+    async getUserInfoWithOptions(userId : string){
+        const profileInfo = await this.getUserInfo(userId, userId)
+        const userInfo = await this.userService.findOne(userId)
+
+        return {
+            id: profileInfo.id,
+            name: profileInfo.name,
+            introduction: profileInfo.introduction,
+            profileImageUrl: profileInfo.profileImage,
+            postCount: profileInfo.postCount,
+            friendCount: profileInfo.friendCount,
+            friendStatus: profileInfo.friendStatus,
+            isPublicAccount: profileInfo.isPublicAccount,
+
+            haruId: userInfo.haruId,
+            email: userInfo.email,
+            socialAccountType: userInfo.socialAccountType,
+            isPostBrowsingEnabled: userInfo.isPostBrowsingEnabled,
+            isAllowFeedLike: userInfo.isAllowFeedLike,
+            isAllowFeedComment: userInfo.isAllowFeedComment,
+            isAllowSearch: userInfo.isAllowSearch,
+            createdAt: userInfo.createdAt
+        }
+    }
+
     async updateInitialProfile(userId: string, updateInitialProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
         const { haruId, ...updateProfileDto } = updateInitialProfileDto
 
         await this.userService.updateHaruId(userId, haruId)
-        const ret =  await this.updateProfile(userId, updateProfileDto)
+        const profileInfo =  await this.updateProfile(userId, updateProfileDto)
+        const userInfo = await this.userService.findOne(userId)
 
         return {
-            name: ret.name,
-            introduction: ret.introduction,
-            profileImageUrl: ret.profileImage,
-            haruId
+            id: profileInfo.id,
+            name: profileInfo.name,
+            introduction: profileInfo.introduction,
+            profileImageUrl: profileInfo.profileImage,
+            postCount: profileInfo.postCount,
+            friendCount: profileInfo.friendCount,
+            friendStatus: profileInfo.friendStatus,
+            isPublicAccount: profileInfo.isPublicAccount,
+
+            
+            haruId: userInfo.haruId,
+            email: userInfo.email,
+            socialAccountType: userInfo.socialAccountType,
+            isPostBrowsingEnabled: userInfo.isPostBrowsingEnabled,
+            isAllowFeedLike: userInfo.isAllowFeedLike,
+            isAllowFeedComment: userInfo.isAllowFeedComment,
+            isAllowSearch: userInfo.isAllowSearch,
+            createdAt: userInfo.createdAt
         }
     }
 
@@ -113,13 +154,26 @@ export class PostService {
         const { haruId, ...updateProfileDto } = updateInitialProfileDto
 
         await this.userService.updateHaruId(userId, haruId)
-        const ret =  await this.uploadProfileWithImage(userId, file, updateProfileDto)
+        const profileInfo =  await this.uploadProfileWithImage(userId, file, updateProfileDto)
+        const userInfo = await this.userService.findOne(userId)
 
         return {
-            name: ret.name,
-            introduction: ret.introduction,
-            profileImageUrl: ret.profileImage,
-            haruId
+            id: profileInfo.id,
+            name: profileInfo.name,
+            introduction: profileInfo.introduction,
+            profileImageUrl: profileInfo.profileImage,
+            postCount: profileInfo.postCount,
+            friendCount: profileInfo.friendCount,
+            friendStatus: profileInfo.friendStatus,
+            isPublicAccount: profileInfo.isPublicAccount,
+            haruId: userInfo.haruId,
+            email: userInfo.email,
+            socialAccountType: userInfo.socialAccountType,
+            isPostBrowsingEnabled: userInfo.isPostBrowsingEnabled,
+            isAllowFeedLike: userInfo.isAllowFeedLike,
+            isAllowFeedComment: userInfo.isAllowFeedComment,
+            isAllowSearch: userInfo.isAllowSearch,
+            createdAt: userInfo.createdAt
         }
     }
 

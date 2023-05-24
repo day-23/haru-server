@@ -77,11 +77,8 @@ export class UserRepository {
         console.log(user, userId, haruId)
         if (user && user.id !== userId) {
             throw new HttpException(
-                {
-                    message: '이미 존재하는 아이디입니다.',
-                    error: '이미 존재하는 아이디입니다.',
-                },
-                HttpStatus.FORBIDDEN,
+                '이미 존재하는 아이디입니다',
+                HttpStatus.CONFLICT
             );
         }
 

@@ -19,6 +19,7 @@ import { Friend } from 'src/entity/friend.entity';
 @Module({
     imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, Friend])],
     controllers: [PostsController],
-    providers: [PostService, PostRepository]
+    providers: [PostService, PostRepository],
+    exports: [PostService],
 })
 export class PostsModule { }

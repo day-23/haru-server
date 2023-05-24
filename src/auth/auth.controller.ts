@@ -7,6 +7,7 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { KakaoAuthGuard } from './guards/kakao-auth.guard';
 import { NaverAuthGuard } from './guards/naver-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PostService } from 'src/posts/posts.service';
 
 @ApiTags('유저 인증 API')
 @Controller('auth')
@@ -14,6 +15,7 @@ export class AuthController {
     constructor(
         private readonly authService: AuthService,
         private readonly userService: UserService,
+        private readonly postService: PostService
     ) {}
 
     @Post('refresh')
@@ -38,10 +40,15 @@ export class AuthController {
         //find user by payload email
         const user = await this.userService.getUserByEmail(payload.email);
 
-        return {
-            id : user.id,
+
+        console.log(accessToken, refreshToken, user)
+
+        const userInfo = await this.postService.getUserInfoWithOptions(user.id)
+        const ret = {
+            ...userInfo,
             accessToken: newAccessToken
-        };
+        }
+        return ret
     }
 
     @Post('kakao')
