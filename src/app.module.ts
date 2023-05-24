@@ -16,7 +16,6 @@ import { SchedulesModule } from './schedules/schedules.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
-import { FollowsModule } from './follows/follows.module';
 import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
 import { HashtagsModule } from './hashtags/hashtags.module';
 import { FriendsModule } from './friends/friends.module';
@@ -43,7 +42,6 @@ import { FriendsModule } from './friends/friends.module';
         SchedulesModule,
         PostsModule,
         CommentsModule,
-        FollowsModule,
         HashtagsModule,
         FriendsModule
     ],

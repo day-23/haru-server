@@ -10,16 +10,14 @@ import { Liked } from "src/entity/liked.entity";
 import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
-import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
-import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse } from "src/posts/interface/post.interface";
+import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse, SnsBaseUser } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
-import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
 import { getImageUrl } from "src/common/utils/s3";
 import { calculateSkip } from "./post.util";
@@ -38,7 +36,6 @@ export class PostRepository {
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
-        @InjectRepository(UserRelationship) private readonly userRelationshipRepository: Repository<UserRelationship>,
         @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService
     ) {

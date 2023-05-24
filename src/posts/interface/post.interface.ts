@@ -44,3 +44,10 @@ export interface BaseHashTag{
     id: string,
     content: string
 }
+
+export interface SnsBaseUser{
+    id : string,
+    name : string,
+    email : string,
+    profileImage : string
+}
