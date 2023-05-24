@@ -52,7 +52,7 @@ export class Todo extends BaseEntity {
     updatedAt: Date;
 
     /* 투두 : 사용자 = N:1 */
-    @ManyToOne(() => User, (user) => user.todos)
+    @ManyToOne(() => User, (user) => user.todos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 }

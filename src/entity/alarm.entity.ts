@@ -16,7 +16,7 @@ export class Alarm extends BaseEntity {
     id: string;
 
     /* 알람 : 사용자 = N : 1*/
-    @ManyToOne(() => User, (user) => user.alarms)
+    @ManyToOne(() => User, (user) => user.alarms, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User
 

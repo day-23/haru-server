@@ -9,13 +9,13 @@ export class Liked extends BaseEntity {
     id: string;
 
     /* 댓글 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
     /* 다른 엔터티들간의 관계 */
     /* 댓글 : 게시글 = N : 1 */
-    @ManyToOne(() => Post, (post) => post.liked, {onDelete: 'CASCADE'})
+    @ManyToOne(() => Post, (post) => post.liked, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'post_id' })
     post: Post;
 

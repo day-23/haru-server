@@ -24,7 +24,7 @@ export class TodoTags extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* tagwithtodo : user = N : 1 */
-    @ManyToOne(() => User, (user) => user.todoTags)
+    @ManyToOne(() => User, (user) => user.todoTags, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
