@@ -14,7 +14,7 @@ export class Tag extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User, (user) => user.tags)
+    @ManyToOne(() => User, (user) => user.tags, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 

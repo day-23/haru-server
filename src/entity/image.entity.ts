@@ -27,7 +27,7 @@ export class Image extends BaseEntity {
     post: Post;
 
     /* 프로필 사진 : 사용자 */
-    @ManyToOne(() => User, (user) => user.profileImages)
+    @ManyToOne(() => User, (user) => user.profileImages, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 

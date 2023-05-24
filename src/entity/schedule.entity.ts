@@ -11,7 +11,7 @@ export class Schedule extends BaseEntity {
     id: string;
 
     /* 투두 : 사용자 = N:1 */
-    @ManyToOne(() => User, (user) => user.schedules)
+    @ManyToOne(() => User, (user) => user.schedules, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 

@@ -16,7 +16,7 @@ export class Category extends BaseEntity {
 
     /* 다른 엔터티들간의 관계 */
     /* 카테고리 : 사용자 = N : 1 */
-    @ManyToOne(() => User, (user) => user.categories)
+    @ManyToOne(() => User, (user) => user.categories, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: User;
 
