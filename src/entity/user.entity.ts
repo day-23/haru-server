@@ -88,6 +88,9 @@ export class User extends BaseEntity {
     })
     isAllowFeedComment: number;
 
+    @Column({ default: true })
+    isAllowSearch: boolean;
+
     @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
     age: number;
 
