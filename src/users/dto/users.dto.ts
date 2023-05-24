@@ -36,7 +36,7 @@ export class CreateUserDto {
 
     @IsString()
     @IsNotEmpty()
-    socialAccount: string; // 유저 소셜 계정 타입
+    socialAccountType: string; // 유저 소셜 계정 타입
 
     @IsString()
     @IsNotEmpty()
