@@ -15,11 +15,13 @@ import { NaverStrategy } from './strategies/auth.naver.strategy';
 import { KakaoStrategy } from './strategies/auth.kakao.strategy';
 import { Image } from 'src/entity/image.entity';
 import { HttpModule } from '@nestjs/axios';
+import { PostsModule } from 'src/posts/posts.module';
 
 @Module({
     controllers: [AuthController],
     imports: [
         HttpModule,
+        PostsModule,
         TypeOrmModule.forFeature([User, Image]),
         PassportModule,
         JwtModule.register({
