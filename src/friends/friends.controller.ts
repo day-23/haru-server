@@ -4,6 +4,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService as FriendsService } from './friends.service';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
+import { GetSnsBaseFriendsByPaginationDto } from './interface/friends.user.interface';
 
 
 @ApiTags('친구 API')
@@ -39,43 +40,14 @@ export class FriendsController {
     @PaginatedResponse()
     @Get('request')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getFriendRequestList(@Param('userId') userId: string, @Query() paginationDto: PostPaginationDto): Promise<any> {
+    async getFriendRequestList(@Param('userId') userId: string, @Query() paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindsService.getFriendRequestList(userId, paginationDto);
     }
 
     @PaginatedResponse()
     @Get(':specificUserId')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
-    async getFriendList(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PostPaginationDto): Promise<any> {
+    async getFriendList(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindsService.getFreindList(userId, specificUserId, paginationDto);
     }
-
-
-
-
-    // @PaginatedResponse()
-    // @Get(':specificUserId/following')
-    // @ApiOperation({ summary: '유저의 팔로잉 목록 조회', description: '유저의 팔로잉 목록 조회' })
-    // async getFollowingByUserId(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PaginationDto): Promise<any> {
-    //     return await this.freindsService.getFollowingByUserId(userId, specificUserId, paginationDto);
-    // }
-
-    // @PaginatedResponse()
-    // @Get(':specificUserId/follow')
-    // @ApiOperation({ summary: '유저의 팔로우 목록 조회', description: '유저의 팔로우 목록 조회' })
-    // async getFollowByUserId(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PaginationDto): Promise<any> {
-    //     return await this.freindsService.getFollowByUserId(userId,specificUserId, paginationDto);
-    // }    
-
-    // @Delete('following')
-    // @ApiOperation({ summary: '유저의 팔로잉 삭제', description: '유저의 팔로잉 삭제' })
-    // async deleteFollowing(@Param('userId') userId: string, @Body() createFollowDto: DeleteFollowingDto): Promise<void> {
-    //     return await this.freindsService.deleteFollowing(userId, createFollowDto);
-    // }
-
-    // @Delete('follow')
-    // @ApiOperation({ summary: '유저의 팔로잉 삭제', description: '유저의 팔로잉 삭제' })
-    // async deleteFollow(@Param('userId') userId: string, @Body() createFollowDto: DeleteFollowDto): Promise<void> {
-    //     return await this.freindsService.deleteFollow(userId, createFollowDto);
-    // }
 }

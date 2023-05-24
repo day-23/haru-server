@@ -8,11 +8,11 @@ export class Friend extends BaseEntity{
 
     /* 다른 엔터티들간의 관계 */
     /* 사용자 : 팔로우 = N:1 */
-    @ManyToOne(() => User, (user) => user.following)
+    @ManyToOne(() => User, (user) => user.requesters)
     @JoinColumn()
     requester: User;
 
-    @ManyToOne(() => User, (user) => user.follower)
+    @ManyToOne(() => User, (user) => user.acceptors)
     @JoinColumn()
     acceptor: User;
 

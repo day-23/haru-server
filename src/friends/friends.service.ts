@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable, Param, Query } from '@nestjs/common';
-import { GetSnsBaseUserByPaginationDto, SnsBaseUser } from './interface/friends.user.interface';
+import { GetSnsBaseFriendsByPaginationDto } from './interface/friends.user.interface';
 import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { FriendRepository } from './friends.repository';
@@ -63,11 +63,11 @@ export class FriendsService {
         await this.freindRepository.deleteFriend(userId, friendId)
     }
 
-    async getFreindList(userId: string, specificUserId: string, paginationDto: PostPaginationDto): Promise<any> {
+    async getFreindList(userId: string, specificUserId: string, paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindRepository.getFriendList(userId, specificUserId, paginationDto);
     }
 
-    async getFriendRequestList(userId: string, paginationDto: PostPaginationDto): Promise<any> {
+    async getFriendRequestList(userId: string, paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindRepository.getFriendRequestList(userId, paginationDto);
     }
 

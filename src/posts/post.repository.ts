@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreatedS3ImageFile, CreatedS3ImageFiles } from "src/aws/interface/awsS3.interface";
-import { PaginationDto, PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
+import { PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Hashtag } from "src/entity/hashtag.entity";
 import { Image } from "src/entity/image.entity";
@@ -10,16 +10,14 @@ import { Liked } from "src/entity/liked.entity";
 import { PostTags } from "src/entity/post-tags.entity";
 import { Post } from "src/entity/post.entity";
 import { User } from "src/entity/user.entity";
-import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
-import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse } from "src/posts/interface/post.interface";
+import { BaseHashTag, FriendStatusDictionary, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse, SnsBaseUser } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
-import { UserRelationship } from "src/entity/follow.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
 import { getImageUrl } from "src/common/utils/s3";
 import { calculateSkip } from "./post.util";
@@ -38,7 +36,6 @@ export class PostRepository {
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
         @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
-        @InjectRepository(UserRelationship) private readonly userRelationshipRepository: Repository<UserRelationship>,
         @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService
     ) {
@@ -68,7 +65,7 @@ export class PostRepository {
     ): PostCreateResponse {
         return {
             id: savedPost.id,
-            images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments:[] })),
+            images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments: [] })),
             hashTags: createPostDto.hashTags,
             content: savedPost.content,
             templateUrl: savedPost.templateUrl,
@@ -77,13 +74,13 @@ export class PostRepository {
         };
     }
 
-    async createTemplate(userId: string, images: CreatedS3ImageFiles){
+    async createTemplate(userId: string, images: CreatedS3ImageFiles) {
         const templates = []
         images.uploadedFiles.forEach((image) => {
-            const template = this.templateRepository.create({originalName: image.originalName, url: image.key, mimeType: image.contentType, size: image.size });
+            const template = this.templateRepository.create({ originalName: image.originalName, url: image.key, mimeType: image.contentType, size: image.size });
             templates.push(template)
         })
-        const ret =  await this.templateRepository.save(templates)
+        const ret = await this.templateRepository.save(templates)
         ret.map((template) => {
             template.url = this.S3_URL + template.url
         })
@@ -91,8 +88,8 @@ export class PostRepository {
         return ret
     }
 
-    async getTemplates(userId: string){
-        const templates = await this.templateRepository.find({order: {createdAt: 'ASC'}})
+    async getTemplates(userId: string) {
+        const templates = await this.templateRepository.find({ order: { createdAt: 'ASC' } })
         templates.map((template) => {
             template.url = this.S3_URL + template.url
         })
@@ -121,8 +118,8 @@ export class PostRepository {
         await this.postTagsRepository.save(postTags)
     }
 
-    async setCountsToPosts(userId : string, posts: PostGetResponse[]) : Promise<void> {
-        if(posts.length === 0) return;
+    async setCountsToPosts(userId: string, posts: PostGetResponse[]): Promise<void> {
+        if (posts.length === 0) return;
 
         const postIds = posts.map(post => post.id);
 
@@ -169,8 +166,8 @@ export class PostRepository {
         }
     }
 
-    async getComments(userId : string, postImageIds : string[]) : Promise<Comment[]> {
-        if(postImageIds.length === 0) return [];
+    async getComments(userId: string, postImageIds: string[]): Promise<Comment[]> {
+        if (postImageIds.length === 0) return [];
 
         const comments = await this.commentRepository.query(`
             SELECT ranked_comments.*, user.id user_id, user.name user_name, user.profile_image_url user_profile_image_url
@@ -187,23 +184,23 @@ export class PostRepository {
         `, [userId, postImageIds]);
 
         return comments.map((commentRow: any) => {
-            const user : SnsBaseUser = {
-                id : commentRow.user_id,
-                name : commentRow.user_name,
-                email : commentRow.user_email,
-                profileImage : commentRow.user_profile_image_url
+            const user: SnsBaseUser = {
+                id: commentRow.user_id,
+                name: commentRow.user_name,
+                email: commentRow.user_email,
+                profileImage: commentRow.user_profile_image_url
             };
 
             const comment = {
-                id : commentRow.id,
-                content : commentRow.content,
-                x : commentRow.x,
-                y : commentRow.y,
+                id: commentRow.id,
+                content: commentRow.content,
+                x: commentRow.x,
+                y: commentRow.y,
                 user,
-                createdAt : commentRow.created_at,
-                updatedAt : commentRow.updated_at,
-                deletedAt : commentRow.deleted_at,
-                postImage : { id : commentRow.post_image_id }
+                createdAt: commentRow.created_at,
+                updatedAt: commentRow.updated_at,
+                deletedAt: commentRow.deleted_at,
+                postImage: { id: commentRow.post_image_id }
             }
             return comment;
         })
@@ -215,7 +212,7 @@ export class PostRepository {
                 map[comment.postImage.id] = [];
             }
 
-            const {postImage, ...parsedComment} = comment;
+            const { postImage, ...parsedComment } = comment;
             map[comment.postImage.id].push(parsedComment);
             return map;
         }, {});
@@ -229,7 +226,7 @@ export class PostRepository {
         }
     }
 
-    async addCommentsToPostImages(userId : string, posts: PostGetResponse[]): Promise<void> {
+    async addCommentsToPostImages(userId: string, posts: PostGetResponse[]): Promise<void> {
         const postImageIds = posts.flatMap(post => post.images.map(postImage => postImage.id));
 
         const comments = await this.getComments(userId, postImageIds);
@@ -246,6 +243,9 @@ export class PostRepository {
                 id: rawPost.user_id,
                 name: rawPost.name,
                 profileImage: rawPost.profile_image_url,
+                isAllowFeedLike: rawPost.is_allow_feed_like,
+                isAllowFeedComment: rawPost.is_allow_feed_comment,
+                friendStatus: rawPost.friend_status
             }
             const post: PostGetResponse = {
                 id: rawPost.id,
@@ -289,7 +289,7 @@ export class PostRepository {
     }
 
     async addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts: RawPost[]): Promise<PostGetResponse[]> {
-        if(posts.length === 0) return;
+        if (posts.length === 0) return;
 
         // Fetch hashtags for these posts
         const hashtagQuery = `
@@ -300,7 +300,7 @@ export class PostRepository {
             WHERE post_tags.post_id IN (?)
             ORDER BY post_tags.created_at ASC
         `;
-        const hashtags : RawHashTag[] = await this.repository.query(hashtagQuery, [posts.map(post => post.id)]);
+        const hashtags: RawHashTag[] = await this.repository.query(hashtagQuery, [posts.map(post => post.id)]);
 
         // Fetch images for these posts
         const imageQuery = `
@@ -310,15 +310,35 @@ export class PostRepository {
             ORDER BY image_created_at ASC
         `;
 
-        const images : RawImage[] = await this.repository.query(imageQuery, [posts.map(post => post.id)]);
+        const images: RawImage[] = await this.repository.query(imageQuery, [posts.map(post => post.id)]);
         return this.mergeRawPostToPosts(posts, hashtags, images);
     }
 
 
-    async fetchAllPosts(whereClause : string, lastCreatedAt: string, limit : number, skip : number) : Promise<PostGetResponse[]> {
+    async getFriendsStatusByUserId(userId: string): Promise<FriendStatusDictionary> {
+        const userFriends = await this.friendRepository.query(`
+            SELECT user.id, friend.status
+            FROM friend
+            LEFT JOIN user 
+            ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
+            WHERE (friend.requester_id = ? OR friend.acceptor_id = ?)
+            `,
+            [userId, userId, userId]
+        );
+
+        const userFriendsDict = userFriends.reduce((dict, userFriend) => {
+            dict[userFriend.id] = userFriend.status;
+            return dict;
+        }, {});
+
+        return userFriendsDict
+    }
+
+
+    async fetchAllPosts(userId: string, whereClause: string, lastCreatedAt: string, limit: number, skip: number): Promise<PostGetResponse[]> {
         // Fetch posts with user information
         const postQuery = `
-            SELECT post.*, user.name, user.email, user.profile_image_url
+            SELECT post.*, user.name, user.email, user.profile_image_url, user.is_allow_feed_like, user.is_allow_feed_comment
             FROM post
             INNER JOIN user
             ON post.user_id = user.id
@@ -329,19 +349,23 @@ export class PostRepository {
             LIMIT ? OFFSET ?
         `;
 
-        const posts : RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
-        console.log(posts)
-        
-        if(posts.length === 0) return [];
+        const posts: RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        const userFriendsDict = await this.getFriendsStatusByUserId(userId);
 
+        posts.forEach((post) => {
+            const friendStatus = userFriendsDict[post.user_id];
+            post.friend_status = friendStatus ? friendStatus : FriendStatus.NotFriends
+        })
+
+        if (posts.length === 0) return [];
         return await this.addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts);
     }
 
 
-    async fetchPostsByHashTag(whereClause : string, lastCreatedAt: string, limit : number, skip : number) : Promise<PostGetResponse[]> {
+    async fetchPostsByHashTag(userId: string, whereClause: string, lastCreatedAt: string, limit: number, skip: number): Promise<PostGetResponse[]> {
         // Fetch posts with hashtag information
         const postQuery = `
-            SELECT post.*, user.name, user.email, user.profile_image_url, post_tags.hashtag_id
+            SELECT post.*, user.name, user.email, user.profile_image_url, user.is_allow_feed_like, user.is_allow_feed_comment, post_tags.hashtag_id
             FROM post_tags
             INNER join post
             ON post_tags.post_id = post.id
@@ -354,14 +378,19 @@ export class PostRepository {
             LIMIT ? OFFSET ?
         `
 
-        const posts : RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
-        if(posts.length === 0) return [];
+        const posts: RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        const userFriendsDict = await this.getFriendsStatusByUserId(userId);
+
+        posts.forEach((post) => {
+            const friendStatus = userFriendsDict[post.user_id];
+            post.friend_status = friendStatus ? friendStatus : FriendStatus.NotFriends
+        })
 
         return await this.addHashTagsAndImagesToRawPostsAndReturnPostGetResponseArray(posts);
     }
 
 
-    async countPosts(whereClause : string, lastCreatedAt : string) : Promise<number> {
+    async countPosts(whereClause: string, lastCreatedAt: string): Promise<number> {
         const countQuery = `
             SELECT COUNT(*) as count
             FROM post
@@ -371,11 +400,11 @@ export class PostRepository {
             AND post.created_at < ?
             AND ${whereClause}
             `;
-        const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
+        const count: { count: number }[] = await this.repository.query(countQuery, [lastCreatedAt]);
         return Number(count[0].count);
     }
 
-    async countPostsByHashTag(whereClause : string, lastCreatedAt : string) : Promise<number> {
+    async countPostsByHashTag(whereClause: string, lastCreatedAt: string): Promise<number> {
         const countQuery = `
             SELECT count(distinct post.id) as count
             FROM post_tags
@@ -387,7 +416,7 @@ export class PostRepository {
             AND post.created_at < ?
             AND ${whereClause}
         `
-        const count : {count : number}[] = await this.repository.query(countQuery, [lastCreatedAt]);
+        const count: { count: number }[] = await this.repository.query(countQuery, [lastCreatedAt]);
         return Number(count[0].count);
     }
 
@@ -397,9 +426,9 @@ export class PostRepository {
         const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
-        
+
         return {
             data: posts,
             pagination: createPaginationObject(count, limit, page)
@@ -407,12 +436,12 @@ export class PostRepository {
     }
 
 
-    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
+    async getPostsFilterByHashTagIdAndPagination(userId: string, hashTagId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}'`
-        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(userId, whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
         return {
@@ -427,9 +456,9 @@ export class PostRepository {
         const skip = calculateSkip(page, limit)
 
         const whereClause = `post.user_id = '${specificUserId}'`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
-        
+
         return {
             data: posts,
             pagination: createPaginationObject(count, limit, page)
@@ -439,7 +468,7 @@ export class PostRepository {
     // 친구 피드보기 - 템플릿 + 사진 
     async getFollowingFeedByPagination(userId: string, postPaginationDto: PostPaginationDto) {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        
+
         const userFriends = await this.friendRepository.query(`
             SELECT user.id
             FROM friend
@@ -457,9 +486,9 @@ export class PostRepository {
         // const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
         const skip = calculateSkip(page, limit)
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
-        
+
         return {
             data: posts,
             pagination: createPaginationObject(count, limit, page)
@@ -469,13 +498,13 @@ export class PostRepository {
     //특정 사용자 미디어(전체) 보기 - 사진만
     async getSpecificUserMediaByPagination(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        
+
         const skip = calculateSkip(page, limit)
 
         const whereClause = `post.user_id = '${specificUserId}' AND template_url IS NULL`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
-        
+
         return {
             data: posts,
             pagination: createPaginationObject(count, limit, page)
@@ -485,11 +514,11 @@ export class PostRepository {
     //특정 사용자 미디어(해시태그 필터링) 보기 - 사진만
     async getSpecificUserMediaFilterByHashTagAndPagination(userId: string, specificUserId: string, hashTagId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
-        
+
         const skip = calculateSkip(page, limit)
 
         const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
-        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([this.fetchPostsByHashTag(userId, whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
         return {
@@ -579,10 +608,10 @@ export class PostRepository {
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
     }
 
-    
-    async getUserInfo(userId: string, specificUserId : string): Promise<UserInfoResponse> {
+
+    async getUserInfo(userId: string, specificUserId: string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
-            SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
+            SELECT user.name, user.introduction, user.profile_image_url AS profileImage, user.is_public_account AS isPublicAccount,
                 (SELECT COUNT(friend.id)
                     FROM friend
                     WHERE ((friend.requester_id = user.id OR friend.acceptor_id = user.id) AND friend.status = 2)) AS friendCount,
@@ -611,17 +640,18 @@ export class PostRepository {
         }
 
         return {
-            id : specificUserId,
-            name : result[0].name,
-            introduction : result[0].introduction,
-            profileImage : result[0].profileImage,
-            postCount : Number(result[0].postCount),
-            friendCount : Number(result[0].friendCount),
-            friendStatus : friendStatus ? friendStatus.status : 0
+            id: specificUserId,
+            name: result[0].name,
+            introduction: result[0].introduction,
+            profileImage: result[0].profileImage,
+            postCount: Number(result[0].postCount),
+            friendCount: Number(result[0].friendCount),
+            friendStatus: friendStatus ? friendStatus.status : 0,
+            isPublicAccount : result[0].isPublicAccount ? true : false
         }
     }
 
-    async getUserByHaruId(userId: string, haruId: string) : Promise<UserInfoResponse>{
+    async getUserByHaruId(userId: string, haruId: string): Promise<UserInfoResponse> {
         const user = await this.userRepository.manager.query(`
             SELECT user.id, user.name, user.introduction, user.profile_image_url AS profileImage
             FROM user

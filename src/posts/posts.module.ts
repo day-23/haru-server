@@ -13,14 +13,11 @@ import { Comment } from 'src/entity/comment.entity';
 import { User } from 'src/entity/user.entity';
 import { Report } from 'src/entity/report.entity';
 import { Template } from 'src/entity/template.entity';
-import { UserRelationship } from 'src/entity/follow.entity';
-import { UserService } from 'src/users/users.service';
-import { UserRepository } from 'src/users/user.repository';
 import { UsersModule } from 'src/users/users.module';
 import { Friend } from 'src/entity/friend.entity';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, UserRelationship, Friend])],
+    imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Report, Friend])],
     controllers: [PostsController],
     providers: [PostService, PostRepository]
 })

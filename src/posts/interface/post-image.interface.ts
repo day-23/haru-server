@@ -1,4 +1,4 @@
-import { SnsBaseUser } from "src/follows/interface/follow.user.interface";
+import { SnsBaseUser } from "./post.interface"
 
 
 export interface PostImageCommentResponse{

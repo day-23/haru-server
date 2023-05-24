@@ -7,6 +7,7 @@ import { Friend } from "src/entity/friend.entity";
 import { PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { calculateSkip } from "src/posts/post.util";
 import { FriendStatus } from "src/common/utils/constants";
+import { GetSnsBaseFriendsByPaginationDto } from "./interface/friends.user.interface";
 
 export class FriendRepository{
     public readonly S3_URL: string;
@@ -55,7 +56,7 @@ export class FriendRepository{
 
 
     //친구 목록 페이지네이션 해서 받기
-    async getFriendList(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<any> {
+    async getFriendList(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
@@ -137,7 +138,7 @@ export class FriendRepository{
     }
 
     //친구 신청 목록 페이지네이션 해서 받기
-    async getFriendRequestList(userId: string, postPaginationDto: PostPaginationDto): Promise<any> {
+    async getFriendRequestList(userId: string, postPaginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 

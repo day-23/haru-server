@@ -6,4 +6,5 @@ export interface UserInfoResponse{
     postCount: number,
     friendCount: number,
     friendStatus: number,
+    isPublicAccount : boolean
 }

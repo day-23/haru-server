@@ -16,6 +16,9 @@ export interface PostUserResponse {
     id : string,
     name : string,
     profileImage : string,
+    isAllowFeedLike : number,
+    isAllowFeedComment : number,
+    friendStatus : number
 }
 
 export interface SearchUserResponse{
@@ -44,3 +47,27 @@ export interface BaseHashTag{
     id: string,
     content: string
 }
+
+export interface SnsBaseUser{
+    id : string,
+    name : string,
+    email : string,
+    profileImage : string
+}
+
+
+export interface SnsPostUser{
+    id : string,
+    name : string,
+    email : string,
+    profileImage : string
+    isAllowFeedLike : number,
+    isAllowFeedComment : number,
+}
+
+
+
+export interface FriendStatusDictionary {
+    [userId: string]: number;
+}
+  
