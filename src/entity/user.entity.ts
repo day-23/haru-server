@@ -52,8 +52,8 @@ export class User extends BaseEntity {
     })
     password: string;
 
-    @Column({ nullable: true, type: 'varchar', length: 255, comment: 'salt' }) // nullable : true 추가
-    salt: string;
+    @Column({ type: 'varchar', length: 10, comment: '유저 이름' })
+    socialAccount: string;
 
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
     name: string;

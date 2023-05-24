@@ -60,12 +60,12 @@ export class AuthService {
         );
     }
 
-    async signUp(email: string, name: string, phone: string = '') {
+    async signUp(email: string, socialAccount: string, phone: string = '') {
         const createUserDto: CreateUserDto = {
             email: email,
             password: '',
             name: "",
-            age: 24,
+            socialAccount,
             phone: phone,
         };
 
@@ -153,7 +153,7 @@ export class AuthService {
         // If the user is logging in for the first time
         if (!user) {
             // Create a new user record in the database
-            user = await this.signUp(email, "");
+            user = await this.signUp(email, "K");
         }
 
         const refreshToken = await this.getRefreshToken(user);
@@ -210,7 +210,7 @@ export class AuthService {
             // If the user is logging in for the first time
             if (!user) {
                 // Create a new user record in the database
-                user = await this.signUp(email, "");
+                user = await this.signUp(email, "A");
             }
 
             const refreshToken = await this.getRefreshToken(user);
