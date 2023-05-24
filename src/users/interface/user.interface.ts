@@ -4,7 +4,7 @@ export interface InitialUpdateProfileResponse{
         id : string;
         name: string;
         introduction: string;
-        profileImageUrl: string;
+        profileImage: string;
         postCount: number;
         friendCount: number;
         friendStatus: number;

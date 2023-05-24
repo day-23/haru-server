@@ -99,13 +99,14 @@ export class PostService {
     async getUserInfoWithOptions(userId : string){
         const profileInfo = await this.getUserInfo(userId, userId)
         const userInfo = await this.userService.findOne(userId)
-
+        
+        console.log('here')
         return {
             user: {
                 id: profileInfo.id,
                 name: profileInfo.name,
                 introduction: profileInfo.introduction,
-                profileImageUrl: profileInfo.profileImage,
+                profileImage: profileInfo.profileImage,
                 postCount: profileInfo.postCount,
                 friendCount: profileInfo.friendCount,
                 friendStatus: profileInfo.friendStatus,
