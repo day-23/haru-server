@@ -60,12 +60,12 @@ export class AuthService {
         );
     }
 
-    async signUp(email: string, socialAccount: string, phone: string = '') {
+    async signUp(email: string, socialAccountType: string, phone: string = '') {
         const createUserDto: CreateUserDto = {
             email: email,
             password: '',
             name: "",
-            socialAccount,
+            socialAccountType,
             phone: phone,
         };
 
