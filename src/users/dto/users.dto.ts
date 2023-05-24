@@ -36,12 +36,11 @@ export class CreateUserDto {
 
     @IsString()
     @IsNotEmpty()
-    name: string; // 유저 이름
+    socialAccount: string; // 유저 소셜 계정 타입
 
-    // @IsNumber()
-    // @IsNotEmpty()
-    @IsOptional()
-    age: number; //유저 나이
+    @IsString()
+    @IsNotEmpty()
+    name: string; // 유저 이름
 
     @IsString()
     @IsOptional()
