@@ -1,14 +1,15 @@
 
 export interface InitialUpdateProfileResponse{
-    id : string;
-    name: string;
-    introduction: string;
-    profileImageUrl: string;
-    postCount: number;
-    friendCount: number;
-    friendStatus: number;
-    isPublicAccount: boolean;
-
+    user : {
+        id : string;
+        name: string;
+        introduction: string;
+        profileImageUrl: string;
+        postCount: number;
+        friendCount: number;
+        friendStatus: number;
+        isPublicAccount: boolean;
+    }
     // 개인 설정
     haruId: string;
     email : string;
