@@ -52,7 +52,7 @@ export class User extends BaseEntity {
     })
     password: string;
 
-    @Column({ type: 'varchar', length: 10, comment: '유저 이름' })
+    @Column({ type: 'varchar', length: 10, comment: '유저 이름', nullable:true })
     socialAccountType: string;
 
     @Column({ type: 'varchar', length: 30, comment: '유저 이름' })
