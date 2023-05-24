@@ -611,7 +611,7 @@ export class PostRepository {
 
     async getUserInfo(userId: string, specificUserId: string): Promise<UserInfoResponse> {
         const result = await this.userRepository.manager.query(`
-            SELECT user.name, user.introduction, user.profile_image_url AS profileImage,
+            SELECT user.name, user.introduction, user.profile_image_url AS profileImage, user.is_public_account AS isPublicAccount,
                 (SELECT COUNT(friend.id)
                     FROM friend
                     WHERE ((friend.requester_id = user.id OR friend.acceptor_id = user.id) AND friend.status = 2)) AS friendCount,
@@ -646,7 +646,8 @@ export class PostRepository {
             profileImage: result[0].profileImage,
             postCount: Number(result[0].postCount),
             friendCount: Number(result[0].friendCount),
-            friendStatus: friendStatus ? friendStatus.status : 0
+            friendStatus: friendStatus ? friendStatus.status : 0,
+            isPublicAccount : result[0].isPublicAccount ? true : false
         }
     }
 

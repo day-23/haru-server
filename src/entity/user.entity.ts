@@ -72,7 +72,7 @@ export class User extends BaseEntity {
 
     // 피드 좋아요, 코멘트 허용 여부
     // 전체 : 2
-    // 팔로잉만 : 1
+    // 친구만 : 1
     // 아무도 : 0
     @Column({
         type: "tinyint",
