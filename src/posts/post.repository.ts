@@ -119,7 +119,8 @@ export class PostRepository {
     }
 
     async setCountsToPosts(userId: string, posts: PostGetResponse[]): Promise<void> {
-        if (posts.length === 0) return;
+        if (posts?.length === 0) return;
+        if(!posts) return;
 
         const postIds = posts.map(post => post.id);
 
@@ -227,6 +228,9 @@ export class PostRepository {
     }
 
     async addCommentsToPostImages(userId: string, posts: PostGetResponse[]): Promise<void> {
+        if (!posts) return;
+        if (posts.length === 0) return;
+
         const postImageIds = posts.flatMap(post => post.images.map(postImage => postImage.id));
 
         const comments = await this.getComments(userId, postImageIds);
