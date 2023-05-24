@@ -5,16 +5,25 @@ import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/c
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
+import { Post } from "src/entity/post.entity";
 import { calculateSkip } from "src/posts/post.util";
 import { Repository } from "typeorm";
 
 export class CommentRepository {
     constructor(@InjectRepository(Comment) private readonly repository: Repository<Comment>,
+    @InjectRepository(Post) private readonly postRepository: Repository<Post>,
         private readonly configService: ConfigService) {
     }
 
     async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {    
         const { content } = createCommentDto
+        // Fetch the post from the database first
+        const post = await this.postRepository.findOne({ where: { id: postId } });
+        if (!post) {
+            // If the post doesn't exist, throw an error
+            throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
+        }
+
         const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, content})
 
         const savedComment = await this.repository.save(comment)
@@ -30,8 +39,15 @@ export class CommentRepository {
 
     async createImageComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {    
         const { content, x, y } = createCommentDto
+        
+        // Fetch the post from the database first
+        const post = await this.postRepository.findOne({ where: { id: postId } });
+        if (!post) {
+            // If the post doesn't exist, throw an error
+            throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
+        }
+        
         const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : undefined, content, x, y })
-
         const savedComment = await this.repository.save(comment)
         
         const ret = {
