@@ -1,16 +1,17 @@
 
 
-export interface SnsBaseUser{
+export interface SnsBaseFriend{
     id: string,
     name: string,
-    email: string,
     profileImage: string,
+    friendStatus : number,
+    createdAt : Date
 }
 
 
 
-export interface GetSnsBaseUserByPaginationDto{
-    data: SnsBaseUser[],
+export interface GetSnsBaseFriendsByPaginationDto{
+    data: SnsBaseFriend[],
     pagination: {
         totalItems: number,
         itemsPerPage: number,
