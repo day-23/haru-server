@@ -5,6 +5,7 @@ import { User } from 'src/entity/user.entity';
 import { LocalAuthGuard } from 'src/auth/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UpdateUserOptionPartialDto } from './dto/users.dto';
 
 
 @Controller('user')
@@ -56,4 +57,11 @@ export class UserController {
     async login(@Req() req) {
         return req.user
     }
+
+    @Patch(':userId/setting')
+    async updateSetting(@Param('userId') userId: string, @Body() updateUserOptionPartialDto: UpdateUserOptionPartialDto) {
+        return await this.userService.updateSetting(userId, updateUserOptionPartialDto)
+    }
+
+    
 }

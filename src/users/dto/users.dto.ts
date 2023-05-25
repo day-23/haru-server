@@ -1,5 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import {
+    IsBoolean,
     IsNotEmpty,
     IsNumber,
     IsOptional,
@@ -47,10 +48,40 @@ export class CreateUserDto {
     phone: string;
 }
 
-
-
 export class UpdateUserDto {
     @IsString()
     @IsNotEmpty()
     name: string; // 유저 이름
 }
+
+export class UpdateUserOptionDto {
+    @IsOptional()
+    @IsBoolean()
+    isPublicAccount: true;
+
+    @IsOptional()
+    @IsString()
+    haruId: string;
+
+    @IsOptional()
+    @IsString()
+    socialAccountType: string;
+
+    @IsOptional()
+    @IsBoolean()
+    isPostBrowsingEnabled: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    isAllowFeedLike: number;
+
+    @IsOptional()
+    @IsNumber()
+    isAllowFeedComment: number;
+
+    @IsOptional()
+    @IsBoolean()
+    isAllowSearch: boolean;
+}
+
+export class UpdateUserOptionPartialDto extends PartialType(UpdateUserOptionDto) { }

@@ -5,7 +5,7 @@ import {
     Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto, UpdateUserDto } from 'src/users/dto/users.dto';
+import { CreateUserDto, UpdateUserDto, UpdateUserOptionPartialDto } from 'src/users/dto/users.dto';
 import { Repository } from 'typeorm';
 import { User } from '../entity/user.entity';
 import { UpdateProfileDto } from './dto/profile.dto';
@@ -85,4 +85,12 @@ export class UserRepository {
         await this.repository.update({ id: userId }, { haruId: haruId })
     }
 
+    async updateSetting(userId: string, updateUserOptionPartialDto: UpdateUserOptionPartialDto) {
+        // return await this.userRepository.updateSetting(userId, updateUserOptionPartialDto)
+        const { haruId, ...etc } = updateUserOptionPartialDto
+        if (haruId) {
+            await this.updateHaruId(userId, haruId)
+        }
+        await this.repository.update({ id: userId }, { ...etc })
+    }
 }
