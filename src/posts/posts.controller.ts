@@ -87,21 +87,6 @@ export class PostsController {
         return await this.postService.updateInitialProfile(userId, updateProfileDto)
     }
 
-    /* 프로필 사진 추가(이미지 하나 추가) */
-    @Patch('/profile/image/init')
-    @ApiOperation({ summary: '사용자 프로필 이미지 설정', description: '프로필 이미지를 추가한다.' })
-    @UseInterceptors(FileInterceptor('image',
-        {
-            limits: {
-                fileSize: 40 * 1024 * 1024, // 40MB
-            },
-            // Validate the file types
-            fileFilter: imageFileFilter,
-        }))
-    async uploadInitialProfileWithImage(@Param('userId') userId: string, @UploadedFile() file: Express.Multer.File, @Body() updateProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
-        return await this.postService.uploadInitialProfileWithImage(userId, file, updateProfileDto)
-    }
-
 
     @PaginatedResponse()
     @Get('posts/all')

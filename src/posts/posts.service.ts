@@ -132,18 +132,9 @@ export class PostService {
         return await this.getUserInfoWithOptions(userId)
     }
 
-    async uploadInitialProfileWithImage(userId: string, file: Express.Multer.File, updateInitialProfileDto: UpdateInitialProfileDto): Promise<InitialUpdateProfileResponse> {
-        const { haruId, ...updateProfileDto } = updateInitialProfileDto
-
-        await this.userService.updateHaruId(userId, haruId)
-        await this.uploadProfileWithImage(userId, file, updateProfileDto)
-        return await this.getUserInfoWithOptions(userId)
-    }
-
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
         return await this.postRepository.getProfileImagesByUserId(userId)
     }
-
 
     async getHashtags(): Promise<BaseHashTag[]> {
         return await this.postRepository.getHashtags()
