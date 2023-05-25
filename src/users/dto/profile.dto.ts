@@ -6,9 +6,9 @@ export class UpdateProfileDto {
     @IsString()
     name: string;
 
-    @ApiProperty({ description: '이름' })
-    @IsString()
-    introduction: string;
+    // @ApiProperty({ description: '이름' })
+    // @IsString()
+    // introduction: string;
 
     @IsOptional()
     profileImageUrl: string;
@@ -20,9 +20,9 @@ export class UpdateInitialProfileDto {
     @IsString()
     name: string;
 
-    @ApiProperty({ description: '이름' })
-    @IsString()
-    introduction: string;
+    // @ApiProperty({ description: '이름' })
+    // @IsString()
+    // introduction: string;
 
     @IsOptional()
     profileImageUrl: string;
