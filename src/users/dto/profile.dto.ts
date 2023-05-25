@@ -21,6 +21,7 @@ export class UpdateInitialProfileDto {
     name: string;
 
     @ApiProperty({ description: '이름' })
+    @IsOptional()
     @IsString()
     introduction: string;
 
