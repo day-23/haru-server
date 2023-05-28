@@ -306,7 +306,7 @@ export class TodosService implements TodosServiceInterface {
     async updateRepeatTodoToCompleteBack(userId: string, todoId: string, repeatTodoCompleteBySplitDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { schedule } = existingTodo
-        const { repeatEnd } = repeatTodoCompleteBySplitDto
+        const { endDate } = repeatTodoCompleteBySplitDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
@@ -318,7 +318,7 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
 
-            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
+            await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd : endDate }, queryRunner)
             existingTodo.schedule.repeatStart = existingTodo.schedule.repeatEnd
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
 
@@ -611,7 +611,7 @@ export class TodosService implements TodosServiceInterface {
     async deleteRepeatTodoBack(userId: string, todoId: string, repeatSplitBackDto: RepeatSplitBackDto, queryRunner?: QueryRunner): Promise<void>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { schedule } = existingTodo
-        const { repeatEnd } = repeatSplitBackDto
+        const { endDate :repeatEnd } = repeatSplitBackDto
 
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;

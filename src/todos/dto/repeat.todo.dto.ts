@@ -33,7 +33,7 @@ export class RepeatSplitBackDto{
     @ApiProperty({ description: '이전 마감일'})
     @IsDate()
     @Transform(({ value }) => new Date(value))
-    repeatEnd: Date;
+    endDate: Date;
 }
 
 export class DeleteRepeatSplitMiddleDto{
