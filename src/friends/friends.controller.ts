@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Query } from '@nestjs/common';
-import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
+import { BlockUserDto, CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService as FriendsService } from './friends.service';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
@@ -28,6 +28,12 @@ export class FriendsController {
     @ApiOperation({ summary: '친구 추가 수락 API', description: '친구 추가 수락.' })
     async acceptFreindRequest(@Param('userId') userId: string, @Body() createFollowDto: acceptFreindRequestDto): Promise<void> {
         return await this.freindsService.acceptFriendRequest(userId, createFollowDto);
+    }
+
+    @Post('block')
+    @ApiOperation({ summary: '친구 차단 API', description: '친구를 차단한다.' })
+    async blockUser(@Param('userId') userId: string, @Body() blockUserDto: BlockUserDto): Promise<void> {
+        return await this.freindsService.blockUser(userId, blockUserDto);
     }
 
 

@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable, Param, Query } from '@nestjs/common';
 import { GetSnsBaseFriendsByPaginationDto } from './interface/friends.user.interface';
-import { CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
+import { BlockUserDto, CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { FriendRepository } from './friends.repository';
 import { UserService } from 'src/users/users.service';
@@ -55,6 +55,14 @@ export class FriendsService {
         }
 
         return
+    }
+
+    async blockUser(userId: string, blockUserDto : BlockUserDto){
+        const { blockUserId } = blockUserDto
+
+        await this.freindRepository.deleteFriend(userId, blockUserId)
+
+        await this.freindRepository.createBlockUser(userId, blockUserId)
     }
 
     async deleteFriend(userId: string, createFollowDto: DeleteFriendDto){

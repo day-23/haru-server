@@ -14,3 +14,9 @@ export class DeleteFriendDto{
     @IsString()
     friendId : string
 }
+
+
+export class BlockUserDto{
+    @IsString()
+    blockUserId : string
+}
