@@ -266,7 +266,6 @@ export class TodosService implements TodosServiceInterface {
             existingTodo.schedule.repeatStart = completedDate
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo , queryRunner)
 
-
             // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
             if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart > updatedSchedule.repeatEnd) {
                 await this.scheduleService.deleteSchedule(userId, schedule.id, queryRunner);
@@ -320,6 +319,7 @@ export class TodosService implements TodosServiceInterface {
             }
 
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd }, queryRunner)
+            existingTodo.schedule.repeatStart = existingTodo.schedule.repeatEnd
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo, queryRunner)
 
             await queryRunner.commitTransaction();
