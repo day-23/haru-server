@@ -263,7 +263,7 @@ export class TodosService implements TodosServiceInterface {
             
             const updatedSchedule = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
-            existingTodo.schedule.repeatStart = endDate
+            existingTodo.schedule.repeatStart = completedDate
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo , queryRunner)
 
 
