@@ -54,6 +54,18 @@ export class FriendRepository{
         await this.repository.delete({ requester: { id: acceptorId }, acceptor: { id: userId } });
     }
 
+    //create block user by userId and blockUserId
+    async createBlockUser(userId: string, blockUserId: string): Promise<void> {
+        const newFreindRecord = this.repository.create({
+            requester: new User({ id: userId }),
+            acceptor: new User({ id: blockUserId }),
+            status: FriendStatus.Blocked
+        });
+
+        await this.repository.save(newFreindRecord);
+    }
+    
+
 
     //친구 목록 페이지네이션 해서 받기
     async getFriendList(userId: string, specificUserId: string, postPaginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
