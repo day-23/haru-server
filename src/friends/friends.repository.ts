@@ -64,7 +64,7 @@ export class FriendRepository{
 
         await this.repository.save(newFreindRecord);
     }
-    
+
 
 
     //친구 목록 페이지네이션 해서 받기
@@ -119,7 +119,7 @@ export class FriendRepository{
             }
         })
 
-        const count = await this.countFriendsByStatus(userId, 1)
+        const count = await this.countFriendsByStatus(userId, FriendStatus.Friends)
 
         return {
             data: friendList,
