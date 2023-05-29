@@ -3,7 +3,7 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { CommentsService } from './comments.service';
-import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
+import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto, UpdateCommentsByWriterDto } from './dto/create.comment.dto';
 import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
 
 @Controller('comment/:userId')
@@ -48,6 +48,14 @@ export class CommentsController {
     async updateComment(@Param('userId') userId: string, @Param('commentId') commentId: string, @Body() updateCommentDto: UpdateCommentDto): Promise<void> {
         return await this.commentService.updateComment(userId, commentId, updateCommentDto)
     }
+
+
+    @Patch(':postId/comments/')
+    @ApiOperation({ summary: '댓글 수정 API', description: '댓글을 수정한다.' })
+    async updateComments(@Param('userId') userId: string, @Param('commentId') commentId: string, @Body() updateCommentDto: UpdateCommentsByWriterDto): Promise<void> {
+        return await this.commentService.updateCommentsByWriter(userId, commentId, updateCommentDto)
+    }
+
 
     @Delete(':commentId')
     @ApiOperation({ summary: '댓글 삭제 API', description: '댓글을 삭제한다.' })
