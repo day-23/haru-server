@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
 import { CommentRepository } from 'src/comments/comment.repository';
-import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from './dto/create.comment.dto';
+import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto, UpdateCommentsByWriterDto } from './dto/create.comment.dto';
 import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
 
 @Injectable()
@@ -26,6 +26,10 @@ export class CommentsService {
 
     async updateComment(userId: string, commentId: string, updateCommentDto: UpdateCommentDto): Promise<void>{
         return await this.commentRepository.updateComment(userId, commentId, updateCommentDto)
+    }
+
+    async updateCommentsByWriter(userId: string, postId: string, updateCommentDto: UpdateCommentsByWriterDto): Promise<void>{
+        return await this.commentRepository.updateCommentsByWriter(userId, postId, updateCommentDto)
     }
 
     async deleteComment(userId: string, commentId: string) : Promise<void>{

@@ -1,13 +1,13 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto } from "src/comments/dto/create.comment.dto";
+import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto, UpdateCommentsByWriterDto } from "src/comments/dto/create.comment.dto";
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Post } from "src/entity/post.entity";
 import { calculateSkip } from "src/posts/post.util";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 
 export class CommentRepository {
     constructor(@InjectRepository(Comment) private readonly repository: Repository<Comment>,
@@ -215,6 +215,22 @@ export class CommentRepository {
                 HttpStatus.NOT_FOUND
             );
         }
+    }
+
+    async updateCommentsByWriter(userId: string, postId: string, updateCommentDto: UpdateCommentsByWriterDto): Promise<void>{
+        const {commentIds} = updateCommentDto
+
+        const comments = await this.repository.find({where : {id : In(commentIds), post : {id : postId}}})
+
+        commentIds.forEach((commentId, index) => {
+            const comment = comments.find(comment => comment.id == commentId)
+            if(comment){
+                comment.x = updateCommentDto.x[index]
+                comment.y = updateCommentDto.y[index]
+            }
+        })
+
+        await this.repository.save(comments)
     }
 
     async deleteComment(userId: string, commentId: string): Promise<void> {

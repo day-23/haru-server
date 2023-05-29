@@ -26,3 +26,18 @@ export class CreateImageCommentDto extends CreateCommentDto{
 }
 
 export class UpdateCommentDto extends PartialType(CreateImageCommentDto) {}
+
+
+export class UpdateCommentsByWriterDto {
+    @ApiProperty({ description: '댓글 id들' })
+    @IsString({ each: true })
+    commentIds: string[]
+
+    @ApiProperty({ description: '댓글 x좌표' })
+    @IsNumber({}, { each: true })
+    x: number[];
+
+    @ApiProperty({ description: '댓글 y좌표' })
+    @IsNumber({}, { each: true })
+    y: number[];
+}
