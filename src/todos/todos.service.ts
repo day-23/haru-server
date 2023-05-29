@@ -261,13 +261,19 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             
+            console.log(`TEST ${completedDate} ${endDate} ${getMinusOneDay(completedDate)} ${existingTodo}`)
+
             const updatedSchedule = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
-            await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+            
+            /* problem */
+            const nextTodo = await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
             existingTodo.schedule.repeatStart = completedDate
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo , queryRunner)
 
+            console.log(`TEST nextTodo ${nextTodo}`)
+
             // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
-            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart > updatedSchedule.repeatEnd) {
+            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart.getDate() > updatedSchedule.repeatEnd.getDate()) {
                 await this.scheduleService.deleteSchedule(userId, schedule.id, queryRunner);
             }
 
@@ -353,7 +359,9 @@ export class TodosService implements TodosServiceInterface {
     async createNewNextRepeatTodoByExistingTodo(userId: string ,existingTodo : Todo, endDate:Date, queryRunner?: QueryRunner): Promise<TodoResponse>{
         const { id, user, schedule, ...todoData } = existingTodo
         // if schedule.repeatEnd is not null and schedule.repeatEnd is less than endDate return
-        if(schedule.repeatEnd && schedule.repeatEnd < endDate) return
+
+        /* 일자까지만 비교 */
+        if(schedule.repeatEnd && schedule.repeatEnd.getDate() < endDate.getDate()) return
 
         const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
         const parent = schedule?.parent ? schedule?.parent?.id : schedule?.id
@@ -473,13 +481,9 @@ export class TodosService implements TodosServiceInterface {
                 await queryRunner.startTransaction();
             }
             
-            
             await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(changedDate) }, queryRunner)
             await this.createTodoForUpdateBySplit(userId, updateTodoDto, queryRunner)
-            console.log('here--------------------')
             await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, nextEndDate, queryRunner)
-
-
             
             await queryRunner.commitTransaction();
         } catch (error) {
