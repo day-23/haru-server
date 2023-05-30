@@ -347,7 +347,6 @@ export class PostRepository {
             INNER JOIN user
             ON post.user_id = user.id
             WHERE post.created_at < ?
-            AND user.is_post_browsing_enabled = true
             AND ${whereClause}
             ORDER BY post.created_at DESC
             LIMIT ? OFFSET ?
@@ -429,7 +428,7 @@ export class PostRepository {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `template_url IS NULL`
+        const whereClause = `template_url IS NULL AND user.is_post_browsing_enabled = true`
         const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
@@ -444,7 +443,7 @@ export class PostRepository {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}'`
+        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND user.is_post_browsing_enabled = true`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(userId, whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
