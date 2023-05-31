@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, OneToOne } from 'typeorm';
+import { Post } from './post.entity';
 
 @Entity()
 export class Template extends BaseEntity {
@@ -22,4 +23,7 @@ export class Template extends BaseEntity {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @OneToMany(()=> Post, (post) => post.template)
+    posts: Post[]
 }

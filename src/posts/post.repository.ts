@@ -68,7 +68,7 @@ export class PostRepository {
             images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments: [] })),
             hashTags: createPostDto.hashTags,
             content: savedPost.content,
-            templateUrl: savedPost.templateUrl,
+            templateUrl : getImageUrl(this.configService, savedPost.template?.url),
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt,
         };
@@ -91,21 +91,23 @@ export class PostRepository {
     async getTemplates(userId: string) {
         const templates = await this.templateRepository.find({ order: { createdAt: 'ASC' } })
         templates.map((template) => {
-            template.url = this.S3_URL + template.url
+            template.url = getImageUrl(this.configService, template.url)
         })
-        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
+        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url, mimeType }))
     }
 
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto): Promise<PostCreateResponse> {
-        const { content, templateUrl } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content, templateUrl });
+        const { content, templateId } = createPostDto
+        const post = this.repository.create({ user: { id: userId }, content, template:{id : templateId} });
         const savedPost = await this.repository.save(post)
-        return this.createPostResponse(savedPost, [], createPostDto);
+        const savedPostWithTemplate = await this.repository.findOne({ where: { id: savedPost.id }, relations: ["template"] });
+        console.log(savedPost)
+        return this.createPostResponse(savedPostWithTemplate, [], createPostDto);
     }
 
     async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content, templateUrl: null });
+        const post = this.repository.create({ user: { id: userId }, content });
         const savedPost = await this.repository.save(post)
         const savedPostImages = await this.savePostImages(images, savedPost)
         return this.createPostResponse(savedPost, savedPostImages, createPostDto);
@@ -207,6 +209,46 @@ export class PostRepository {
         })
     }
 
+    async getCommentsForTemplate(userId: string, postIds: string[]): Promise<Comment[]> {
+        if (postIds.length === 0) return [];
+
+        const comments = await this.commentRepository.query(`
+            SELECT ranked_comments.*, user.id user_id, user.name user_name, user.profile_image_url user_profile_image_url
+            FROM (
+            SELECT
+                comment.*,
+                ROW_NUMBER() OVER (PARTITION BY post_id ORDER BY created_at DESC) as row_num
+            FROM comment
+            WHERE is_public = true
+            ) ranked_comments
+            JOIN user ON ranked_comments.user_id = user.id
+            WHERE (ranked_comments.row_num <= 10 OR ranked_comments.user_id = ?)
+            AND post_id IN (?)
+        `, [userId, postIds]);
+
+        return comments.map((commentRow: any) => {
+            const user: SnsBaseUser = {
+                id: commentRow.user_id,
+                name: commentRow.user_name,
+                email: commentRow.user_email,
+                profileImage: commentRow.user_profile_image_url
+            };
+
+            const comment = {
+                id: commentRow.id,
+                content: commentRow.content,
+                x: commentRow.x,
+                y: commentRow.y,
+                user,
+                createdAt: commentRow.created_at,
+                updatedAt: commentRow.updated_at,
+                deletedAt: commentRow.deleted_at,
+                post: { id: commentRow.post_id }
+            }
+            return comment;
+        })
+    }
+
     createPostImageIdToCommentsMap(comments: Comment[]): Record<string, Comment[]> {
         return comments.reduce((map, comment) => {
             if (!map[comment.postImage.id]) {
@@ -255,7 +297,7 @@ export class PostRepository {
                 id: rawPost.id,
                 user,
                 content: rawPost.content,
-                templateUrl: rawPost.template_url,
+                isTemplatePost: rawPost.template_id ? true : false,
                 images: [],
                 hashTags: [],
                 isLiked: false,
@@ -423,12 +465,48 @@ export class PostRepository {
         return Number(count[0].count);
     }
 
+
+    async addImangeAndCommentToTemplate(userId: string, posts: PostGetResponse[]){
+        const templatePostIds = posts.filter((post) => post.isTemplatePost).map((post) => post.id)
+        console.log(templatePostIds)
+
+        if(templatePostIds.length > 0) {
+            const templates = await this.repository.query(`
+                SELECT post.id as post_id, template.id as image_id, original_name as image_original_name, url as image_url, mime_type as image_mime_type, template.created_at as image_created_at
+                FROM post
+                INNER JOIN template
+                ON post.template_id = template.id
+                WHERE post.id IN ('${templatePostIds.join("','")}')
+            `)
+
+            console.log(templates)
+            templates.forEach((template) => {
+                const post = posts.find((post) => post.id === template.post_id)
+                post.images.push({
+                    id: template.image_id,
+                    originalName: template.image_original_name,
+                    url: getImageUrl(this.configService, template.image_url),
+                    mimeType: template.image_mime_type,
+                    comments: [],
+                })
+            })
+            // console.log(templates)
+
+            //댓글 붙여주기
+            const comments = await this.getCommentsForTemplate(userId, templatePostIds)
+            comments.forEach(({post : commentPost, ...comment}) => {
+                const curPost = posts.find((post) => post.id === commentPost.id)
+                curPost.images[0].comments.push(comment)
+            })
+        }
+    }
+
     //둘러보기(전체 게시물 보기) - 사진만
     async getPostsByPagination(userId: string, postPaginationDto: PostPaginationDto): Promise<GetPostsPaginationResponse> {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `template_url IS NULL AND user.is_post_browsing_enabled = true`
+        const whereClause = `template_id IS NULL AND user.is_post_browsing_enabled = true`
         const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
@@ -443,7 +521,7 @@ export class PostRepository {
         const { page, limit, lastCreatedAt } = postPaginationDto;
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND user.is_post_browsing_enabled = true`
+        const whereClause = `template_id IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND user.is_post_browsing_enabled = true`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(userId, whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
@@ -460,7 +538,7 @@ export class PostRepository {
 
         const whereClause = `post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts), this.addImangeAndCommentToTemplate(userId, posts)])
 
         return {
             data: posts,
@@ -490,7 +568,12 @@ export class PostRepository {
         const skip = calculateSkip(page, limit)
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
         const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
+        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts), this.addImangeAndCommentToTemplate(userId, posts)])
+
+        /* 템플릿 게시물 이미지 넣고, 댓글 넣기 */
+        //get postsIds that templateid is not null
+        // await this.addImangeAndCommentToTemplate(userId, posts)
+
 
         return {
             data: posts,
@@ -504,7 +587,7 @@ export class PostRepository {
 
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `post.user_id = '${specificUserId}' AND template_url IS NULL`
+        const whereClause = `post.user_id = '${specificUserId}' AND template_id IS NULL`
         const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 
@@ -520,7 +603,7 @@ export class PostRepository {
 
         const skip = calculateSkip(page, limit)
 
-        const whereClause = `template_url IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
+        const whereClause = `template_id IS NULL AND post_tags.hashtag_id = '${hashTagId}' AND post.user_id = '${specificUserId}'`
         const [posts, count] = await Promise.all([this.fetchPostsByHashTag(userId, whereClause, lastCreatedAt, limit, skip), this.countPostsByHashTag(whereClause, lastCreatedAt)])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts)])
 

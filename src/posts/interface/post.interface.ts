@@ -29,12 +29,19 @@ export interface SearchUserResponse{
     isFriend : boolean
 }
 
-export interface PostGetResponse extends PostCreateResponse{
+export interface PostGetResponse{
+    id: string,
     user : PostUserResponse,
+    content: string,
+    isTemplatePost: boolean,
+    images : PostImageResponse[],
+    hashTags: string[],
     isLiked : boolean,
     isCommented : boolean,
     likedCount : number,
     commentCount : number,
+    createdAt: Date,
+    updatedAt: Date,
 }
 
 export interface GetPostsPaginationResponse {

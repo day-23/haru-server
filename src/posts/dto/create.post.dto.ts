@@ -16,7 +16,7 @@ export class CreatePostDto {
 
 export class CreateTemplatePostDto extends CreatePostDto {
     @IsString()
-    templateUrl: string;
+    templateId: string;
 }
 
 
