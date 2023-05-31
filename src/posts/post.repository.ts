@@ -91,9 +91,9 @@ export class PostRepository {
     async getTemplates(userId: string) {
         const templates = await this.templateRepository.find({ order: { createdAt: 'ASC' } })
         templates.map((template) => {
-            template.url = this.S3_URL + template.url
+            template.url = getImageUrl(this.configService, template.url)
         })
-        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType }))
+        return templates.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url, mimeType }))
     }
 
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto): Promise<PostCreateResponse> {
