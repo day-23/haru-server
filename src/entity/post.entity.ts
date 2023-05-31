@@ -1,10 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany, Column, Index, OneToOne } from 'typeorm';
 import { Comment } from './comment.entity';
 import { Image } from './image.entity';
 import { Liked } from './liked.entity';
 import { PostTags } from './post-tags.entity';
 import { User } from './user.entity';
 import { Report } from './report.entity';
+import { Template } from './template.entity';
 
 @Entity()
 export class Post extends BaseEntity {
@@ -19,9 +20,6 @@ export class Post extends BaseEntity {
 
     @Column()
     content: string
-
-    @Column({nullable: true, length: 200})
-    templateUrl: string
 
     @Index()
     @CreateDateColumn()
@@ -52,6 +50,9 @@ export class Post extends BaseEntity {
 
     @OneToMany(()=> Report, (report) => report.post)
     report: Report[];
+
+    @ManyToOne(()=> Template, (template) => template.posts, { onDelete: 'CASCADE' })
+    template: Template
 
     likedCount: number;
     commentCount : number;

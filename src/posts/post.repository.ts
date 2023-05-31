@@ -68,7 +68,7 @@ export class PostRepository {
             images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments: [] })),
             hashTags: createPostDto.hashTags,
             content: savedPost.content,
-            templateUrl: savedPost.templateUrl,
+            templateUrl : getImageUrl(this.configService, savedPost.template?.url),
             createdAt: savedPost.createdAt,
             updatedAt: savedPost.updatedAt,
         };
@@ -97,15 +97,17 @@ export class PostRepository {
     }
 
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto): Promise<PostCreateResponse> {
-        const { content, templateUrl } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content, templateUrl });
+        const { content, templateId } = createPostDto
+        const post = this.repository.create({ user: { id: userId }, content, template:{id : templateId} });
         const savedPost = await this.repository.save(post)
-        return this.createPostResponse(savedPost, [], createPostDto);
+        const savedPostWithTemplate = await this.repository.findOne({ where: { id: savedPost.id }, relations: ["template"] });
+        console.log(savedPost)
+        return this.createPostResponse(savedPostWithTemplate, [], createPostDto);
     }
 
     async createPost(userId: string, createPostDto: CreatePostDto, images: CreatedS3ImageFiles): Promise<PostCreateResponse> {
         const { content } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content, templateUrl: null });
+        const post = this.repository.create({ user: { id: userId }, content });
         const savedPost = await this.repository.save(post)
         const savedPostImages = await this.savePostImages(images, savedPost)
         return this.createPostResponse(savedPost, savedPostImages, createPostDto);
