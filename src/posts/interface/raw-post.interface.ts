@@ -4,7 +4,7 @@
 export interface RawPost{
     id: string,
     content: string,
-    template_url: string | null,
+    template_id: string | null,
     created_at: Date,
     updated_at: Date,
     deleted_at: Date | null,
