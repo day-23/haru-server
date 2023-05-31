@@ -15,7 +15,6 @@ import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, FriendStatusDictionary, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse, SnsBaseUser } from "src/posts/interface/post.interface";
 import { Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
-import { Report } from "src/entity/report.entity";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
 import { RawHashTag, RawImage, RawPost } from "./interface/raw-post.interface";
@@ -35,7 +34,6 @@ export class PostRepository {
         @InjectRepository(PostTags) private readonly postTagsRepository: Repository<PostTags>,
         @InjectRepository(Liked) private readonly likedRepository: Repository<Liked>,
         @InjectRepository(Comment) private readonly commentRepository: Repository<Comment>,
-        @InjectRepository(Report) private readonly reportRepository: Repository<Report>,
         @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService
     ) {
@@ -768,18 +766,29 @@ export class PostRepository {
 
     async reportPost(userId: string, postId: string): Promise<void> {
         //if user already reported the post, then delete report and return, else create report
-        const report = await this.reportRepository.findOne({ where: { user: { id: userId }, post: { id: postId } } })
+        const report = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId }, status: 0 } })
         if (report) {
             return
         }
 
-        const count = await this.reportRepository.count({ where: { post: { id: postId } } })
+        const count = await this.likedRepository.count({ where: { post: { id: postId }, status:0 } })
         if (count >= 2) {
             await this.repository.delete({ id: postId })
             return
         }
 
-        const newReport = this.reportRepository.create({ user: { id: userId }, post: { id: postId } })
-        await this.reportRepository.save(newReport)
+        const newReport = this.likedRepository.create({ user: { id: userId }, post: { id: postId }, status: 0 })
+        await this.likedRepository.save(newReport)
+    }
+
+    async hidePost(userId: string, postId: string): Promise<void> {
+        //if user already reported the post, then delete report and return, else create report
+        const hide = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId }, status: 1 } })
+        if (hide) {
+            return
+        }
+
+        const newHide = this.likedRepository.create({ user: { id: userId }, post: { id: postId } })
+        await this.likedRepository.save(newHide)
     }
 }

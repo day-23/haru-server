@@ -22,7 +22,6 @@ import { Todo } from './todo.entity';
 import { Image } from './image.entity';
 import { Schedule } from './schedule.entity';
 import { PostTags } from './post-tags.entity';
-import { Report } from './report.entity';
 import { Friend } from './friend.entity';
 
 @Entity({ name: 'user' })
@@ -167,7 +166,4 @@ export class User extends BaseEntity {
     /* 사용자 : 좋아요 - 1:N */
     @OneToMany(() => Liked, (postlike) => postlike.user)
     postLike: Liked[];
-
-    @OneToMany(()=> Report, (report) => report.post)
-    report: Report[];
 }
