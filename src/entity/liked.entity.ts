@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, BaseEntity, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Image } from './image.entity';
 import { Post } from './post.entity';
 import { User } from './user.entity';
@@ -18,6 +18,13 @@ export class Liked extends BaseEntity {
     @ManyToOne(() => Post, (post) => post.liked, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'post_id' })
     post: Post;
+
+    /* 친구 승낙, 차단 여부 */
+    // 0 -> 신고
+    // 1 -> 숨기기
+    // 2 -> 좋아요
+    @Column({ default: 2 })
+    status: number
 
     @CreateDateColumn()
     createdAt: Date;

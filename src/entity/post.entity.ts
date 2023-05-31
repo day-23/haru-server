@@ -4,7 +4,6 @@ import { Image } from './image.entity';
 import { Liked } from './liked.entity';
 import { PostTags } from './post-tags.entity';
 import { User } from './user.entity';
-import { Report } from './report.entity';
 import { Template } from './template.entity';
 
 @Entity()
@@ -47,9 +46,6 @@ export class Post extends BaseEntity {
     /* 게시물 : 좋아요 = 1:N */
     @OneToMany(() => Liked, (like) => like.post)
     liked: Liked[];
-
-    @OneToMany(()=> Report, (report) => report.post)
-    report: Report[];
 
     @ManyToOne(()=> Template, (template) => template.posts, { onDelete: 'CASCADE' })
     template: Template

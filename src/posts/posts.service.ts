@@ -156,6 +156,10 @@ export class PostService {
         return await this.postRepository.likePost(userId, postId)
     }
 
+    async hidePost(userId: string, postId: string) : Promise<void>{
+        return await this.postRepository.hidePost(userId, postId)
+    }
+
     async reportPost(userId: string, postId: string) : Promise<void>{
         return await this.postRepository.reportPost(userId, postId)
     }
