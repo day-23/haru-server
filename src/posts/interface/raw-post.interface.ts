@@ -5,6 +5,7 @@ export interface RawPost{
     id: string,
     content: string,
     template_id: string | null,
+    template_text_color : string | null,
     created_at: Date,
     updated_at: Date,
     deleted_at: Date | null,

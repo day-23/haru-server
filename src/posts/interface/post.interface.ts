@@ -33,7 +33,7 @@ export interface PostGetResponse{
     id: string,
     user : PostUserResponse,
     content: string,
-    isTemplatePost: boolean,
+    isTemplatePost: string,
     images : PostImageResponse[],
     hashTags: string[],
     isLiked : boolean,

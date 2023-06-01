@@ -17,6 +17,9 @@ export class CreatePostDto {
 export class CreateTemplatePostDto extends CreatePostDto {
     @IsString()
     templateId: string;
+
+    @IsString()
+    templateTextColor: string;
 }
 
 
