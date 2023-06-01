@@ -20,6 +20,9 @@ export class Post extends BaseEntity {
     @Column()
     content: string
 
+    @Column({default:null})
+    templateTextColor: string
+
     @Index()
     @CreateDateColumn()
     createdAt: Date;

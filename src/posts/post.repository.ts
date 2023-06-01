@@ -95,8 +95,8 @@ export class PostRepository {
     }
 
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto): Promise<PostCreateResponse> {
-        const { content, templateId } = createPostDto
-        const post = this.repository.create({ user: { id: userId }, content, template:{id : templateId} });
+        const { content, templateId, templateTextColor } = createPostDto
+        const post = this.repository.create({ user: { id: userId }, content, template:{id : templateId}, templateTextColor });
         const savedPost = await this.repository.save(post)
         const savedPostWithTemplate = await this.repository.findOne({ where: { id: savedPost.id }, relations: ["template"] });
         console.log(savedPost)
@@ -295,7 +295,7 @@ export class PostRepository {
                 id: rawPost.id,
                 user,
                 content: rawPost.content,
-                isTemplatePost: rawPost.template_id ? true : false,
+                isTemplatePost: rawPost.template_id ? rawPost.template_text_color : null,
                 images: [],
                 hashTags: [],
                 isLiked: false,
