@@ -688,8 +688,9 @@ export class PostRepository {
             .addGroupBy('hashtag.content')
             .orderBy('count', 'DESC')
             .getRawMany();
-
-        return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
+            
+        //filter postTags that count is 0
+        return postTags.filter(({ count }) => count > 0).map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
     }
 
 
