@@ -102,6 +102,18 @@ export class User extends BaseEntity {
     @Column({ length: 10, default: 'Asia/Seoul'})
     timezone: string;
 
+    @Column({ default: true })
+    isAlarmOn: boolean;
+
+    @Column({ default: null })
+    morningAlarmTime: string;
+
+    @Column({ default: null })
+    nightAlarmTime: string;
+
+    @Column({ default: null })
+    isMaliciousUsesr: boolean;
+
     @CreateDateColumn()
     createdAt: Date;
 
