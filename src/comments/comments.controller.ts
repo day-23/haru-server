@@ -12,9 +12,9 @@ export class CommentsController {
     constructor(private readonly commentService: CommentsService) { }
 
     @Post(':postId')
-    @ApiOperation({ summary: '게시글에 댓글 작성 API', description: '댓글을 생성한다.' })
-    async createComment(@Param('userId') userId: string, @Param('postId') postId: string, @Body() createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
-        return await this.commentService.createComment(userId, postId, createCommentDto)
+    @ApiOperation({ summary: '이미지에 댓글 작성 API', description: '댓글을 생성한다.' })
+    async createCommentInTemplate(@Param('userId') userId: string, @Param('postId') postId: string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
+        return await this.commentService.createImageComment(userId, postId, null, createCommentDto)
     }
 
     @Post(':postId/:postImageId')

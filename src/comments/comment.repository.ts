@@ -47,7 +47,7 @@ export class CommentRepository {
             throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
         }
         
-        const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : undefined, content, x, y })
+        const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : null, content, x, y })
         const savedComment = await this.repository.save(comment)
         
         const ret = {
