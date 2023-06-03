@@ -12,6 +12,10 @@ export class CommentsService {
         return await this.commentRepository.createComment(userId, postId, createCommentDto)
     }
 
+    async createTemplateComment(userId: string, postId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
+        return await this.commentRepository.createImageComment(userId, postId, null, createCommentDto)
+    }
+
     async createImageComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
         return await this.commentRepository.createImageComment(userId, postId, postImageId, createCommentDto)
     }
