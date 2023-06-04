@@ -386,7 +386,7 @@ export class TodoRepository implements TodoRepositoryInterface {
             .leftJoinAndSelect('todoTags.tag', 'tag')
             .leftJoinAndSelect('todo.subTodos', 'subTodos')
             .where('schedule.user = :userId', { userId })
-            .andWhere('schedule.todo IS NOT NULL')
+            .andWhere('schedule.todo IS NOT NULL AND todo.completed = 0')
             .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
             OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
             OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
