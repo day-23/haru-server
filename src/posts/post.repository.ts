@@ -803,6 +803,11 @@ export class PostRepository {
     }
 
     isBadWord(msg: string) : Boolean{
+        if(msg == null || msg == undefined){
+            return false;
+        }
+
+
         const arrList = new Array();
         arrList[arrList.length] = "캐쉬스파이더";
         arrList[arrList.length] = "캐시스파이더";
