@@ -719,12 +719,30 @@ export class PostRepository {
         `, [specificUserId, userId, specificUserId]);
 
 
-        const friendStatus = await this.friendRepository
-            .createQueryBuilder('friend')
-            .where('(friend.requester_id = :userId AND friend.acceptor_id = :specificUserId) \
-            OR (friend.requester_id = :specificUserId AND friend.acceptor_id = :userId)',
-                { userId: userId, specificUserId: specificUserId })
-            .getOne();
+        // const friendStatus = await this.friendRepository
+        //     .createQueryBuilder('friend')
+        //     .select(['friend.status', 'friend.requester_id', 'friend.acceptor_id'])
+        //     .where('(friend.requester_id = :userId AND friend.acceptor_id = :specificUserId) \
+        //     OR (friend.requester_id = :specificUserId AND friend.acceptor_id = :userId)',
+        //         { userId: userId, specificUserId: specificUserId })
+        //     .getOne();
+
+        const friendInfo = await this.friendRepository.query(`
+        SELECT user.id, user.name, user.email, user.profile_image_url, friend.status, friend.requester_id, friend.acceptor_id, friend.created_at
+        FROM friend
+        LEFT JOIN user
+        ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
+        WHERE ((friend.requester_id = ? AND friend.acceptor_id = ?) OR (friend.requester_id = ? AND friend.acceptor_id = ?))
+        `,
+            [userId, userId, specificUserId, specificUserId, userId]
+        );
+
+        var friendStatus = friendInfo.length == 0 ? 0 : friendInfo[0].status;
+        if(friendStatus == 1){
+            if(friendInfo[0].acceptor_id == userId){
+                friendStatus = 3;
+            }
+        }
 
         if (result.length == 0) {
             throw new HttpException(
@@ -740,7 +758,7 @@ export class PostRepository {
             profileImage: result[0].profileImage,
             postCount: Number(result[0].postCount),
             friendCount: Number(result[0].friendCount),
-            friendStatus: friendStatus ? friendStatus.status : 0,
+            friendStatus,
             isPublicAccount : result[0].isPublicAccount ? true : false
         }
     }
