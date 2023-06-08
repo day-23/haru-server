@@ -90,7 +90,7 @@ export class FriendRepository{
         let commonFriends = [];
         if (specificUserFriends.length > 0) {
             commonFriends = await this.repository.query(`
-            SELECT user.id, user.name, user.email, user.profile_image_url, friend.status, friend.created_at
+            SELECT user.id, user.name, user.email, user.profile_image_url, friend.status, friend.requester_id, friend.acceptor_id, friend.created_at
             FROM friend
             LEFT JOIN user
             ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
@@ -101,12 +101,17 @@ export class FriendRepository{
                 [userId, userId, userId, specificUserFriendsIds]
             );
         }
+
         const commonFriendsIds = commonFriends.map((friend) => friend.id)
 
         //make dictionary for common friends key is id and value is status
         const commonFriendsDict = {}
         commonFriends.forEach((friend) => {
             commonFriendsDict[friend.id] = friend.status
+
+            if (friend.status == 1 && friend.acceptor_id == userId) {
+                commonFriendsDict[friend.id] = 3
+            }
         })
 
         const friendList = specificUserFriends.map((friend) => {

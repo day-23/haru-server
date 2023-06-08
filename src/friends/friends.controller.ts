@@ -36,7 +36,6 @@ export class FriendsController {
         return await this.freindsService.blockUser(userId, blockUserDto);
     }
 
-
     @Delete()
     @ApiOperation({ summary: '친구 삭제 API', description: '친구를 삭제한다.' })
     async deleteFreind(@Param('userId') userId: string, @Body() createFollowDto: DeleteFriendDto): Promise<void> {
