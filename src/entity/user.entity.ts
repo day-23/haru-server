@@ -111,8 +111,8 @@ export class User extends BaseEntity {
     @Column({ default: null })
     nightAlarmTime: string;
 
-    @Column({ default: null })
-    isMaliciousUsesr: boolean;
+    @Column({ default: false })
+    isMaliciousUser: boolean;
 
     @CreateDateColumn()
     createdAt: Date;

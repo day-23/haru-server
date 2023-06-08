@@ -100,7 +100,6 @@ export class PostService {
         const profileInfo = await this.getUserInfo(userId, userId)
         const userInfo = await this.userService.findOne(userId)
         
-        console.log('here')
         return {
             user: {
                 id: profileInfo.id,
@@ -119,6 +118,7 @@ export class PostService {
             isAllowFeedLike: userInfo.isAllowFeedLike,
             isAllowFeedComment: userInfo.isAllowFeedComment,
             isAllowSearch: userInfo.isAllowSearch,
+            isMaliciousUser :userInfo.isMaliciousUser,
             createdAt: userInfo.createdAt
         }
     }
