@@ -106,10 +106,13 @@ export class User extends BaseEntity {
     isAlarmOn: boolean;
 
     @Column({ default: null })
-    morningAlarmTime: string;
+    morningAlarmTime: Date;
 
     @Column({ default: null })
-    nightAlarmTime: string;
+    nightAlarmTime: Date;
+
+    @Column({ default: true })
+    isScheduleAlarmOn: boolean;
 
     @Column({ default: false })
     isMaliciousUser: boolean;
