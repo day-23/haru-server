@@ -526,21 +526,6 @@ export class TodoRepository implements TodoRepositoryInterface {
         }
     }
 
-    /* 검색 */
-    async findTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
-        const [todos, count] = await this.getBaseQueryBuilderTodos(userId)
-            .andWhere('(LOWER(schedule.content) LIKE LOWER(:searchValue) OR LOWER(tag.content) LIKE LOWER(:searchValue))')
-            .andWhere('todo.completed = 0')
-            .setParameters({ searchValue: `%${content}%` })
-            .orderBy('todo.todoOrder', 'ASC')
-            .addOrderBy('todoTags.tagOrder', 'ASC')
-            .addOrderBy('subTodos.subTodoOrder', 'ASC')
-            .take(50)
-            .getManyAndCount();
-        
-        return todosParseToTodoResponse(todos)
-    }
-
     async updateSubTodo(userId: string, subTodoId: string, updateSubTodoDto: UpdateSubTodoDto): Promise<Subtodo> {
         const existingSubTodo = await this.subTodoRepository.findOne({ where: { id: subTodoId } });
 
