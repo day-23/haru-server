@@ -28,7 +28,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 success: false,
                 error : {
                     code: status,
-                    messeage : error
+                    message : error
                 },
             });
         } else {
