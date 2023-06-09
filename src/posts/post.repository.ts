@@ -834,7 +834,6 @@ export class PostRepository {
             return false;
         }
 
-
         const arrList = new Array();
         arrList[arrList.length] = "캐쉬스파이더";
         arrList[arrList.length] = "캐시스파이더";
@@ -1339,7 +1338,7 @@ export class PostRepository {
         arrList[arrList.length] = "성게시판";
         arrList[arrList.length] = "성고민상담";
         arrList[arrList.length] = "성과섹스";
-        //    arrList[arrList.length]="성기";
+        arrList[arrList.length]= "성기";
         arrList[arrList.length] = "성보조기구";
         arrList[arrList.length] = "성상담";
         arrList[arrList.length] = "성인";
@@ -2544,6 +2543,12 @@ export class PostRepository {
         arrList[arrList.length] = "음독";
         arrList[arrList.length] = "청산가리";
         arrList[arrList.length] = "청산가루";
+        arrList[arrList.length] = "시발";
+        arrList[arrList.length] = "씨발";
+        arrList[arrList.length] = "하루";
+        arrList[arrList.length] = "하기";
+        arrList[arrList.length] = "데이셋";
+        arrList[arrList.length] = "루리";
 
         for (let i = 0; i < arrList.length; i++) {
             var badWord = arrList[i];

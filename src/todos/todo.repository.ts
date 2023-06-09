@@ -413,11 +413,10 @@ export class TodoRepository implements TodoRepositoryInterface {
 
         const [todos, count] = await this.scheduleRepository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.todo', 'todo')
-            .where('schedule.user = :userId', { userId })
-            .andWhere('schedule.todo IS NOT NULL')
+            .where('schedule.user_id = :userId', { userId })
             .andWhere('schedule.parent IS NULL')
-            .andWhere('(todo.created_at >= :startDate AND todo.created_at < :endDate) \
-            OR (todo.completed_at > :startDate AND todo.completed_at <= :endDate)')
+            .andWhere('((todo.created_at >= :startDate AND todo.created_at < :endDate) \
+            OR (todo.completed_at > :startDate AND todo.completed_at <= :endDate))')
             .setParameters({ startDate, endDate })
             .getManyAndCount()
 
@@ -511,10 +510,8 @@ export class TodoRepository implements TodoRepositoryInterface {
     
         const parsedTodos = todosParseToTodoResponse(todos)
         const unCompleted = parsedTodos.filter(todo => !todo.completed);
-
         const flaggedTodos = unCompleted.filter(todo => todo.flag);
         const unFlaggedTodos = unCompleted.filter(todo => !todo.flag);
-
         const completedTodos = parsedTodos.filter(todo => todo.completed);
         
         return {
