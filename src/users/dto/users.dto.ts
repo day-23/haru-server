@@ -1,6 +1,8 @@
 import { PartialType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsBoolean,
+    IsDate,
     IsNotEmpty,
     IsNumber,
     IsOptional,
@@ -82,6 +84,20 @@ export class UpdateUserOptionDto {
     @IsOptional()
     @IsBoolean()
     isAllowSearch: boolean;
+
+    @IsOptional()
+    @Transform(({ value }) => value ? new Date(value) : null)
+    @IsDate()
+    morningAlarmTime : Date;
+
+    @IsOptional()
+    @Transform(({ value }) => value ? new Date(value) : null)
+    @IsDate()
+    nightAlarmTime : Date;
+
+    @IsOptional()
+    @IsBoolean()
+    isScheduleAlarmOn : boolean;
 }
 
 export class UpdateUserOptionPartialDto extends PartialType(UpdateUserOptionDto) { }
