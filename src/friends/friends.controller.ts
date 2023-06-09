@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Inject, Param, Post, Query } from '@nest
 import { BlockUserDto, CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { FriendsService as FriendsService } from './friends.service';
-import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto, PostPaginationDto, SearchPaginationDto } from 'src/common/dto/pagination.dto';
 import { PaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { GetSnsBaseFriendsByPaginationDto } from './interface/friends.user.interface';
 
@@ -49,10 +49,29 @@ export class FriendsController {
         return await this.freindsService.getFriendRequestList(userId, paginationDto);
     }
 
+
+
+
+    @PaginatedResponse()
+    @Get('search')
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    async getFriendBySearch(@Param('userId') userId: string, @Query() paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        console.log("herfe??")
+        return await this.freindsService.getFriendBySearch(userId, paginationDto);
+    }
+
     @PaginatedResponse()
     @Get(':specificUserId')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
     async getFriendList(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindsService.getFreindList(userId, specificUserId, paginationDto);
+    }
+
+
+    @PaginatedResponse()
+    @Get('request/search')
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    async getFriendRequestBySearch(@Param('userId') userId: string, @Query() paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        return await this.freindsService.getFriendRequestBySearch(userId, paginationDto);
     }
 }

@@ -4,7 +4,7 @@ import { User } from "src/entity/user.entity";
 import { CreateFreindRequestDto } from "./dto/create.freind.dto";
 import { ConfigService } from "@nestjs/config";
 import { Friend } from "src/entity/friend.entity";
-import { PostPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
+import { PostPaginationDto, SearchPaginationDto, createPaginationObject } from "src/common/dto/pagination.dto";
 import { calculateSkip } from "src/posts/post.util";
 import { FriendStatus } from "src/common/utils/constants";
 import { GetSnsBaseFriendsByPaginationDto } from "./interface/friends.user.interface";
@@ -191,11 +191,95 @@ export class FriendRepository{
     }
 
 
-    // async getFollowersCount(userId: string): Promise<number> {
-    //     return await this.repository.count({ where: { following: { id: userId }, relation: true } });
-    // }
+    //친구 신청 목록 페이지네이션 해서 받기
+    async getFriendBySearch(userId: string, postPaginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        const { page, limit, lastCreatedAt, name } = postPaginationDto;
+        const skip = calculateSkip(page, limit)
 
-    // async getFollowingsCount(userId: string): Promise<number> {
-    //     return await this.repository.count({ where: { id: userId } });
-    // }
+        if (name === null || name === undefined || name.length == 0) {
+            return {
+                data: [],
+                pagination: createPaginationObject(0, limit, page)
+            }
+        }
+
+        const result = await this.repository.query(`
+            SELECT user.id, user.name, user.email, user.profile_image_url, friend.created_at
+            FROM friend
+            LEFT JOIN user 
+            ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
+            WHERE (friend.requester_id = ? OR friend.acceptor_id = ?)
+            AND friend.status = ?
+            AND friend.created_at < ?
+            AND (user.name LIKE ? OR user.haru_id LIKE ?)
+            ORDER BY friend.created_at DESC
+            LIMIT ? OFFSET ?
+            `,
+            [userId, userId, userId, FriendStatus.Friends, lastCreatedAt, `%${name}%`, `%${name}%`, limit, skip]
+        );
+
+        const friendList = result.map((friend) => {
+            return {
+                id: friend.id,
+                name: friend.name,
+                profileImageUrl: friend.profile_image_url,
+                friendStatus: FriendStatus.Friends,
+                createdAt: friend.created_at
+            }
+        })
+
+        const count = result.length
+
+        return {
+            data: friendList,
+            pagination: createPaginationObject(count, limit, page)
+        }
+    }
+
+    
+
+    //친구 신청 목록 페이지네이션 해서 받기
+    async getFriendRequestBySearch(userId: string, postPaginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        const { page, limit, lastCreatedAt, name } = postPaginationDto;
+        const skip = calculateSkip(page, limit)
+
+        if (name === null || name === undefined || name.length == 0) {
+            return {
+                data: [],
+                pagination: createPaginationObject(0, limit, page)
+            }
+        }
+
+        const result = await this.repository.query(`
+            SELECT user.id, user.name, user.email, user.profile_image_url, friend.created_at
+            FROM friend
+            LEFT JOIN user 
+            ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
+            WHERE (friend.requester_id = ? OR friend.acceptor_id = ?)
+            AND friend.status = ?
+            AND friend.created_at < ?
+            AND (user.name LIKE ? OR user.haru_id LIKE ?)
+            ORDER BY friend.created_at DESC
+            LIMIT ? OFFSET ?
+            `,
+            [userId, userId, userId, FriendStatus.FriendRequestSent, lastCreatedAt, `%${name}%`, `%${name}%`, limit, skip]
+        );
+
+        const friendList = result.map((friend) => {
+            return {
+                id: friend.id,
+                name: friend.name,
+                profileImageUrl: friend.profile_image_url,
+                friendStatus: FriendStatus.FriendRequestSent,
+                createdAt: friend.created_at
+            }
+        })
+
+        const count = result.length
+
+        return {
+            data: friendList,
+            pagination: createPaginationObject(count, limit, page)
+        }
+    }
 }

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable, Param, Query } from '@nestjs/common';
 import { GetSnsBaseFriendsByPaginationDto } from './interface/friends.user.interface';
 import { BlockUserDto, CreateFreindRequestDto, DeleteFriendDto, acceptFreindRequestDto } from './dto/create.freind.dto';
-import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto, PostPaginationDto, SearchPaginationDto } from 'src/common/dto/pagination.dto';
 import { FriendRepository } from './friends.repository';
 import { UserService } from 'src/users/users.service';
 import { FriendStatus } from 'src/common/utils/constants';
@@ -79,20 +79,12 @@ export class FriendsService {
         return await this.freindRepository.getFriendRequestList(userId, paginationDto);
     }
 
+    async getFriendBySearch(userId: string, paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        return await this.freindRepository.getFriendBySearch(userId, paginationDto);
+    }
 
-    // async getFollowByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
-    //     return await this.freindRepository.findFollowByUserId(userId, specificUserId, paginationDto);
-    // }
+    async getFriendRequestBySearch(userId: string, paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
+        return await this.freindRepository.getFriendRequestBySearch(userId, paginationDto);
+    }
 
-    // async getFollowingByUserId(userId: string, specificUserId : string, paginationDto: PaginationDto): Promise<GetSnsBaseUserByPaginationDto> {
-    //     return await this.freindRepository.findFollowingByUserId(userId, specificUserId, paginationDto);
-    // }
-
-    // async deleteFollowing(userId: string, deleteFollowingDto: DeleteFollowingDto): Promise<void> {
-    //     return await this.freindRepository.deleteFollowing(userId, deleteFollowingDto);
-    // }
-
-    // async deleteFollow(userId: string, deleteFollowDto: DeleteFollowDto): Promise<void> {
-    //     return await this.freindRepository.deleteFollow(userId, deleteFollowDto);
-    // }
 }
