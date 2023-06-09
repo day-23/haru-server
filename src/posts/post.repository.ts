@@ -65,7 +65,7 @@ export class PostRepository {
         if(typeof createPostDto.hashTags === 'string'){
             createPostDto.hashTags = [createPostDto.hashTags]
         }
-
+        
         if(createPostDto.hashTags === null || createPostDto.hashTags  === undefined){
             createPostDto.hashTags = []
         }
