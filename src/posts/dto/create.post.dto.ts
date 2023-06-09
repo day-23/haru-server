@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
-import { IsString, MaxLength, MinLength } from "class-validator";
+import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 
 
@@ -11,6 +11,7 @@ export class CreatePostDto {
     content: string;
 
     @IsString({ each: true })
+    @IsOptional()
     hashTags: string[];
 }
 
