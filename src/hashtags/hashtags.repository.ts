@@ -11,6 +11,8 @@ export class HashtagRepository implements HashtagRepositoryInterface {
 
     async createHashtags(createHashTagsDto: CreateHashTagsDto): Promise<Hashtag[]> {
         let { contents } = createHashTagsDto
+        if (contents === undefined || contents === null || contents.length === 0) return []
+
         const existingHashTags = await this.repository.find({ where: { content: In(contents) } })
 
         if (typeof contents === 'string') {
