@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsNumber, Min } from 'class-validator';
+import { IsDateString, IsInt, IsNumber, IsString, Min } from 'class-validator';
 
 export class PaginationDto {
     @Type(() => Number)
@@ -18,6 +18,13 @@ export class PostPaginationDto extends PaginationDto {
     @IsDateString()
     lastCreatedAt: string = "2222-08-26T00:00:00.000Z";
 }
+
+
+export class SearchPaginationDto extends PostPaginationDto {
+    @IsString()
+    name: string = "";
+}
+
 
 export function createPaginationObject(count: number, limit: number, page: number) {
     const totalPages = Math.ceil(count / limit);
