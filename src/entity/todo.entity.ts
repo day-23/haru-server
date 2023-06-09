@@ -51,6 +51,12 @@ export class Todo extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @Column({ type: 'datetime', precision: 6, nullable: true })
+    completedAt: Date;
+
     /* 투두 : 사용자 = N:1 */
     @ManyToOne(() => User, (user) => user.todos, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })

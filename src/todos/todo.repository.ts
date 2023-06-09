@@ -411,16 +411,13 @@ export class TodoRepository implements TodoRepositoryInterface {
     async findStatisticsByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<any> {
         const { startDate, endDate } = dateTimePaginationDto
 
-        //count todo by date
-        //make query that schedule that is todo_id is null
         const [todos, count] = await this.scheduleRepository.createQueryBuilder('schedule')
             .leftJoinAndSelect('schedule.todo', 'todo')
             .where('schedule.user = :userId', { userId })
             .andWhere('schedule.todo IS NOT NULL')
-            .andWhere('((schedule.repeat_start >= :startDate AND schedule.repeat_start < :endDate) \
-            OR (schedule.repeat_end > :startDate AND schedule.repeat_end <= :endDate) \
-            OR (schedule.repeat_start <= :startDate AND schedule.repeat_end >= :endDate) \
-            OR (schedule.repeat_option IS NOT NULL AND schedule.repeat_start <= :endDate AND schedule.repeat_end IS NULL))')
+            .andWhere('schedule.parent IS NULL')
+            .andWhere('(todo.created_at >= :startDate AND todo.created_at < :endDate) \
+            OR (todo.completed_at > :startDate AND todo.completed_at <= :endDate)')
             .setParameters({ startDate, endDate })
             .getManyAndCount()
 
@@ -705,7 +702,7 @@ export class TodoRepository implements TodoRepositoryInterface {
     }
 
     /* 미반복 투두 완료처리 */
-    async updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner? : QueryRunner): Promise<void> {
+    async updateUnRepeatTodoToComplete(todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void> {
         const shouldReleaseQueryRunner = !queryRunner;
 
         if (shouldReleaseQueryRunner) {
@@ -719,7 +716,7 @@ export class TodoRepository implements TodoRepositoryInterface {
         await queryRunner.startTransaction();
         try {
             await Promise.all([
-                todoRepository.update({ id: todoId }, notRepeatTodoCompleteDto),
+                todoRepository.update({ id: todoId }, { ...notRepeatTodoCompleteDto, completedAt: new Date() }),
                 subtodoRepository.update({ todo: { id: todoId } }, notRepeatTodoCompleteDto),
                 this.resetParentIdOfTodos(todoId)
             ]);
