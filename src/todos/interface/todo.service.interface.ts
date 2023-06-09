@@ -20,7 +20,6 @@ export interface TodosServiceInterface {
     getTaggedTodosForMain(userId: string): Promise<TodoResponse[]>
     getUnTaggedTodosForMain(userId: string): Promise<TodoResponse[]>
     getCompletedTodosForMain(userId: string): Promise<TodoResponse[]>
-    getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]>
     getAllTodos(userId: string, todayTodoDto: TodayTodoDto): Promise<GetAllTodosResponse>
     getTodosByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<GetTodosResponseByDate>
     getTodosStatisticsByDateTime(userId: string, dateTimePaginationDto: DateTimePaginationDto): Promise<any>

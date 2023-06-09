@@ -194,11 +194,6 @@ export class TodosService implements TodosServiceInterface {
         return await this.todoRepository.findTodayTodos(userId, todayTodoDto);
     }
 
-    /* 검색 */
-    async getTodosBySearch(userId: string, content: string): Promise<TodoResponse[]> {
-        return await this.todoRepository.findTodosBySearch(userId, content)
-    }
-
     async updateUnRepeatTodoToComplete(userId: string, todoId: string, notRepeatTodoCompleteDto: NotRepeatTodoCompleteDto, queryRunner?: QueryRunner): Promise<void> {
         return this.todoRepository.updateUnRepeatTodoToComplete(todoId, notRepeatTodoCompleteDto, queryRunner)
     }

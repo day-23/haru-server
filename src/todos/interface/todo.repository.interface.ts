@@ -46,7 +46,6 @@ export interface TodoRepositoryInterface {
 
     findCompletedTodoByPagination(userId: string, paginationDto: PaginationDto): Promise<GetTodosPaginationResponse>
     findByTagId(userId: string, getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag>
-    findTodosBySearch(userId: string, content: string): Promise<TodoResponse[]>
 
     findNextSubTodoOrder(todoId: string): Promise<number>;
     findNextTodoOrder(userId: string): Promise<number>;

@@ -113,13 +113,7 @@ export class TodosController {
     async getTodosByTag(@Param('userId') userId, @Query() getByTagDto: GetByTagDto): Promise<GetTodosResponseByTag> {
         return await this.todoService.getTodosByTag(userId, getByTagDto);
     }
-
-    @Get('search')
-    @ApiOperation({ summary: '투두 검색 API', description: '투두를 검색한다.' })
-    async searchTodos(@Param('userId') userId: string, @Query('content') content: string): Promise<TodoResponse[]> {
-        return this.todoService.getTodosBySearch(userId, content)
-    }
-
+    
     @Post()
     @ApiOperation({ summary: '투두 생성 API', description: '투두를 생성한다.' })
     async create(@Param('userId') userId: string, @Body() createTodoDto: CreateTodoDto): Promise<TodoResponse> {

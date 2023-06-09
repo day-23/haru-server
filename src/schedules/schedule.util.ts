@@ -64,6 +64,20 @@ export function schedulesParseToTodosResponse(schedules: Schedule[] | Todo[]) : 
             return 0;
         }
     })
+
+
+    //todo의 경우 sort by completed
+    todoResponses.sort((a, b) => {
+        if (a.completed === null || b.completed === null) return 0;
+        if (a.completed && !b.completed) {
+            return 1;
+        }
+        if (!a.completed && b.completed) {
+            return -1;
+        }
+        return 0;
+    });
+
     return todoResponses;
 
 }
