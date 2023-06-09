@@ -119,6 +119,9 @@ export class PostService {
             isAllowFeedComment: userInfo.isAllowFeedComment,
             isAllowSearch: userInfo.isAllowSearch,
             isMaliciousUser :userInfo.isMaliciousUser,
+            morningAlarmTime : userInfo.morningAlarmTime,
+            nightAlarmTime : userInfo.nightAlarmTime,
+            isScheduleAlarmOn : userInfo.isScheduleAlarmOn,
             createdAt: userInfo.createdAt
         }
     }

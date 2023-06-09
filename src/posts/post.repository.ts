@@ -639,7 +639,14 @@ export class PostRepository {
 
         if(this.isBadWord(name) || this.isBadWord(introduction)) {
             throw new HttpException(
-                'Bad word is included',
+                'Bad word',
+                HttpStatus.FORBIDDEN
+            );
+        }
+
+        if(name === '하루' || name === '하기' || name === '루리' || name.toLowerCase() === 'haru'){
+            throw new HttpException(
+                'Bad word',
                 HttpStatus.FORBIDDEN
             );
         }
@@ -2545,10 +2552,6 @@ export class PostRepository {
         arrList[arrList.length] = "청산가루";
         arrList[arrList.length] = "시발";
         arrList[arrList.length] = "씨발";
-        arrList[arrList.length] = "하루";
-        arrList[arrList.length] = "하기";
-        arrList[arrList.length] = "데이셋";
-        arrList[arrList.length] = "루리";
 
         for (let i = 0; i < arrList.length; i++) {
             var badWord = arrList[i];

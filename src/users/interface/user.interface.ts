@@ -18,5 +18,8 @@ export interface InitialUpdateProfileResponse{
     isAllowFeedLike: number;
     isAllowFeedComment: number;
     isAllowSearch : boolean;
+    morningAlarmTime : Date;
+    nightAlarmTime : Date;
+    isScheduleAlarmOn : boolean;
     createdAt: Date;
 }
