@@ -260,8 +260,6 @@ export class TodosService implements TodosServiceInterface {
             if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
-            
-            console.log(`TEST ${completedDate} ${endDate} ${getMinusOneDay(completedDate)} ${existingTodo}`)
 
             const updatedSchedule = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
             
@@ -269,8 +267,6 @@ export class TodosService implements TodosServiceInterface {
             const nextTodo = await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
             existingTodo.schedule.repeatStart = completedDate
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo , queryRunner)
-
-            console.log(`TEST nextTodo ${nextTodo}`)
 
             // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
             if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart.getDate() > updatedSchedule.repeatEnd.getDate()) {
@@ -371,6 +367,9 @@ export class TodosService implements TodosServiceInterface {
     }
 
     async createNewCompletedTodoByExistingTodo(userId: string ,existingTodo : Todo, queryRunner?: QueryRunner): Promise<void>{
+        // update existingTodo CreatedAt to new Date
+        this.todoRepository.updateTodo(userId, existingTodo.id, { createdAt: new Date() }, queryRunner)
+        
         const completedTodo = await this.createUnRepeatNewTodoByExistingTodo(userId, existingTodo, queryRunner)
         await this.todoRepository.updateUnRepeatTodoToComplete(completedTodo.id, { completed: true }, queryRunner)
     }
@@ -425,8 +424,6 @@ export class TodosService implements TodosServiceInterface {
     async updateSubTodosOrder(userId: string, updateTodosOrderDto: UpdateSubTodosOrderDto): Promise<void> {
         return this.todoRepository.updateSubTodosOrder(userId, updateTodosOrderDto)
     }
-
-
 
     async updateRepeatTodoFront(userId: string, todoId : string, updateRepeatFrontTodoBySplitDto: UpdateRepeatFrontTodoBySplitDto, queryRunner? : QueryRunner) : Promise<void>{
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);

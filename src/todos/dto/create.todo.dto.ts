@@ -1,6 +1,6 @@
 import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDate, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class BaseTodoDto {
     @ApiProperty({ description: '오늘 할일인지 체크' })
@@ -20,6 +20,9 @@ export class BaseTodoDto {
     @IsOptional()
     @IsBoolean()
     completed: boolean;
+
+    @IsOptional()
+    createdAt?: Date;
 }
 
 export class CreateBaseTodoDto extends BaseTodoDto {}
