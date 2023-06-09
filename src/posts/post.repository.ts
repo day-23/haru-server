@@ -61,6 +61,15 @@ export class PostRepository {
         savedPostImages: Image[],
         createPostDto: CreatePostDto,
     ): PostCreateResponse {
+
+        if(typeof createPostDto.hashTags === 'string'){
+            createPostDto.hashTags = [createPostDto.hashTags]
+        }
+
+        if(createPostDto.hashTags === null || createPostDto.hashTags  === undefined){
+            createPostDto.hashTags = []
+        }
+
         return {
             id: savedPost.id,
             images: savedPostImages.map(({ id, originalName, url, mimeType }) => ({ id, originalName, url: this.S3_URL + url, mimeType, comments: [] })),
