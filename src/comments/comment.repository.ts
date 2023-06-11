@@ -6,6 +6,7 @@ import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreat
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { Comment } from "src/entity/comment.entity";
 import { Post } from "src/entity/post.entity";
+import { SnsBaseUser } from "src/posts/interface/post.interface";
 import { calculateSkip } from "src/posts/post.util";
 import { In, Repository } from "typeorm";
 
@@ -135,76 +136,64 @@ export class CommentRepository {
     }
 
 
-    async getRecentCommentsByPagination(userId: string, postId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
-        const { page, limit, lastCreatedAt } = paginationDto;
-        const skip = calculateSkip(page, limit)
+    async getRecentCommentsByPagination(userId: string, postId : string, postImageId : string): Promise<GetCommentsPaginationResponse> {
+        const post = await this.postRepository.findOne({ where: { id: postId } })
+        if(!post){
+            throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
+        }
 
-        const rawResult = await this.repository.manager.query(`
-            SELECT 
-            comment.id, 
-            comment.content, 
-            comment.x, 
-            comment.y,
-            comment.post_id,
-            comment.is_public isPublic, 
-            comment.created_at createdAt, 
-            comment.updated_at updatedAt, 
-            user.id AS userId, 
-            user.name,
-            user.profile_image_url AS profileImage
-            FROM 
-                comment
-                LEFT JOIN user ON comment.user_id = user.id
-            WHERE post_id = ?
-            AND comment.created_at < ?
-            AND comment.is_public = 1
-            ORDER BY
-                comment.created_at DESC
-            LIMIT ?, ?;
-        `, [postId, lastCreatedAt, skip, 10]);
+        console.log(post)
+        let rawResult;
+        if (post.templateTextColor) {
+            rawResult = await this.repository.query(`
+                SELECT ranked_comments.*, user.id user_id, user.name user_name, user.profile_image_url user_profile_image_url
+                FROM (
+                SELECT
+                    comment.*,
+                    ROW_NUMBER() OVER (PARTITION BY post_id ORDER BY created_at DESC) as row_num
+                FROM comment
+                WHERE is_public = true
+                ) ranked_comments
+                JOIN user ON ranked_comments.user_id = user.id
+                WHERE (ranked_comments.row_num <= 10 OR ranked_comments.user_id = ?)
+                AND post_id = ?
+        `, [userId, postId]);
+        } else {
+            rawResult = await this.repository.query(`
+                SELECT ranked_comments.*, user.id user_id, user.name user_name, user.profile_image_url user_profile_image_url
+                FROM (
+                SELECT
+                    comment.*,
+                    ROW_NUMBER() OVER (PARTITION BY post_image_id ORDER BY created_at DESC) as row_num
+                FROM comment
+                WHERE x IS NOT NULL AND is_public = true
+                ) ranked_comments
+                JOIN user ON ranked_comments.user_id = user.id
+                WHERE (ranked_comments.row_num <= 10 OR ranked_comments.user_id = ?)
+                AND post_image_id = ?
+        `, [userId, postImageId]);
+        }
 
-        const comments = rawResult.map(row => {
-            return {
-                id: row.id,
-                user: {
-                    id: row.userId,
-                    name: row.name,
-                    profileImage: row.profileImage,
-                },
-                content: row.content,
-                x: row.x,
-                y: row.y,
-                isPublic : row.isPublic,
-                createdAt: row.createdAt,
-                updatedAt: row.updatedAt,
+        return rawResult.map((commentRow: any) => {
+            const user: SnsBaseUser = {
+                id: commentRow.user_id,
+                name: commentRow.user_name,
+                email: commentRow.user_email,
+                profileImage: commentRow.user_profile_image_url
             };
-        });
 
-        const rawCount = await this.repository.manager.query(`
-            SELECT COUNT(*) as count FROM comment
-            WHERE post_id = ?
-        `, [postId]);
-        const count = Number(rawCount[0].count)
-
-        const totalPages = Math.ceil(count / 10);
-        return {
-            data: comments.map(comment => ({
-                id: comment.id,
-                user: comment.user,
-                content: comment.content,
-                x: comment.x,
-                y: comment.y,
-                isPublic : comment.isPublic ? true : false,
-                createdAt: comment.createdAt,
-                updatedAt: comment.updatedAt
-            })),
-            pagination: {
-                totalItems: count,
-                itemsPerPage: 10,
-                currentPage: page,
-                totalPages: totalPages,
-            },
-        };
+            const comment = {
+                id: commentRow.id,
+                content: commentRow.content,
+                x: commentRow.x,
+                y: commentRow.y,
+                user,
+                createdAt: commentRow.created_at,
+                updatedAt: commentRow.updated_at,
+                deletedAt: commentRow.deleted_at
+            }
+            return comment;
+        })
     }
 
     async getCommentsPerImageByPagination(userId: string, postId : string, postImageId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
