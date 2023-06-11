@@ -35,7 +35,7 @@ export class PostService {
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto) {
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
         const post = await this.postRepository.createTemplatePost(userId, createPostDto)
-        const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)
+        const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags, false)
         return post
     }
 

@@ -34,6 +34,16 @@ export class CommentsController {
     }
 
     @PaginatedResponse()
+    @Get(':postId/comments/recent')
+    @ApiOperation({ summary: '전체 댓글(둘러보기) 페이지네이션 조회 API', description: '둘러보기 댓글 조회' })
+    @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
+    @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지당 아이템 개수 (기본값: 10)' })
+    @ApiQuery({ name: 'page', type: Number, required: false, description: '페이지 번호 (기본값: 1)' })
+    async getRecentCommentsByPagination(@Param('userId') userId: string, @Param('postId') postId: string, @Query() paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        return await this.commentService.getRecentCommentsByPagination(userId, postId, paginationDto);
+    }
+
+    @PaginatedResponse()
     @Get(':postId/:postImageId/comments/all')
     @ApiOperation({ summary: '전체 댓글(둘러보기) 페이지네이션 조회 API', description: '둘러보기 댓글 조회' })
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })

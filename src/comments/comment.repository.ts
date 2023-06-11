@@ -134,6 +134,79 @@ export class CommentRepository {
         };
     }
 
+
+    async getRecentCommentsByPagination(userId: string, postId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        const { page, limit, lastCreatedAt } = paginationDto;
+        const skip = calculateSkip(page, limit)
+
+        const rawResult = await this.repository.manager.query(`
+            SELECT 
+            comment.id, 
+            comment.content, 
+            comment.x, 
+            comment.y,
+            comment.post_id,
+            comment.is_public isPublic, 
+            comment.created_at createdAt, 
+            comment.updated_at updatedAt, 
+            user.id AS userId, 
+            user.name,
+            user.profile_image_url AS profileImage
+            FROM 
+                comment
+                LEFT JOIN user ON comment.user_id = user.id
+            WHERE post_id = ?
+            AND comment.created_at < ?
+            AND comment.is_public = 1
+            ORDER BY
+                comment.created_at DESC
+            LIMIT ?, ?;
+        `, [postId, lastCreatedAt, skip, 10]);
+
+        const comments = rawResult.map(row => {
+            return {
+                id: row.id,
+                user: {
+                    id: row.userId,
+                    name: row.name,
+                    profileImage: row.profileImage,
+                },
+                content: row.content,
+                x: row.x,
+                y: row.y,
+                isPublic : row.isPublic,
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt,
+            };
+        });
+
+        const rawCount = await this.repository.manager.query(`
+            SELECT COUNT(*) as count FROM comment
+            WHERE post_id = ?
+        `, [postId]);
+        const count = Number(rawCount[0].count)
+
+        const totalPages = Math.ceil(count / 10);
+        return {
+            data: comments.map(comment => ({
+                id: comment.id,
+                user: comment.user,
+                content: comment.content,
+                x: comment.x,
+                y: comment.y,
+                isPublic : comment.isPublic ? true : false,
+                createdAt: comment.createdAt,
+                updatedAt: comment.updatedAt
+            })),
+            pagination: {
+                totalItems: count,
+                itemsPerPage: 10,
+                currentPage: page,
+                totalPages: totalPages,
+            },
+        };
+    }
+
     async getCommentsPerImageByPagination(userId: string, postId : string, postImageId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
         const { page, limit, lastCreatedAt } = paginationDto;
         const skip = calculateSkip(page, limit)
