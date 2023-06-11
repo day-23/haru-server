@@ -694,7 +694,7 @@ export class PostRepository {
         const postTags = await this.postTagsRepository.createQueryBuilder('posttags')
             .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
             .innerJoin('posttags.hashtag', 'hashtag')
-            .where('posttags.createdAt > :date', { date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000) })
+            .where('posttags.createdAt > :date', { date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 7) })
             .groupBy('hashtag.id')
             .addGroupBy('hashtag.content')
             .orderBy('count', 'DESC')

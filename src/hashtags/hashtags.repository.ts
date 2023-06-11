@@ -13,12 +13,12 @@ export class HashtagRepository implements HashtagRepositoryInterface {
         let { contents } = createHashTagsDto
         if (contents === undefined || contents === null || contents.length === 0) return []
 
-        const existingHashTags = await this.repository.find({ where: { content: In(contents) } })
-
         if (typeof contents === 'string') {
             contents = [contents];
         }
 
+        const existingHashTags = await this.repository.find({ where: { content: In(contents) } })
+        
         const newTags = contents
             .filter(content => !existingHashTags.some(tag => tag.content === content))
             .map((content) => this.repository.create({ content }));
