@@ -120,9 +120,9 @@ export class PostRepository {
         return this.createPostResponse(savedPost, savedPostImages, createPostDto);
     }
 
-    async createPostTags(userId: string, postId: string, hashTags: Hashtag[]): Promise<void> {
+    async createPostTags(userId: string, postId: string, hashTags: Hashtag[], isImagePost: boolean = true): Promise<void> {
         const postTags = hashTags.map((hashtag) => {
-            return this.postTagsRepository.create({ user: { id: userId }, post: { id: postId }, hashtag: { id: hashtag.id } })
+            return this.postTagsRepository.create({ user: { id: userId }, post: { id: postId }, hashtag: { id: hashtag.id }, isImagePost })
         })
         await this.postTagsRepository.save(postTags)
     }
@@ -695,6 +695,7 @@ export class PostRepository {
             .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
             .innerJoin('posttags.hashtag', 'hashtag')
             .where('posttags.createdAt > :date', { date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 7) })
+            .andWhere('posttags.is_image_post = true')
             .groupBy('hashtag.id')
             .addGroupBy('hashtag.content')
             .orderBy('count', 'DESC')
@@ -709,6 +710,7 @@ export class PostRepository {
             .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
             .innerJoin('posttags.hashtag', 'hashtag')
             .where('posttags.user = :userId', { userId })
+            .andWhere('posttags.is_image_post = true')
             .groupBy('hashtag.id')
             .addGroupBy('hashtag.content')
             .orderBy('count', 'DESC')
