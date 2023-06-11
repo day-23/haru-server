@@ -24,6 +24,10 @@ export class CommentsService {
         return await this.commentRepository.getCommentsByPagination(userId, postId, paginationDto);
     }
 
+    async getRecentCommentsByPagination(userId: string, postId: string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
+        return await this.commentRepository.getRecentCommentsByPagination(userId, postId, paginationDto);
+    }
+
     async getCommentsPerImageByPagination(userId: string, postId: string, postImageId : string, paginationDto: PostPaginationDto): Promise<GetCommentsPaginationResponse> {
         return await this.commentRepository.getCommentsPerImageByPagination(userId, postId, postImageId, paginationDto);
     }
