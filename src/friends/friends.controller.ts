@@ -49,9 +49,6 @@ export class FriendsController {
         return await this.freindsService.getFriendRequestList(userId, paginationDto);
     }
 
-
-
-
     @PaginatedResponse()
     @Get('search')
     @ApiParam({ name: 'userId', required: true, description: '조회하고자 하는 사용자의 id' })
@@ -66,7 +63,6 @@ export class FriendsController {
     async getFriendList(@Param('userId') userId: string, @Param('specificUserId') specificUserId : string, @Query() paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.freindsService.getFreindList(userId, specificUserId, paginationDto);
     }
-
 
     @PaginatedResponse()
     @Get('request/search')
