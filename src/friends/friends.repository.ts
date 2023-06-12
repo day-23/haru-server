@@ -102,6 +102,8 @@ export class FriendRepository{
             );
         }
 
+        console.log(commonFriends)
+
         const commonFriendsIds = commonFriends.map((friend) => friend.id)
 
         //make dictionary for common friends key is id and value is status
@@ -124,7 +126,7 @@ export class FriendRepository{
             }
         })
 
-        const count = await this.countFriendsByStatus(userId, FriendStatus.Friends)
+        const count = await this.countFriendsByStatus(specificUserId, FriendStatus.Friends)
 
         return {
             data: friendList,
