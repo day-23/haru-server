@@ -75,12 +75,14 @@ export class UserRepository {
         //find haruId if exists that not with userId then throw error
         const user = await this.repository.findOne({ where: { haruId } })
         console.log(user, userId, haruId)
-        if (user && user.id !== userId) {
+        if (user && user.id !== userId || haruId === '') {
             throw new HttpException(
                 '이미 존재하는 아이디입니다',
                 HttpStatus.CONFLICT
             );
         }
+
+
 
         await this.repository.update({ id: userId }, { haruId: haruId })
     }
