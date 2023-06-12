@@ -5,8 +5,7 @@ import { IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 
 export class CreatePostDto {
     @ApiProperty({ description: 'post 내용' })
-    @MinLength(1)
-    @MaxLength(200)
+    @MaxLength(1000)
     @IsString()
     content: string;
 
