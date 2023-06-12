@@ -9,7 +9,7 @@ import { BaseHashTag, PostUserResponse } from './interface/post.interface';
 import { PostService } from './posts.service';
 import { imageFileFilter } from './image-file-filter';
 import { UserInfoResponse } from './interface/user-info.interface';
-import { UpdateInitialProfileDto, UpdateInitialProfileHaruIdDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { UpdateInitialProfileDto, UpdateInitialProfileHaruIdDto, UpdateInitialProfileNameDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
 import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
 
 @Controller('post/:userId')
@@ -91,6 +91,12 @@ export class PostsController {
     @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
     async updateProfileInitHaruId(@Param('userId') userId: string, @Body() updateProfileDto: UpdateInitialProfileHaruIdDto){
         return await this.postService.updateInitialProfileHaruId(userId, updateProfileDto)
+    }
+
+    @Patch('/profile/init/name')
+    @ApiOperation({ summary: '사용자 프로필 설정', description: '프로필을 설정한다.' })
+    async updateProfileInitName(@Param('userId') userId: string, @Body() updateProfileDto: UpdateInitialProfileNameDto){
+        return await this.postService.updateInitialProfileName(userId, updateProfileDto)
     }
 
     @PaginatedResponse()

@@ -633,7 +633,7 @@ export class PostRepository {
         }
     }
 
-    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<void> {
+    async updateProfile(userId: string, updateProfileDto: Partial<UpdateProfileDto>): Promise<void> {
         //find user by name and if already exists that name is not user's name throw error
         const { name, introduction } = updateProfileDto
 

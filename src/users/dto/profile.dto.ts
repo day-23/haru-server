@@ -39,3 +39,10 @@ export class UpdateInitialProfileHaruIdDto {
     @IsString()
     haruId: string
 }
+
+
+export class UpdateInitialProfileNameDto {
+    @ApiProperty({ description: '검색용 아이디' })
+    @IsString()
+    name: string
+}
