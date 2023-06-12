@@ -8,7 +8,7 @@ import { ImageResponse } from './interface/post-image.interface';
 import { HashtagServiceInterface } from 'src/hashtags/interface/hashtag.service.interface';
 import { BaseHashTag, GetPostsPaginationResponse, PostCreateResponse, PostUserResponse } from './interface/post.interface';
 import { UserInfoResponse } from './interface/user-info.interface';
-import { UpdateInitialProfileDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
+import { UpdateInitialProfileDto, UpdateInitialProfileHaruIdDto, UpdateProfileDto } from 'src/users/dto/profile.dto';
 import { getImageUrl } from 'src/common/utils/s3';
 import { UserService } from 'src/users/users.service';
 import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
@@ -134,6 +134,14 @@ export class PostService {
 
         return await this.getUserInfoWithOptions(userId)
     }
+
+
+    async updateInitialProfileHaruId(userId: string, updateInitialProfileDto: UpdateInitialProfileHaruIdDto){
+        const { haruId } = updateInitialProfileDto
+        return await this.userService.updateHaruId(userId, haruId)
+    }
+
+
 
     async getProfileImagesByUserId(userId: string): Promise<ImageResponse[]> {
         return await this.postRepository.getProfileImagesByUserId(userId)
