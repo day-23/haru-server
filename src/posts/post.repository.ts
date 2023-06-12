@@ -644,7 +644,7 @@ export class PostRepository {
             );
         }
 
-        if(name === '하루' || name === '하기' || name === '루리' || name.toLowerCase() === 'haru'){
+        if(name === '하루' || name === '하기' || name === '루리' || name.toLowerCase() === 'haru' || name === ''){
             throw new HttpException(
                 'Bad word',
                 HttpStatus.FORBIDDEN
