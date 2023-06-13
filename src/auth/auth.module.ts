@@ -8,10 +8,8 @@ import { User } from 'src/entity/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './strategies/auth.jwt.strategy';
-import { GoogleStrategy } from './strategies/auth.google.strategy';
 import { AuthController } from './auth.controller';
 import { UserService } from 'src/users/users.service';
-import { NaverStrategy } from './strategies/auth.naver.strategy';
 import { KakaoStrategy } from './strategies/auth.kakao.strategy';
 import { Image } from 'src/entity/image.entity';
 import { HttpModule } from '@nestjs/axios';
@@ -35,9 +33,7 @@ import { PostsModule } from 'src/posts/posts.module';
         LocalStrategy,
         UserRepository,
         JwtStrategy,
-        GoogleStrategy,
         UserService,
-        NaverStrategy,
         KakaoStrategy,
     ],
 })

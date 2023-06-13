@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ParseIntPipe, ValidationPipe, DefaultValuePipe, ParseUUIDPipe, UseGuards, Req, UseInterceptors, HttpException, HttpStatus, UploadedFiles, UploadedFile, } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UsePipes, ParseIntPipe, ValidationPipe, DefaultValuePipe, ParseUUIDPipe, UseGuards, Req, UseInterceptors, HttpException, HttpStatus, UploadedFiles, UploadedFile, Headers, } from '@nestjs/common';
 import { UserService } from './users.service';
 import { CreateUserDto } from './dto/users.dto';
 import { User } from 'src/entity/user.entity';
@@ -50,6 +50,12 @@ export class UserController {
     @ApiOperation({ summary: '회원탈퇴 API', description: '유저를 생성한다.' })
     async deleteAccount(@Param('userId') userId : string): Promise<void> {
         return await this.userService.deleteUser(userId)
+    }
+
+    @Delete('/:userId/apple')
+    @ApiOperation({ summary: '회원탈퇴 API', description: '유저를 생성한다.' })
+    async deleteAppleAccount(@Param('userId') userId : string, @Headers('accessToken') accessToken: string, @Headers('refreshToken') refreshToken: string): Promise<void> {
+        return await this.userService.deleteAppleUser(userId, accessToken, refreshToken)
     }
 
     @UseGuards(LocalAuthGuard)

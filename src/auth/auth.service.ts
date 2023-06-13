@@ -169,6 +169,7 @@ export class AuthService {
     }
 
     async validateAppleUser(authCode: string): Promise<any> {
+        console.log('validateAppleUser')
         const appleIdUrl = 'https://appleid.apple.com/auth/token';
         const clientId = process.env.APPLE_CLIENT_ID;
         const teamId = process.env.APPLE_TEAM_ID;
