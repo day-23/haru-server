@@ -18,7 +18,7 @@ export class Tag extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ length: 8 })
     content: string;
 
     @Column({ nullable: true })

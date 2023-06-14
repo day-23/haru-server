@@ -13,7 +13,7 @@ export class Hashtag extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column({ length: 30 })
     content: string;
 
     /* 태그 : 태그게시물 = 1:N */

@@ -17,7 +17,7 @@ export class Post extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ length : 1000 })
     content: string
 
     @Column({default:null})
