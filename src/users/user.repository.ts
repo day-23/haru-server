@@ -59,9 +59,9 @@ export class UserRepository {
     }
 
     //로그인 유저 조회
-    async findByLogin(email: string, password: string): Promise<User> {
+    async findByLogin(email: string): Promise<User> {
         const user = await this.repository.findOne({
-            where: { email, password },
+            where: { email },
         });
         if (!user) {
             throw new ForbiddenException(
@@ -81,8 +81,6 @@ export class UserRepository {
                 HttpStatus.CONFLICT
             );
         }
-
-
 
         await this.repository.update({ id: userId }, { haruId: haruId })
     }

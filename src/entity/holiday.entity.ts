@@ -5,7 +5,7 @@ export class Holiday extends BaseEntity{
     @PrimaryGeneratedColumn()
     id: string;
 
-    @Column()
+    @Column({ length : 50 })
     content : string;
 
     @Column()
@@ -14,6 +14,6 @@ export class Holiday extends BaseEntity{
     @Column()
     repeatEnd : string;
 
-    @Column()
+    @Column({ length: 50 })
     country : string;
 }

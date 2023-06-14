@@ -24,7 +24,7 @@ export class Comment extends BaseEntity {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ length: 255 })
     content: string;
 
     @Column({ nullable: true })

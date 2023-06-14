@@ -37,19 +37,11 @@ export class User extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 100, comment: '유저의 소셜 가입 이메일' })
+    @Column({ type: 'varchar', length: 255, comment: '유저의 소셜 가입 이메일' })
     email: string;
 
     @Column({ nullable : true, type: 'varchar', length: 50, comment: '유저 아이디 사용자 검색용', default : null})
     haruId: string;
-
-    @Column({
-        nullable: true,
-        type: 'varchar',
-        length: 30,
-        comment: '유저 비밀번호',
-    })
-    password: string;
 
     @Column({ type: 'varchar', length: 10, comment: '유저 이름', nullable:true })
     socialAccountType: string;
@@ -60,8 +52,14 @@ export class User extends BaseEntity {
     @Column({ type: 'varchar', length: 100, comment: '자기소개', default: '' })
     introduction: string;
 
-    @Column({ type: 'varchar', length: 200, comment: '프로필 이미지 url', default: null, nullable: true })
+    @Column({ type: 'varchar', length: 255, comment: '프로필 이미지 url', default: null, nullable: true })
     profileImageUrl: string;
+
+    @Column({ length: 100, default: 'kor' })
+    country: string;
+
+    @Column({ length: 30, default: 'Asia/Seoul'})
+    timezone: string;
 
     @Column({ default: true })
     isPublicAccount: boolean;
@@ -89,18 +87,6 @@ export class User extends BaseEntity {
 
     @Column({ default: true })
     isAllowSearch: boolean;
-
-    @Column({ nullable: true, type: 'tinyint', comment: '유저 나이' }) // nullable : true 추가
-    age: number;
-
-    @Column({ nullable: true, type: 'varchar', length: 30, comment: '핸드폰' }) // nullable : true 추가
-    phone: string;
-
-    @Column({ length: 100, default: 'kor' })
-    country: string;
-
-    @Column({ length: 10, default: 'Asia/Seoul'})
-    timezone: string;
 
     @Column({ default: true })
     isAlarmOn: boolean;

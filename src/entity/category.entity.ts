@@ -24,15 +24,15 @@ export class Category extends BaseEntity {
     @OneToMany(() => Schedule, (schedule) => schedule.category)
     schedules: Schedule[];
 
-    @Column()
+    @Column({ length: 8 })
     content: string;
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, length: 20 })
     color: string;
 
-    @Column({ default:0 })
+    @Column({ default: 0 })
     categoryOrder: number;
 
-    @Column({ default : true})
-    isSelected : boolean
+    @Column({ default: true })
+    isSelected: boolean
 }

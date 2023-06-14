@@ -10,23 +10,7 @@ export class Schedule extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    /* 투두 : 사용자 = N:1 */
-    @ManyToOne(() => User, (user) => user.schedules, { onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'user_id' })
-    user: User;
-
-    @OneToOne(() => Todo, (todo) => todo.schedule, { cascade: true, onDelete: 'CASCADE' })
-    @JoinColumn({ name: 'todo_id' })
-    @Index({ unique: true })
-    todo: Todo
-
-    /* 스케줄인 경우(todoId == null) category를 갖기 위함 */
-    @ManyToOne(() => Category, (category) => category.schedules, { onDelete: "SET NULL" })
-    @JoinColumn({ name: 'category_id' })
-    category: Category;
-
-    @Column()
-    @MinLength(1)
+    @Column({ length: 50 })
     content: string;
 
     @Column({
@@ -52,14 +36,6 @@ export class Schedule extends BaseEntity {
     @Column({ nullable: true, length: 31 })
     repeatValue: string;
 
-    /* 투두 : 알람 = 1:N */
-    @OneToMany(() => Alarm, (alarm) => alarm.schedule, { cascade: true })
-    alarms: Alarm[];
-
-    @ManyToOne(() => Schedule, { nullable: true , onDelete: "SET NULL" })
-    @JoinColumn({ name: 'parent_id' }, )
-    parent: Schedule;
-
     @CreateDateColumn()
     createdAt: Date;
 
@@ -69,4 +45,27 @@ export class Schedule extends BaseEntity {
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
     @DeleteDateColumn()
     deletedAt?: Date | null;
+
+    /* 투두 : 사용자 = N:1 */
+    @ManyToOne(() => User, (user) => user.schedules, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @OneToOne(() => Todo, (todo) => todo.schedule, { cascade: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'todo_id' })
+    @Index({ unique: true })
+    todo: Todo
+
+    /* 스케줄인 경우(todoId == null) category를 갖기 위함 */
+    @ManyToOne(() => Category, (category) => category.schedules, { onDelete: "SET NULL" })
+    @JoinColumn({ name: 'category_id' })
+    category: Category;
+
+    /* 투두 : 알람 = 1:N */
+    @OneToMany(() => Alarm, (alarm) => alarm.schedule, { cascade: true })
+    alarms: Alarm[];
+
+    @ManyToOne(() => Schedule, { nullable: true , onDelete: "SET NULL" })
+    @JoinColumn({ name: 'parent_id' }, )
+    parent: Schedule;
 }

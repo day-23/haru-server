@@ -24,14 +24,12 @@ export class AuthService {
      * @param password 유저 비밀번호
      * @returns User
      */
-    async validateUser(email: string, password: string): Promise<any> {
-        console.log('AuthService');
-
-        const user = await this.userRepository.findByLogin(email, password);
+    async validateUser(email: string): Promise<any> {
+        const user = await this.userRepository.findByLogin(email);
 
         //사용자가 요청한 비밀번호와 DB에서 조회한 비밀번호 일치여부 검사
-        if (user && user.password === password) {
-            const { password, ...result } = user;
+        if (user) {
+            const { ...result } = user;
 
             //유저 정보를 통해 토큰 값을 생성
             const accessToken = await this.jwtService.sign(result);
@@ -43,21 +41,6 @@ export class AuthService {
             return result;
         }
         return null;
-    }
-
-    async naverGetUserInfo(accessToken: string) {
-        const api_url = 'https://openapi.naver.com/v1/nid/me';
-        const { data } = await axios.get(api_url, {
-            headers: {
-                Authorization: 'Bearer ' + accessToken,
-            },
-        });
-
-        return this.signUp(
-            data.response.email,
-            data.response.name,
-            data.response.mobile,
-        );
     }
 
     async signUp(email: string, socialAccountType: string, phone: string = '') {
