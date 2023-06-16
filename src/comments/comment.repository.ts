@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto, UpdateCommentsByWriterDto } from "src/comments/dto/create.comment.dto";
 import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreateResponse } from "src/comments/interface/comment.interface";
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
+import { isBadWord } from "src/common/utils/bad-word";
 import { Comment } from "src/entity/comment.entity";
 import { Post } from "src/entity/post.entity";
 import { SnsBaseUser } from "src/posts/interface/post.interface";
@@ -18,6 +19,14 @@ export class CommentRepository {
 
     async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {    
         const { content } = createCommentDto
+
+        if(isBadWord(content)){
+            throw new HttpException(
+                'Bad word',
+                HttpStatus.FORBIDDEN
+            );
+        }
+
         // Fetch the post from the database first
         const post = await this.postRepository.findOne({ where: { id: postId } });
         if (!post) {
