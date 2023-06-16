@@ -45,12 +45,11 @@ export class AwsService {
 
     async uploadFilesToS3(folder: string, files: Express.Multer.File[]): Promise<CreatedS3ImageFiles> {
         try {
-            const uploadedFiles = [];
-            for (const file of files) {
+            const uploadPromises = files.map((file) => {
                 const originalName = file.originalname
-                
                 const key = `${folder}/${Date.now()}_${path.basename(file.originalname,)}`.replace(/ /g, '');
-                const s3Object = await this.awsS3
+    
+                return this.awsS3
                     .putObject({
                         Bucket: this.S3_BUCKET_NAME,
                         Key: key,
@@ -58,12 +57,17 @@ export class AwsService {
                         ACL: 'public-read',
                         ContentType: file.mimetype,
                     })
-                    .promise();
-                
-                const uploadedFile = { originalName, key, s3Object, contentType: file.mimetype, size: file.size};
+                    .promise()
+                    .then((s3Object) => ({
+                        originalName,
+                        key,
+                        s3Object,
+                        contentType: file.mimetype,
+                        size: file.size,
+                    }));
+            });
 
-                uploadedFiles.push(uploadedFile);
-            }
+            const uploadedFiles = await Promise.all(uploadPromises);
             return { uploadedFiles };
         } catch (error) {
             throw new HttpException(`Failed to upload file : ${error}`, HttpStatus.INTERNAL_SERVER_ERROR);
