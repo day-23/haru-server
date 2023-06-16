@@ -12,7 +12,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     
     /* 서버 v1 */
-    // app.setGlobalPrefix('v1');
+    app.setGlobalPrefix('v1');
 
     //예외 필터 연결
     app.useGlobalFilters(new HttpExceptionFilter());

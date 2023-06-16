@@ -27,7 +27,7 @@ export class SearchPaginationDto extends PostPaginationDto {
 
 
 export function createPaginationObject(count: number, limit: number, page: number) {
-    const totalPages = Math.ceil(count / limit);
+    const totalPages = Math.max(1, Math.ceil(count / limit)) 
     return {
         totalItems: count,
         itemsPerPage: limit,
