@@ -1108,6 +1108,10 @@ export class PostRepository {
         arrList[arrList.length] = "zotte";
         arrList[arrList.length] = "zungyang";
         arrList[arrList.length] = "쎅스";
+        arrList[arrList.length] = "suck";
+        arrList[arrList.length] = "dick";
+        arrList[arrList.length] = "Suck";
+        arrList[arrList.length] = "쎅스";
         arrList[arrList.length] = "쎅스코리아";
         arrList[arrList.length] = "쎅시넷";
         arrList[arrList.length] = "쎅콜닷컴";
