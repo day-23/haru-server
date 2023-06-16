@@ -56,10 +56,15 @@ export class UpdateUserDto {
     name: string; // 유저 이름
 }
 
+export class UpdateUserSignUpDto {
+    @IsBoolean()
+    isSignUp : boolean; // 유저 이름
+}
+
 export class UpdateUserOptionDto {
     @IsOptional()
     @IsBoolean()
-    isPublicAccount: true;
+    isPublicAccount: boolean;
 
     @IsOptional()
     @IsString()
