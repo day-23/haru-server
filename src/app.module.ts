@@ -19,6 +19,8 @@ import { CommentsModule } from './comments/comments.module';
 import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
 import { HashtagsModule } from './hashtags/hashtags.module';
 import { FriendsModule } from './friends/friends.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessTokenGuard } from './auth/guards/access-token.guard';
 
 @Module({
     imports: [
@@ -46,7 +48,12 @@ import { FriendsModule } from './friends/friends.module';
         FriendsModule
     ],
     controllers: [AppController],
-    providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware],
+    providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
+        {
+            provide: APP_GUARD,
+            useClass: AccessTokenGuard,
+        },
+    ],
 })
 export class AppModule implements NestModule {
     /* 개발 환경의 경우 서버에서 로그 찍어주기 */
