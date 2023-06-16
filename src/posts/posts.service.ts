@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { AwsService } from 'src/aws/aws.service';
 import { ConfigService } from "@nestjs/config";
 import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto';
@@ -12,6 +12,7 @@ import { UpdateInitialProfileDto, UpdateInitialProfileHaruIdDto, UpdateInitialPr
 import { getImageUrl } from 'src/common/utils/s3';
 import { UserService } from 'src/users/users.service';
 import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
+import { isBadWord } from 'src/common/utils/bad-word';
 
 @Injectable()
 export class PostService {
@@ -33,6 +34,13 @@ export class PostService {
     }
 
     async createTemplatePost(userId: string, createPostDto: CreateTemplatePostDto) {
+        if(isBadWord(createPostDto.content)){
+            throw new HttpException(
+                'Bad word',
+                HttpStatus.FORBIDDEN
+            );
+        }
+
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
         const post = await this.postRepository.createTemplatePost(userId, createPostDto)
         const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags, false)
@@ -40,8 +48,14 @@ export class PostService {
     }
 
     async createPost(userId: string, files: Express.Multer.File[], createPostDto: CreatePostDto): Promise<PostCreateResponse> {
+        if(isBadWord(createPostDto.content)){
+            throw new HttpException(
+                'Bad word',
+                HttpStatus.FORBIDDEN
+            );
+        }
+        
         const images = await this.awsService.uploadFilesToS3('sns', files)
-
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
         const post = await this.postRepository.createPost(userId, createPostDto, images)
         const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)

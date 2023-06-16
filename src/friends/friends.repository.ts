@@ -56,7 +56,7 @@ export class FriendRepository{
 
     //create block user by userId and blockUserId
     async createBlockUser(userId: string, blockUserId: string): Promise<void> {
-        console.log('debug', userId, blockUserId)
+    
         const newFreindRecord = this.repository.create({
             requester: new User({ id: userId }),
             acceptor: new User({ id: blockUserId }),

@@ -35,9 +35,6 @@ export class AuthController {
         //find user by payload email
         const user = await this.userService.getUserByEmail(payload.email);
 
-
-        console.log(accessToken, refreshToken, user)
-
         const userInfo = await this.postService.getUserInfoWithOptions(user.id)
         const ret = {
             ...userInfo,
