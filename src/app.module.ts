@@ -43,7 +43,8 @@ import { AccessTokenGuard } from './auth/guards/access-token.guard';
         PostsModule,
         CommentsModule,
         HashtagsModule,
-        FriendsModule
+        FriendsModule,
+        AuthModule
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
