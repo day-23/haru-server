@@ -11,9 +11,7 @@ import { CheckApiKeyMiddleware } from './common/middleware/check-api-key.middlew
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TodosModule } from './todos/todos.module';
 import { TagsModule } from './tags/tags.module';
-import { AlarmsModule } from './alarms/alarms.module';
 import { SchedulesModule } from './schedules/schedules.module';
-import { CategoriesModule } from './categories/categories.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
 import { CloudWatchLoggerService } from './common/middleware/log/cloudwatch.service';
@@ -49,10 +47,10 @@ import { AccessTokenGuard } from './auth/guards/access-token.guard';
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
-        {
-            provide: APP_GUARD,
-            useClass: AccessTokenGuard,
-        },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: AccessTokenGuard,
+        // },
     ],
 })
 export class AppModule implements NestModule {

@@ -13,7 +13,7 @@ import { User } from "src/entity/user.entity";
 import { CreatePostDto, CreateTemplatePostDto, UpdatePostDto } from "src/posts/dto/create.post.dto";
 import { ImageResponse } from "src/posts/interface/post-image.interface";
 import { BaseHashTag, FriendStatusDictionary, GetPostsPaginationResponse, PostCreateResponse, PostGetResponse, PostUserResponse, SearchUserResponse, SnsBaseUser } from "src/posts/interface/post.interface";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { UserInfoResponse } from "./interface/user-info.interface";
 import { UpdateProfileDto } from "src/users/dto/profile.dto";
 import { Template } from "src/entity/template.entity";
@@ -387,8 +387,33 @@ export class PostRepository {
         return userFriendsDict
     }
 
+    async getHidePostIdsByUserId(userId: string): Promise<string[]> {
+        const rawHidedPosts = await this.likedRepository.query(`
+            SELECT post_id 
+            FROM liked 
+            INNER JOIN post ON liked.post_id = post.id
+            WHERE liked.user_id = ?
+            AND liked.status IN (0, 1)
+        `, [userId]);
+        return rawHidedPosts.map((rawHidedPost) => rawHidedPost.post_id);
+    }
+
+    /* 진행중 */
+    async getBlockedUserIdsByUserId(userId: string): Promise<string[]> {
+        const rawBlockedUserIds = await this.friendRepository.query(`
+            SELECT acceptor_id
+            FROM friend
+            WHERE requester_id = ?
+        `, [userId]);
+        return rawBlockedUserIds.map((rawblockedUser) => rawblockedUser.acceptor_id);
+    }
 
     async fetchAllPosts(userId: string, whereClause: string, lastCreatedAt: string, limit: number, skip: number): Promise<PostGetResponse[]> {
+        const hidedPosts = await this.getHidePostIdsByUserId(userId)
+
+        const rawBlockedUserIds = await this.getBlockedUserIdsByUserId(userId)
+        console.log('notShowPosts', hidedPosts)
+        
         // Fetch posts with user information
         const postQuery = `
             SELECT post.*, user.name, user.email, user.profile_image_url, user.is_allow_feed_like, user.is_allow_feed_comment
@@ -397,11 +422,17 @@ export class PostRepository {
             ON post.user_id = user.id
             WHERE post.created_at < ?
             AND ${whereClause}
+            ${hidedPosts.length > 0 ? 'AND post.id NOT IN (?)' : ''}
             ORDER BY post.created_at DESC
             LIMIT ? OFFSET ?
         `;
 
-        const posts: RawPost[] = await this.repository.query(postQuery, [lastCreatedAt, limit, skip]);
+        const params = [lastCreatedAt, 
+            ...(hidedPosts.length > 0 ? [hidedPosts] : []), 
+            limit, 
+            skip];
+
+        const posts: RawPost[] = await this.repository.query(postQuery, params);
         const userFriendsDict = await this.getFriendsStatusByUserId(userId);
 
         posts.forEach((post) => {
@@ -812,12 +843,9 @@ export class PostRepository {
 
     async reportPost(userId: string, postId: string): Promise<void> {
         //if user already reported the post, then delete report and return, else create report
-        const report = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId }, status: 0 } })
-        if (report) {
-            return
-        }
+        await this.likedRepository.delete({ user: { id: userId }, post: { id: postId } })
 
-        const count = await this.likedRepository.count({ where: { post: { id: postId }, status:0 } })
+        const count = await this.likedRepository.count({ where: { post: { id: postId }, status: 0 } })
         if (count >= 2) {
             await this.repository.delete({ id: postId })
             return
@@ -829,12 +857,8 @@ export class PostRepository {
 
     async hidePost(userId: string, postId: string): Promise<void> {
         //if user already reported the post, then delete report and return, else create report
-        const hide = await this.likedRepository.findOne({ where: { user: { id: userId }, post: { id: postId }, status: 1 } })
-        if (hide) {
-            return
-        }
-
-        const newHide = this.likedRepository.create({ user: { id: userId }, post: { id: postId } })
+        await this.likedRepository.delete({ user: { id: userId }, post: { id: postId } })
+        const newHide = this.likedRepository.create({ user: { id: userId }, post: { id: postId }, status: 1 })
         await this.likedRepository.save(newHide)
     }
 

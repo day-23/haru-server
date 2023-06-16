@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/entity/user.entity';
 import { UserRepository } from 'src/users/user.repository';
-import { CreateUserDto, UpdateUserDto, UpdateUserOptionPartialDto } from './dto/users.dto';
+import { CreateUserDto, UpdateUserDto, UpdateUserOptionPartialDto, UpdateUserSignUpDto } from './dto/users.dto';
 import * as jwt from 'jsonwebtoken';
 import { HttpService } from '@nestjs/axios';
 
@@ -29,6 +29,10 @@ export class UserService {
 
     async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
         return await this.userRepository.update(id, updateUserDto);
+    }
+
+    async updateUserSignUp(id: string, updateUserDto: UpdateUserSignUpDto): Promise<User> {
+        return await this.userRepository.updateUserSignUp(id, updateUserDto);
     }
 
     async deleteUser(id: string): Promise<void> {

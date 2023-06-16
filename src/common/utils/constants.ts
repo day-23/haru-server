@@ -4,5 +4,5 @@ export enum FriendStatus {
     NotFriends = 0,
     FriendRequestSent = 1,
     Friends = 2,
-    Blocked = 3
+    Blocked = 400
 }

@@ -17,18 +17,18 @@ import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface
 export class PostService {
     constructor(private readonly postRepository: PostRepository,
         private readonly awsService: AwsService,
-        private readonly configService : ConfigService,
-        private readonly userService : UserService,
+        private readonly configService: ConfigService,
+        private readonly userService: UserService,
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
-        ) { }
+    ) { }
 
-    async uploadTemplate(userId: string, files: Express.Multer.File[]){
+    async uploadTemplate(userId: string, files: Express.Multer.File[]) {
         const images = await this.awsService.uploadFilesToS3('template', files)
         const post = await this.postRepository.createTemplate(userId, images)
         return post
     }
 
-    async getTemplates(userId: string){
+    async getTemplates(userId: string) {
         return await this.postRepository.getTemplates(userId)
     }
 
@@ -39,21 +39,21 @@ export class PostService {
         return post
     }
 
-    async createPost(userId: string, files: Express.Multer.File[], createPostDto:CreatePostDto) : Promise<PostCreateResponse>{
+    async createPost(userId: string, files: Express.Multer.File[], createPostDto: CreatePostDto): Promise<PostCreateResponse> {
         const images = await this.awsService.uploadFilesToS3('sns', files)
 
-        const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags})
-        const post =  await this.postRepository.createPost(userId, createPostDto, images)
+        const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
+        const post = await this.postRepository.createPost(userId, createPostDto, images)
         const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags)
 
         return post
     }
 
-    async getPostsByPagination(userId : string, postPaginationDto: PostPaginationDto){
+    async getPostsByPagination(userId: string, postPaginationDto: PostPaginationDto) {
         return await this.postRepository.getPostsByPagination(userId, postPaginationDto);
     }
 
-    async getPostsFilterByHashTagIdAndPagination(userId : string, hashTagId : string, postPaginationDto: PostPaginationDto){
+    async getPostsFilterByHashTagIdAndPagination(userId: string, hashTagId: string, postPaginationDto: PostPaginationDto) {
         return await this.postRepository.getPostsFilterByHashTagIdAndPagination(userId, hashTagId, postPaginationDto);
     }
 
@@ -78,7 +78,7 @@ export class PostService {
     }
 
 
-    async deletePost(userId: string, postId: string) : Promise<void>{
+    async deletePost(userId: string, postId: string): Promise<void> {
         return await this.postRepository.deletePost(userId, postId)
     }
 
@@ -87,19 +87,19 @@ export class PostService {
         return await this.getUserInfo(userId, userId)
     }
 
-    async uploadProfileWithImage(userId: string, file: Express.Multer.File, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse>{
+    async uploadProfileWithImage(userId: string, file: Express.Multer.File, updateProfileDto: UpdateProfileDto): Promise<UserInfoResponse> {
         const image = await this.awsService.uploadFileToS3('profile', file)
         await this.postRepository.createProfileImage(userId, image)
 
         const profileImageUrl = getImageUrl(this.configService, image.uploadedFile.key)
-        return await this.updateProfile(userId, {...updateProfileDto, profileImageUrl})
+        return await this.updateProfile(userId, { ...updateProfileDto, profileImageUrl })
     }
 
 
-    async getUserInfoWithOptions(userId : string){
+    async getUserInfoWithOptions(userId: string) {
         const profileInfo = await this.getUserInfo(userId, userId)
         const userInfo = await this.userService.findOne(userId)
-        
+
         return {
             user: {
                 id: profileInfo.id,
@@ -118,10 +118,11 @@ export class PostService {
             isAllowFeedLike: userInfo.isAllowFeedLike,
             isAllowFeedComment: userInfo.isAllowFeedComment,
             isAllowSearch: userInfo.isAllowSearch,
-            isMaliciousUser :userInfo.isMaliciousUser,
-            morningAlarmTime : userInfo.morningAlarmTime,
-            nightAlarmTime : userInfo.nightAlarmTime,
-            isScheduleAlarmOn : userInfo.isScheduleAlarmOn,
+            isMaliciousUser: userInfo.isMaliciousUser,
+            morningAlarmTime: userInfo.morningAlarmTime,
+            nightAlarmTime: userInfo.nightAlarmTime,
+            isScheduleAlarmOn: userInfo.isScheduleAlarmOn,
+            isSignUp: userInfo.isSignUp,
             createdAt: userInfo.createdAt
         }
     }
@@ -131,17 +132,18 @@ export class PostService {
 
         await this.userService.updateHaruId(userId, haruId)
         await this.updateProfile(userId, updateProfileDto)
+        await this.userService.updateUserSignUp(userId, { isSignUp: true })
 
         return await this.getUserInfoWithOptions(userId)
     }
 
 
-    async updateInitialProfileHaruId(userId: string, updateInitialProfileDto: UpdateInitialProfileHaruIdDto){
+    async updateInitialProfileHaruId(userId: string, updateInitialProfileDto: UpdateInitialProfileHaruIdDto) {
         const { haruId } = updateInitialProfileDto
         return await this.userService.updateHaruId(userId, haruId)
     }
 
-    async updateInitialProfileName(userId: string, updateInitialProfileDto: UpdateInitialProfileNameDto){
+    async updateInitialProfileName(userId: string, updateInitialProfileDto: UpdateInitialProfileNameDto) {
         const { name } = updateInitialProfileDto
         return await this.updateProfile(userId, updateInitialProfileDto)
     }
@@ -160,23 +162,23 @@ export class PostService {
         return await this.postRepository.getHashtagsByUserId(userId)
     }
 
-    async getUserInfo(userId: string, specificUserId : string) : Promise<UserInfoResponse>{
+    async getUserInfo(userId: string, specificUserId: string): Promise<UserInfoResponse> {
         return await this.postRepository.getUserInfo(userId, specificUserId)
     }
 
-    async getUserByHaruId(userId: string, haruId: string) : Promise<UserInfoResponse>{
+    async getUserByHaruId(userId: string, haruId: string): Promise<UserInfoResponse> {
         return await this.postRepository.getUserByHaruId(userId, haruId)
     }
 
-    async likePost(userId: string, postId: string) : Promise<void>{
+    async likePost(userId: string, postId: string): Promise<void> {
         return await this.postRepository.likePost(userId, postId)
     }
 
-    async hidePost(userId: string, postId: string) : Promise<void>{
+    async hidePost(userId: string, postId: string): Promise<void> {
         return await this.postRepository.hidePost(userId, postId)
     }
 
-    async reportPost(userId: string, postId: string) : Promise<void>{
+    async reportPost(userId: string, postId: string): Promise<void> {
         return await this.postRepository.reportPost(userId, postId)
     }
 }
