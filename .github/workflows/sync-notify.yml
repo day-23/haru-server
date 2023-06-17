@@ -86,10 +86,10 @@ jobs:
 
       - name: Create env_file
         run: |
-          echo DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:${{ github.sha }} > env_file
+          echo DOCKER_IMAGE=${{env.DOCKER_IMAGE}}:${{github.sha}} > env_file
 
       - name: 'Create env file'
-        run: echo "${{ secrets.ENV_FILE }}" > env_file
+        run: echo "${{ secrets.ENV_FILE }}" >> env_file
 
       - name: Docker Compose up
         run: |
