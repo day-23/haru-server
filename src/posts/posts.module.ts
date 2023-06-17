@@ -14,9 +14,13 @@ import { User } from 'src/entity/user.entity';
 import { Template } from 'src/entity/template.entity';
 import { UsersModule } from 'src/users/users.module';
 import { Friend } from 'src/entity/friend.entity';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-    imports: [AwsModule, HashtagsModule, UsersModule, TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Friend])],
+    imports: [AwsModule, HashtagsModule, UsersModule, 
+        TypeOrmModule.forFeature([PostTags, Post, Image, Template, Liked, Comment, User, Friend]),
+        RedisModule
+    ],
     controllers: [PostsController],
     providers: [PostService, PostRepository],
     exports: [PostService],

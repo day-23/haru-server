@@ -13,6 +13,7 @@ import { getImageUrl } from 'src/common/utils/s3';
 import { UserService } from 'src/users/users.service';
 import { InitialUpdateProfileResponse } from 'src/users/interface/user.interface';
 import { isBadWord } from 'src/common/utils/bad-word';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class PostService {
@@ -20,6 +21,7 @@ export class PostService {
         private readonly awsService: AwsService,
         private readonly configService: ConfigService,
         private readonly userService: UserService,
+        @Inject('Redis') private readonly redis: Redis,
         @Inject('HashtagServiceInterface') private readonly hashtagService: HashtagServiceInterface,
     ) { }
 
@@ -66,6 +68,17 @@ export class PostService {
                 HttpStatus.FORBIDDEN
             );
         }
+
+        let recentPosted = await this.redis.get(userId);
+        if(recentPosted){
+            throw new HttpException(
+                'Too many requests',
+                HttpStatus.TOO_MANY_REQUESTS
+            );
+        }
+        // Set the value in Redis for subsequent requests 60초 * 30 -> 60분
+        console.log(recentPosted)
+        await this.redis.set(userId, 1, 'EX', 60);
 
         if(typeof createPostDto?.hashTags === 'string' ){
             createPostDto.hashTags = [createPostDto.hashTags]
