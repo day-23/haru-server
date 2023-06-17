@@ -30,7 +30,7 @@ export class AuthController {
     async verifyToken(@Headers('accessToken') accessToken: string, @Headers('refreshToken') refreshToken: string) {
         // Validate the refresh token
         const payload = await this.authService.validateRefreshToken(refreshToken);
-        const { cookie, accessToken: newAccessToken} = await this.authService.createAccessTokenFromRefreshToken(refreshToken);
+        const { accessToken: newAccessToken} = await this.authService.createAccessTokenFromRefreshToken(refreshToken);
 
         //find user by payload email
         const user = await this.userService.getUserByEmail(payload.email);

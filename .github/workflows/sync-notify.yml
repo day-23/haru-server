@@ -81,6 +81,9 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
+      - name: Create docker-compose.yml
+        run: echo "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
+
       - name: Create env_file
         run: |
           echo DOCKER_IMAGE=${{ env.DOCKER_IMAGE }} > env_file
