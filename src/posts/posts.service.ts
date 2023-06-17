@@ -41,8 +41,11 @@ export class PostService {
             );
         }
 
-        createPostDto.hashTags.forEach((hashTag) => {
-            if(isBadWord(hashTag)){
+        if (typeof createPostDto?.hashTags === 'string') {
+            createPostDto.hashTags = [createPostDto.hashTags]
+        }
+        createPostDto?.hashTags?.forEach((hashTag) => {
+            if (isBadWord(hashTag)) {
                 throw new HttpException(
                     'Bad word',
                     HttpStatus.FORBIDDEN
@@ -64,7 +67,10 @@ export class PostService {
             );
         }
 
-        createPostDto.hashTags.forEach((hashTag) => {
+        if(typeof createPostDto?.hashTags === 'string' ){
+            createPostDto.hashTags = [createPostDto.hashTags]
+        }
+        createPostDto?.hashTags?.forEach((hashTag) => {
             if(isBadWord(hashTag)){
                 throw new HttpException(
                     'Bad word',
