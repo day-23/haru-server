@@ -3,10 +3,14 @@ import { PaginationDto, PostPaginationDto } from 'src/common/dto/pagination.dto'
 import { CommentRepository } from 'src/comments/comment.repository';
 import { CreateCommentDto, CreateImageCommentDto, UpdateCommentDto, UpdateCommentsByWriterDto } from './dto/create.comment.dto';
 import { ImageCommentCreateResponse, CommentGetResponse, GetCommentsPaginationResponse, CommentCreateResponse } from './interface/comment.interface';
+import { UserService } from 'src/users/users.service';
 
 @Injectable()
 export class CommentsService {
-    constructor(private readonly commentRepository: CommentRepository) { }
+    constructor(
+        private readonly commentRepository: CommentRepository,
+        private readonly userService : UserService
+        ) { }
 
     async createComment(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<CommentCreateResponse> {
         return await this.commentRepository.createComment(userId, postId, createCommentDto)
@@ -42,5 +46,12 @@ export class CommentsService {
 
     async deleteComment(userId: string, commentId: string) : Promise<void>{
         return await this.commentRepository.deleteComment(userId, commentId)
+    }
+
+    async deleteCommentWithReport(userId: string, commentId: string) : Promise<void>{
+        await Promise.all([
+            this.commentRepository.deleteComment(userId, commentId),
+            this.userService.updateUserReportCount(userId)
+        ])
     }
 }

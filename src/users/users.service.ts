@@ -85,4 +85,9 @@ export class UserService {
     async updateSetting(userId: string, updateUserOptionPartialDto: UpdateUserOptionPartialDto) {
         return await this.userRepository.updateSetting(userId, updateUserOptionPartialDto)
     }
+
+
+    async updateUserReportCount(userId){
+        return await this.userRepository.updateUserReportCount(userId);
+    }
 }

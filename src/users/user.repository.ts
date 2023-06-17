@@ -99,4 +99,8 @@ export class UserRepository {
         }
         await this.repository.update({ id: userId }, { ...etc })
     }
+
+    async updateUserReportCount(userId : string){
+        return await this.repository.update({ id: userId }, { reportCount: () => 'report_count + 1' })
+    }
 }

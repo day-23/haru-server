@@ -54,6 +54,15 @@ export class PostService {
                 HttpStatus.FORBIDDEN
             );
         }
+
+        createPostDto.hashTags.forEach((hashTag) => {
+            if(isBadWord(hashTag)){
+                throw new HttpException(
+                    'Bad word',
+                    HttpStatus.FORBIDDEN
+                );
+            }
+        })
         
         const images = await this.awsService.uploadFilesToS3('sns', files)
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })

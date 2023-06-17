@@ -70,4 +70,10 @@ export class CommentsController {
     async deleteComment(@Param('userId') userId: string, @Param('commentId') commentId: string): Promise<void> {
         return await this.commentService.deleteComment(userId, commentId)
     }
+
+    @Delete(':commentId/report')
+    @ApiOperation({ summary: '댓글 신고 API', description: '댓글을 신고하고 삭제한다.' })
+    async deleteWithReportComment(@Param('userId') userId: string, @Param('commentId') commentId: string): Promise<void> {
+        return await this.commentService.deleteCommentWithReport(userId, commentId)
+    }
 }

@@ -112,6 +112,9 @@ export class User extends BaseEntity {
     @UpdateDateColumn()
     updatedAt: Date;
 
+    @Column({ default: 0 })
+    reportCount: number;
+
     /* deletedAt이 null이 아니면 삭제되었다는 뜻 */
     @DeleteDateColumn()
     deletedAt?: Date | null;
