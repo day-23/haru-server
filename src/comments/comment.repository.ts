@@ -76,7 +76,7 @@ export class CommentRepository {
         const { page, limit, lastCreatedAt } = paginationDto;
         const skip = calculateSkip(page, limit)
 
-        console.log(postId)
+        
         const rawResult = await this.repository.manager.query(`
             SELECT 
             comment.id, 

@@ -19,6 +19,7 @@ import { HashtagsModule } from './hashtags/hashtags.module';
 import { FriendsModule } from './friends/friends.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './auth/guards/access-token.guard';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
     imports: [
@@ -43,14 +44,15 @@ import { AccessTokenGuard } from './auth/guards/access-token.guard';
         PostsModule,
         CommentsModule,
         HashtagsModule,
-        FriendsModule
+        FriendsModule,
+        RedisModule
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
-        // {
-        //     provide: APP_GUARD,
-        //     useClass: AccessTokenGuard,
-        // },
+        {
+            provide: APP_GUARD,
+            useClass: AccessTokenGuard,
+        },
     ],
 })
 export class AppModule implements NestModule {

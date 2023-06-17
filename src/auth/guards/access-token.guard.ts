@@ -1,11 +1,15 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from 'src/users/users.service';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {
-    constructor(private usersService: UserService) {}
+    constructor(
+        private usersService: UserService,
+        @Inject('Redis') private readonly redis: Redis, 
+        ) {}
     
     async canActivate(
         context: ExecutionContext,
@@ -27,11 +31,27 @@ export class AccessTokenGuard implements CanActivate {
 
         try {
             const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-            
-            // TODO: Add more code to validate the access token
-            const user = await this.usersService.findOne(decodedToken['id']);
-            
-            if (!user) {
+
+            // Check Redis first
+            let userId = await this.redis.get(token);
+
+            console.log('debug reds', userId)
+
+            // If not in Redis, validate with userService and add to Redis
+            if (!userId) {
+                const user = await this.usersService.findOne(decodedToken['id']);
+                if (!user) {
+                    return false;
+                }
+
+                userId = user.id;
+
+                // Set the value in Redis for subsequent requests 60초 * 30 -> 60분
+                await this.redis.set(token, userId, 'EX', 60 * 60);
+            }
+
+            // Validate the user ID from Redis or userService
+            if (userId !== decodedToken['id']) {
                 return false;
             }
 
