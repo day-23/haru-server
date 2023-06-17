@@ -404,6 +404,7 @@ export class PostRepository {
             SELECT acceptor_id
             FROM friend
             WHERE requester_id = ?
+            AND status = 400
         `, [userId]);
 
         console.log(rawBlockedUserIds)
@@ -643,7 +644,14 @@ export class PostRepository {
         const skip = calculateSkip(page, limit)
 
         const whereClause = `post.user_id = '${specificUserId}'`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
+        const [posts, count] = await Promise.all([
+            this.fetchAllPosts(userId, whereClause, 
+                lastCreatedAt, limit, skip
+            ), 
+            this.countPosts(
+                whereClause, lastCreatedAt
+            )
+        ])
         await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts), this.addImangeAndCommentToTemplate(userId, posts)])
 
         return {
@@ -656,6 +664,12 @@ export class PostRepository {
     async getFollowingFeedByPagination(userId: string, postPaginationDto: PostPaginationDto) {
         const { page, limit, lastCreatedAt } = postPaginationDto;
 
+        /* 둘러보기에서 차단된 유저는 보여주지 않음 */
+        const [hidedPosts, rawBlockedUserIds] = await Promise.all([
+            this.getHidePostIdsByUserId(userId), 
+            this.getBlockedUserIdsByUserId(userId)
+        ]) 
+
         const userFriends = await this.friendRepository.query(`
             SELECT user.id
             FROM friend
@@ -665,21 +679,26 @@ export class PostRepository {
             `,
             [userId, userId, userId, FriendStatus.Friends]
         );
+        
         const followingUserIds = userFriends.map((friend) => friend.id)
-
         // 친구 피드보기에서 내 피드도 같이 보여주기
         followingUserIds.push(userId)
 
-        // const followingUserIds = followingUsers.map((userRelationship) => userRelationship.follower.id)
         const skip = calculateSkip(page, limit)
         const whereClause = `post.user_id IN ('${followingUserIds.join("','")}')`
-        const [posts, count] = await Promise.all([this.fetchAllPosts(userId, whereClause, lastCreatedAt, limit, skip), this.countPosts(whereClause, lastCreatedAt)])
-        await Promise.all([this.setCountsToPosts(userId, posts), this.addCommentsToPostImages(userId, posts), this.addImangeAndCommentToTemplate(userId, posts)])
+        const [posts, count] = await Promise.all([
+            this.fetchAllPosts(userId, whereClause, 
+                lastCreatedAt, limit, skip,
+                hidedPosts, rawBlockedUserIds),
+            this.countPosts(whereClause, lastCreatedAt,
+                hidedPosts, rawBlockedUserIds)
+        ])
 
-        /* 템플릿 게시물 이미지 넣고, 댓글 넣기 */
-        //get postsIds that templateid is not null
-        // await this.addImangeAndCommentToTemplate(userId, posts)
-
+        await Promise.all([
+            this.setCountsToPosts(userId, posts), 
+            this.addCommentsToPostImages(userId, posts), 
+            this.addImangeAndCommentToTemplate(userId, posts)
+        ])
 
         return {
             data: posts,
