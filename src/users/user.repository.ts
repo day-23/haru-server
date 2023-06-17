@@ -101,6 +101,13 @@ export class UserRepository {
     }
 
     async updateUserReportCount(userId : string){
+        const user = await this.repository.findOne({
+            where: { id: userId },
+        });
+
+        if(user.reportCount >= 30){
+            return await this.repository.update({ id: userId }, { reportCount: 0, isMaliciousUser: true })
+        }
         return await this.repository.update({ id: userId }, { reportCount: () => 'report_count + 1' })
     }
 }

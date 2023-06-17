@@ -86,7 +86,6 @@ export class UserService {
         return await this.userRepository.updateSetting(userId, updateUserOptionPartialDto)
     }
 
-
     async updateUserReportCount(userId){
         return await this.userRepository.updateUserReportCount(userId);
     }
