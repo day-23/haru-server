@@ -83,6 +83,7 @@ jobs:
 
       - name: Docker Compose up
         run: |
+          pwd
           docker-compose down
           docker-compose up -d
 
