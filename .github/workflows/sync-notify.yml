@@ -90,8 +90,6 @@ jobs:
 
       - name: Docker Compose up
         run: |
-          set -a
-          source ./env_file
           docker-compose down
           docker-compose up -d
       
