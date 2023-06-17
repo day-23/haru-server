@@ -45,7 +45,7 @@ import { RedisModule } from './redis/redis.module';
         CommentsModule,
         HashtagsModule,
         FriendsModule,
-        // RedisModule
+        RedisModule
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
@@ -62,7 +62,7 @@ export class AppModule implements NestModule {
         consumer
             .apply(LoggerMiddleware)
             .forRoutes('*')
-            .apply(CheckApiKeyMiddleware)
-            .forRoutes('*');
+            // .apply(CheckApiKeyMiddleware)
+            // .forRoutes('*');
     }
 }
