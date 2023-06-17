@@ -96,5 +96,5 @@ jobs:
           docker-compose down
           docker-compose up -d
       
-      - name: 'Remove env file'
-        run: rm env_file
+      # - name: 'Remove env file'
+      #   run: rm env_file
