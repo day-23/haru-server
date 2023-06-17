@@ -43,6 +43,16 @@ export class PostService {
             );
         }
 
+        let recentPosted = await this.redis.get(userId);
+        if(recentPosted){
+            throw new HttpException(
+                'Too many requests',
+                HttpStatus.TOO_MANY_REQUESTS
+            );
+        }
+        // Set the value in Redis for subsequent requests 60초 * 30 -> 60분
+        await this.redis.set(userId, 1, 'EX', 60);
+
         if (typeof createPostDto?.hashTags === 'string') {
             createPostDto.hashTags = [createPostDto.hashTags]
         }
@@ -77,7 +87,6 @@ export class PostService {
             );
         }
         // Set the value in Redis for subsequent requests 60초 * 30 -> 60분
-        console.log(recentPosted)
         await this.redis.set(userId, 1, 'EX', 60);
 
         if(typeof createPostDto?.hashTags === 'string' ){

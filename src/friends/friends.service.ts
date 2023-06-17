@@ -40,6 +40,8 @@ export class FriendsService {
         const { requesterId } = createFollowDto
         const request = await this.freindRepository.findRequest(createFollowDto.requesterId, userId)
 
+        await this.freindRepository.deleteFriend(userId, createFollowDto.requesterId)
+
         if (request) {
             request.status = FriendStatus.Friends
             await this.freindRepository.save(request);
