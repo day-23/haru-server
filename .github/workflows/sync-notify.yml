@@ -81,8 +81,8 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Create docker-compose.yml
-        run: printf "%s" "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
+      # - name: Create docker-compose.yml
+      #   run: printf "%s" "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
 
       - name: Create env_file
         run: |
