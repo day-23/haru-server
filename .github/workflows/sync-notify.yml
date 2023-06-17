@@ -93,9 +93,10 @@ jobs:
           docker-compose up -d
           
       - name: 'Create env file'
-        run: |
-          pwd
-          ls -al
-          echo "${{ secrets.ENV_FILE }}" > env_file
-          docker-compose run --rm app cp env_file /var/app/.env
-          rm env_file
+        run: echo "${{ secrets.ENV_FILE }}" > env_file
+
+      - name: 'Copy env file to container'
+        run: docker-compose run --rm app cp env_file /var/app/.env
+
+      - name: 'Remove env file'
+        run: rm env_file
