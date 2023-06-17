@@ -45,7 +45,7 @@ import { RedisModule } from './redis/redis.module';
         CommentsModule,
         HashtagsModule,
         FriendsModule,
-        RedisModule
+        // RedisModule
     ],
     controllers: [AppController],
     providers: [AppService, CloudWatchLoggerService, CheckApiKeyMiddleware,
