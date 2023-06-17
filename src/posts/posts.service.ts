@@ -41,6 +41,15 @@ export class PostService {
             );
         }
 
+        createPostDto.hashTags.forEach((hashTag) => {
+            if(isBadWord(hashTag)){
+                throw new HttpException(
+                    'Bad word',
+                    HttpStatus.FORBIDDEN
+                );
+            }
+        })
+
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
         const post = await this.postRepository.createTemplatePost(userId, createPostDto)
         const postTags = await this.postRepository.createPostTags(userId, post.id, hashTags, false)
@@ -54,6 +63,15 @@ export class PostService {
                 HttpStatus.FORBIDDEN
             );
         }
+
+        createPostDto.hashTags.forEach((hashTag) => {
+            if(isBadWord(hashTag)){
+                throw new HttpException(
+                    'Bad word',
+                    HttpStatus.FORBIDDEN
+                );
+            }
+        })
         
         const images = await this.awsService.uploadFilesToS3('sns', files)
         const hashTags = await this.hashtagService.createHashtags({ contents: createPostDto.hashTags })
@@ -193,6 +211,9 @@ export class PostService {
     }
 
     async reportPost(userId: string, postId: string): Promise<void> {
-        return await this.postRepository.reportPost(userId, postId)
+        await Promise.all([
+            this.userService.updateUserReportCount(userId),
+            this.postRepository.reportPost(userId, postId)
+        ])
     }
 }

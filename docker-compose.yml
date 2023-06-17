@@ -1,3 +1,4 @@
+## 지금 ec2에 직접 넣어줘야함, 자동화 안되어있음
 version: "3"
 services:
   app:
