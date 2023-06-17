@@ -82,7 +82,7 @@ jobs:
           docker-compose --version
 
       - name: Create docker-compose.yml
-        run: echo "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
+        run: printf "%s" "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
 
       - name: Create env_file
         run: |
