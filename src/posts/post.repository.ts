@@ -879,6 +879,10 @@ export class PostRepository {
                 friendStatus = 3;
             }
         }
+        
+        if(friendStatus == 400){
+            friendStatus = 0;
+        }
 
         if (result.length == 0) {
             throw new HttpException(
