@@ -81,12 +81,17 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
+      - name: Create env_file
+        run: |
+          echo DOCKER_IMAGE=${{ env.DOCKER_IMAGE }} > env_file
+
       - name: Docker Compose up
         run: |
-          pwd
+          set -a
+          source ./env_file
           docker-compose down
           docker-compose up -d
-
+          
       - name: 'Create env file'
         run: |
           echo "${{ secrets.ENV_FILE }}" > env_file
