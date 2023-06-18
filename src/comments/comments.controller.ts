@@ -13,13 +13,13 @@ export class CommentsController {
 
     @Post(':postId')
     @ApiOperation({ summary: '이미지에 댓글 작성 API', description: '댓글을 생성한다.' })
-    async createCommentInTemplate(@Param('userId') userId: string, @Param('postId') postId: string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
+    async createCommentInTemplate(@Param('userId') userId: string, @Param('postId') postId: string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse | void> {
         return await this.commentService.createImageComment(userId, postId, null, createCommentDto)
     }
 
     @Post(':postId/:postImageId')
     @ApiOperation({ summary: '이미지에 댓글 작성 API', description: '댓글을 생성한다.' })
-    async createCommentInImage(@Param('userId') userId: string, @Param('postId') postId: string, @Param('postImageId') postImageId:string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {
+    async createCommentInImage(@Param('userId') userId: string, @Param('postId') postId: string, @Param('postImageId') postImageId:string, @Body() createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse | void> {
         return await this.commentService.createImageComment(userId, postId, postImageId, createCommentDto)
     }
 
