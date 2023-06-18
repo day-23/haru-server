@@ -6,6 +6,7 @@ import { ImageCommentCreateResponse, GetCommentsPaginationResponse, CommentCreat
 import { PaginationDto, PostPaginationDto } from "src/common/dto/pagination.dto";
 import { isBadWord } from "src/common/utils/bad-word";
 import { Comment } from "src/entity/comment.entity";
+import { Friend } from "src/entity/friend.entity";
 import { Post } from "src/entity/post.entity";
 import { SnsBaseUser } from "src/posts/interface/post.interface";
 import { calculateSkip } from "src/posts/post.util";
@@ -14,6 +15,7 @@ import { In, Repository } from "typeorm";
 export class CommentRepository {
     constructor(@InjectRepository(Comment) private readonly repository: Repository<Comment>,
     @InjectRepository(Post) private readonly postRepository: Repository<Post>,
+    @InjectRepository(Friend) private readonly friendRepository: Repository<Friend>,
         private readonly configService: ConfigService) {
     }
 
@@ -28,10 +30,20 @@ export class CommentRepository {
         }
 
         // Fetch the post from the database first
-        const post = await this.postRepository.findOne({ where: { id: postId } });
+        const post = await this.postRepository.query(`
+            SELECT user_id
+            FROM post
+            WHERE id = ?
+        `, [postId]);
         if (!post) {
             // If the post doesn't exist, throw an error
             throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
+        }
+
+        const blockedUser = await this.getBlockedUserIdsByUserId(post[0].user_id)
+        
+        if(blockedUser?.includes(userId)){
+            return
         }
 
         const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, content})
@@ -47,16 +59,33 @@ export class CommentRepository {
         return ret
     }
 
-    async createImageComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse> {    
+    async createImageComment(userId: string, postId: string, postImageId: string, createCommentDto: CreateImageCommentDto): Promise<ImageCommentCreateResponse | void> {    
         const { content, x, y } = createCommentDto
+
+        if(isBadWord(content)){
+            throw new HttpException(
+                'Bad word',
+                HttpStatus.FORBIDDEN
+            );
+        }
         
         // Fetch the post from the database first
-        const post = await this.postRepository.findOne({ where: { id: postId } });
+        const post = await this.postRepository.query(`
+            SELECT user_id
+            FROM post
+            WHERE id = ?
+        `, [postId]);
         if (!post) {
             // If the post doesn't exist, throw an error
             throw new HttpException('해당 게시글을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
         }
+
+        const blockedUser = await this.getBlockedUserIdsByUserId(post[0].user_id)
         
+        if(blockedUser?.includes(userId)){
+            return
+        }
+
         const comment = this.repository.create({ user: { id: userId }, post: { id: postId }, postImage: postImageId ? { id: postImageId } : null, content, x, y })
         const savedComment = await this.repository.save(comment)
         
@@ -314,4 +343,18 @@ export class CommentRepository {
             );
         }
     }
+
+
+    async getBlockedUserIdsByUserId(userId: string): Promise<string[]> {
+        const rawBlockedUserIds = await this.friendRepository.query(`
+            SELECT acceptor_id
+            FROM friend
+            WHERE requester_id = ?
+            AND status = 400
+        `, [userId]);
+
+        console.log(rawBlockedUserIds)
+        return rawBlockedUserIds.map((rawblockedUser) => rawblockedUser.acceptor_id);
+    }
+
 }

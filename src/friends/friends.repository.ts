@@ -41,7 +41,7 @@ export class FriendRepository{
 
 
     async findRequest(requesterId: string, acceptorID: string): Promise<Friend> {
-        return await this.repository.findOne({ where: { requester: { id: requesterId }, acceptor: { id: acceptorID } } });
+        return await this.repository.findOne({ where: { requester: { id: requesterId }, acceptor: { id: acceptorID }, status: FriendStatus.FriendRequestSent } });
     }
 
     async findById(id: string): Promise<Friend> {
@@ -60,13 +60,14 @@ export class FriendRepository{
 
     //delete friend by userId and acceptorId
     async deleteFriend(userId: string, acceptorId: string): Promise<void> {
-        await this.repository.delete({ requester: { id: userId }, acceptor: { id: acceptorId } });
-        await this.repository.delete({ requester: { id: acceptorId }, acceptor: { id: userId } });
+        await Promise.all([
+            this.repository.delete({ requester: { id: userId }, acceptor: { id: acceptorId } })
+            ,this.repository.delete({ requester: { id: acceptorId }, acceptor: { id: userId } })
+        ])
     }
 
     //create block user by userId and blockUserId
     async createBlockUser(userId: string, blockUserId: string): Promise<void> {
-    
         const newFreindRecord = this.repository.create({
             requester: new User({ id: userId }),
             acceptor: new User({ id: blockUserId }),
