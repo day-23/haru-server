@@ -91,10 +91,14 @@ jobs:
         run: |
           echo "${{ secrets.ENV_FILE }}" >> env_file
           pwd
+      
+      - name: set DOCKER_IMAGE env
+        run: |
+          export DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:latest
+          echo "DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}"
             
       - name: Docker Compose up
         run: |
-          export DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:latest
           docker-compose down
           docker-compose pull
           docker-compose up -d
