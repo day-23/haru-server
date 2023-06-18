@@ -95,8 +95,7 @@ jobs:
       - name: Docker Compose up
         run: |
           docker-compose down
-          docker-compose pull app  # 최신 이미지를 pull
+          docker pull ${{env.DOCKER_IMAGE}}:${{github.sha}} # pull the latest image
           docker-compose up -d --force-recreate  # 강제로 서비스 재생성
-      
       # - name: 'Remove env file'
       #   run: rm env_file
