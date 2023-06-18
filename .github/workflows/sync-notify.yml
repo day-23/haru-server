@@ -94,11 +94,12 @@ jobs:
       
       - name: set DOCKER_IMAGE env
         run: |
-          export DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:latest
-          echo "DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}"
+          echo "DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:latest" > env_docker_image
+          cat env_docker_image
             
       - name: Docker Compose up
         run: |
+          source env_docker_image
           docker-compose down
           docker-compose pull
           docker-compose up -d
