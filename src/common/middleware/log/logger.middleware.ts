@@ -22,11 +22,15 @@ export class LoggerMiddleware implements NestMiddleware {
                 responseHeaders: res.getHeaders(),
                 requestBody: req.body,
                 responseBody: res.locals.responseBody,
+                errorStackTrace: "",
+                params : req.params,
+                query : req.query
             };
 
             // Determine log level based on status code
             const statusCode = res.statusCode;
             if (statusCode >= 500) {
+                logData.errorStackTrace = new Error().stack; // Error Stack Trace
                 this.cloudWatchLogger.error(logData, 'HTTP');
             } else if (statusCode >= 400) {
                 this.cloudWatchLogger.warn(logData, 'HTTP');

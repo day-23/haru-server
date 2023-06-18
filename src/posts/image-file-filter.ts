@@ -1,6 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 export const imageFileFilter = (req: any, file: any, callback: (error: Error | null, acceptFile: boolean) => void) => {
+    
+    console.log('debug', file.mimetype, file)
+    
     const allowedMimeTypes = [
         'image/jpeg',
         'image/png',
@@ -9,7 +12,8 @@ export const imageFileFilter = (req: any, file: any, callback: (error: Error | n
         'image/webp',
         'image/bmp',
         'image/heic',
-        'image/heif'
+        'image/heif',
+        'image/*'
     ];
 
     if (allowedMimeTypes.includes(file.mimetype)) {
