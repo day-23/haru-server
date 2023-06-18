@@ -94,7 +94,7 @@ jobs:
       
       - name: set DOCKER_IMAGE env
         run: |
-          echo "DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:latest" > env_docker_image
+          echo "DOCKER_IMAGE=${{ env.DOCKER_IMAGE }}:${{github.sha}}" > env_docker_image
           cat env_docker_image
             
       - name: Docker Compose up
