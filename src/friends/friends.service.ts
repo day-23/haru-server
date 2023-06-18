@@ -37,7 +37,7 @@ export class FriendsService {
 
     async acceptFriendRequest(userId: string, createFollowDto: acceptFreindRequestDto): Promise<void> {
         const { requesterId } = createFollowDto
-        await this.friendRepository.deleteFriend(userId, createFollowDto.requesterId)
+        await this.friendRepository.deleteFriend(userId, requesterId)
         await this.friendRepository.createFriend(requesterId, userId)
         return
     }
