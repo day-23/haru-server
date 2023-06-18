@@ -30,6 +30,16 @@ export class FriendRepository{
         await this.repository.save(newFreindRecord);
     }
 
+    async createFriend(requesterId : string, acceptorId: string): Promise<void> {
+        const newFreindRecord = this.repository.create({
+            requester: new User({ id: requesterId }),
+            acceptor: new User({ id: acceptorId }),
+            status: FriendStatus.Friends
+        });
+        await this.repository.save(newFreindRecord);
+    }
+
+
     async findRequest(requesterId: string, acceptorID: string): Promise<Friend> {
         return await this.repository.findOne({ where: { requester: { id: requesterId }, acceptor: { id: acceptorID } } });
     }
