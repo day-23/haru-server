@@ -16,7 +16,6 @@ export class FriendsService {
 
         //find user by userId and if not exist throw 404 error
         await this.userService.findOne(acceptorId)
-
         const isAlreadyMakeRequest = await this.friendRepository.findRequest(userId, acceptorId)
 
         if (!isAlreadyMakeRequest) {
@@ -45,15 +44,12 @@ export class FriendsService {
 
     async blockUser(userId: string, blockUserDto : BlockUserDto){
         const { blockUserId } = blockUserDto
-
         await this.friendRepository.deleteFriend(userId, blockUserId)
-
         await this.friendRepository.createBlockUser(userId, blockUserId)
     }
 
     async deleteFriend(userId: string, createFollowDto: DeleteFriendDto){
         const { friendId } = createFollowDto
-
         await this.friendRepository.deleteFriend(userId, friendId)
     }
 
@@ -72,5 +68,4 @@ export class FriendsService {
     async getFriendRequestBySearch(userId: string, paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
         return await this.friendRepository.getFriendRequestBySearch(userId, paginationDto);
     }
-
 }
