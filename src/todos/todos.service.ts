@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { DateTimePaginationDto, TodayTodoDto } from 'src/common/dto/date-pagination.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { getMinusOneDay } from 'src/common/makeDate';
+import { getMinusOneDay, isInvalideDate } from 'src/common/makeDate';
 import { Subtodo } from 'src/entity/subtodo.entity';
 import { Todo } from 'src/entity/todo.entity';
 import { TagsService } from 'src/tags/tags.service';
@@ -241,6 +241,8 @@ export class TodosService implements TodosServiceInterface {
         }
     }
 
+    
+
     async updateRepeatTodoToCompleteMiddle(userId: string, todoId: string, repeatTodoCompleteMiddleBySplitDto: RepeatSplitMiddleDto, queryRunner?: QueryRunner): Promise<void> {
         const existingTodo = await this.todoRepository.findTodoWithScheduleIdByTodoId(todoId);
         const { completedDate, endDate } = repeatTodoCompleteMiddleBySplitDto
@@ -255,18 +257,26 @@ export class TodosService implements TodosServiceInterface {
             if (!queryRunner.isTransactionActive) {
                 await queryRunner.startTransaction();
             }
-
+            
+            console.log('middle todo complete')
             const updatedSchedule = await this.scheduleService.updateSchedulePartialAndSave(userId, schedule, { repeatEnd: getMinusOneDay(completedDate) }, queryRunner)
             
+            console.log(updatedSchedule, 'updatedSchedule')
+
             /* problem */
             const nextTodo = await this.createNewNextRepeatTodoByExistingTodo(userId, existingTodo, endDate, queryRunner)
+
+            console.log(nextTodo, 'nextTodo')
             existingTodo.schedule.repeatStart = completedDate
             await this.createNewCompletedTodoByExistingTodo(userId, existingTodo , queryRunner)
-
+            
+            console.log(updatedSchedule, 'updatedSchedule', updatedSchedule.repeatEnd, updatedSchedule.repeatStart, isInvalideDate(updatedSchedule.repeatStart, updatedSchedule.repeatEnd))
             // updatedSchedule is not Todo and If repeatEnd is less than repeatStart delete schedule
-            if (updatedSchedule.repeatEnd && updatedSchedule.repeatStart.getDate() > updatedSchedule.repeatEnd.getDate()) {
+            if (updatedSchedule.repeatEnd && isInvalideDate(updatedSchedule.repeatStart, updatedSchedule.repeatEnd)) {
+            
                 await this.scheduleService.deleteSchedule(userId, schedule.id, queryRunner);
             }
+            console.log('end')
 
             await queryRunner.commitTransaction();
         } catch (error) {
@@ -352,7 +362,7 @@ export class TodosService implements TodosServiceInterface {
         // if schedule.repeatEnd is not null and schedule.repeatEnd is less than endDate return
 
         /* 일자까지만 비교 */
-        if(schedule.repeatEnd && schedule.repeatEnd.getDate() < endDate.getDate()) return
+        if(schedule.repeatEnd && isInvalideDate(endDate, schedule.repeatEnd)) return
 
         const createTodoDto = existingTodoToCreateTodoDto(existingTodo)
         const parent = schedule?.parent ? schedule?.parent?.id : schedule?.id
