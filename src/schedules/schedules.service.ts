@@ -25,6 +25,11 @@ export class ScheduleService implements ScheduleServiceInterface{
         const { alarms, ...schedule } = createScheduleDto
         const { categoryId } = schedule
 
+        //쓰레기 데이터인 경우
+        if(schedule.repeatStart != null && schedule.repeatEnd != null && schedule.repeatEnd < schedule.repeatStart){
+            return
+        }
+
         // Create a new queryRunner if one was not provided
         const shouldReleaseQueryRunner = !queryRunner;
         queryRunner = queryRunner || this.dataSource.createQueryRunner();
