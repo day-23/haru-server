@@ -81,16 +81,15 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      # - name: Create docker-compose.yml
-      #   run: printf "%s" "${{ secrets.DOCKER_COMPOSE }}" > docker-compose.yml
-
       - name: Create env_file
         run: |
           echo DOCKER_IMAGE=${{env.DOCKER_IMAGE}}:${{github.sha}} > env_file
 
       - name: 'Create env file'
-        run: echo "${{ secrets.ENV_FILE }}" >> env_file
-
+        run: |
+          echo "${{ secrets.ENV_FILE }}" >> env_file
+          pwd
+            
       - name: Docker Compose up
         run: |
           docker-compose down
