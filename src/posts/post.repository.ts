@@ -908,8 +908,9 @@ export class PostRepository {
             SELECT user.id, user.name, user.introduction, user.profile_image_url AS profileImage
             FROM user
             WHERE user.haru_id = ?
+            OR (user.is_allow_search = true AND user.email = ?)
             AND user.deleted_at IS NULL
-        `, [haruId]);
+        `, [haruId, haruId]);
 
         if (user.length == 0) {
             throw new HttpException(
