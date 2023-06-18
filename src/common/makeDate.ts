@@ -36,3 +36,15 @@ export function getMinusOneDay(date : Date){
     minusOneDay.setDate(minusOneDay.getDate() - 1)
     return minusOneDay;
 }
+
+export function isInvalideDate(firstDate : Date, secondDate : Date){
+    const year1 = firstDate.getFullYear()
+    const month1 = firstDate.getMonth()
+    const date1 = firstDate.getDate()
+
+    const year2 = secondDate.getFullYear()
+    const month2 = secondDate.getMonth()
+    const date2 = secondDate.getDate()
+
+    return year1 > year2 || (year1 === year2 && (month1 > month2 || (month1 === month2 && date1 > date2)));
+}
