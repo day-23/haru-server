@@ -8,7 +8,7 @@ import { FriendStatus } from 'src/common/utils/constants';
 
 @Injectable()
 export class FriendsService {
-    constructor(private readonly freindRepository: FriendRepository,
+    constructor(private readonly friendRepository: FriendRepository,
         private readonly userService : UserService) { }
 
     async createFriendRequest(userId: string, createFollowDto: CreateFreindRequestDto): Promise<void> {
@@ -17,10 +17,10 @@ export class FriendsService {
         //find user by userId and if not exist throw 404 error
         await this.userService.findOne(acceptorId)
 
-        const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, acceptorId)
+        const isAlreadyMakeRequest = await this.friendRepository.findRequest(userId, acceptorId)
 
         if (!isAlreadyMakeRequest) {
-            await this.freindRepository.createFreindRequest(userId, createFollowDto);
+            await this.friendRepository.createFreindRequest(userId, createFollowDto);
         }
     }
 
@@ -29,64 +29,48 @@ export class FriendsService {
         //find user by userId and if not exist throw 404 error
         await this.userService.findOne(acceptorId)
 
-        const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, acceptorId)
+        const isAlreadyMakeRequest = await this.friendRepository.findRequest(userId, acceptorId)
 
         if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === FriendStatus.FriendRequestSent) {
-            await this.freindRepository.delete(isAlreadyMakeRequest.id);
+            await this.friendRepository.delete(isAlreadyMakeRequest.id);
         }
     }
 
     async acceptFriendRequest(userId: string, createFollowDto: acceptFreindRequestDto): Promise<void> {
         const { requesterId } = createFollowDto
-        const request = await this.freindRepository.findRequest(createFollowDto.requesterId, userId)
-
-        await this.freindRepository.deleteFriend(userId, createFollowDto.requesterId)
-
-        if (request) {
-            request.status = FriendStatus.Friends
-            await this.freindRepository.save(request);
-        } else {
-            // Throw 404 error
-            throw new HttpException('해당 친구 요청을 찾을 수 없습니다.', HttpStatus.NOT_FOUND);
-        }
-
-        const isAlreadyMakeRequest = await this.freindRepository.findRequest(userId, requesterId)
-
-        if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === FriendStatus.FriendRequestSent) {
-            await this.freindRepository.delete(isAlreadyMakeRequest.id);
-        }
-
+        await this.friendRepository.deleteFriend(userId, createFollowDto.requesterId)
+        await this.friendRepository.createFriend(requesterId, userId)
         return
     }
 
     async blockUser(userId: string, blockUserDto : BlockUserDto){
         const { blockUserId } = blockUserDto
 
-        await this.freindRepository.deleteFriend(userId, blockUserId)
+        await this.friendRepository.deleteFriend(userId, blockUserId)
 
-        await this.freindRepository.createBlockUser(userId, blockUserId)
+        await this.friendRepository.createBlockUser(userId, blockUserId)
     }
 
     async deleteFriend(userId: string, createFollowDto: DeleteFriendDto){
         const { friendId } = createFollowDto
 
-        await this.freindRepository.deleteFriend(userId, friendId)
+        await this.friendRepository.deleteFriend(userId, friendId)
     }
 
     async getFreindList(userId: string, specificUserId: string, paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
-        return await this.freindRepository.getFriendList(userId, specificUserId, paginationDto);
+        return await this.friendRepository.getFriendList(userId, specificUserId, paginationDto);
     }
 
     async getFriendRequestList(userId: string, paginationDto: PostPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
-        return await this.freindRepository.getFriendRequestList(userId, paginationDto);
+        return await this.friendRepository.getFriendRequestList(userId, paginationDto);
     }
 
     async getFriendBySearch(userId: string, paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
-        return await this.freindRepository.getFriendBySearch(userId, paginationDto);
+        return await this.friendRepository.getFriendBySearch(userId, paginationDto);
     }
 
     async getFriendRequestBySearch(userId: string, paginationDto: SearchPaginationDto): Promise<GetSnsBaseFriendsByPaginationDto> {
-        return await this.freindRepository.getFriendRequestBySearch(userId, paginationDto);
+        return await this.friendRepository.getFriendRequestBySearch(userId, paginationDto);
     }
 
 }
