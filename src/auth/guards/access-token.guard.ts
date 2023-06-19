@@ -20,7 +20,7 @@ export class AccessTokenGuard implements CanActivate {
         const controllerName = context.getClass().name;
 
         // If the controller is the one we want to exclude
-        if (controllerName === 'AuthController') {
+        if (controllerName === 'AuthController' || controllerName === 'AppController') {
             return true;
         }
 
