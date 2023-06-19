@@ -8,7 +8,7 @@ import { Redis } from 'ioredis';
 export class AccessTokenGuard implements CanActivate {
     constructor(
         private usersService: UserService,
-        // @Inject('Redis') private readonly redis: Redis, 
+        @Inject('Redis') private readonly redis: Redis, 
         ) {}
     
     async canActivate(
@@ -35,10 +35,7 @@ export class AccessTokenGuard implements CanActivate {
             const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
             // Check Redis first
-            let userId 
-            // = await this.redis.get(token);
-
-            console.log('debug reds', userId)
+            let userId = await this.redis.get(token);
 
             // If not in Redis, validate with userService and add to Redis
             if (!userId) {
@@ -50,7 +47,7 @@ export class AccessTokenGuard implements CanActivate {
                 userId = user.id;
 
                 // Set the value in Redis for subsequent requests 60초 * 30 -> 60분
-                // await this.redis.set(token, userId, 'EX', 60 * 60);
+                await this.redis.set(token, userId, 'EX', 60 * 60);
             }
 
             // Validate the user ID from Redis or userService
