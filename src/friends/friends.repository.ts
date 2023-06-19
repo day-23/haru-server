@@ -108,6 +108,7 @@ export class FriendRepository{
             ON user.id = CASE WHEN friend.requester_id = ? THEN friend.acceptor_id ELSE friend.requester_id END
             WHERE (friend.requester_id = ? OR friend.acceptor_id = ?)
             AND user.id IN (?)
+            AND friend.status = 2
             ORDER BY friend.created_at DESC
             `,
                 [userId, userId, userId, specificUserFriendsIds]
