@@ -15,7 +15,7 @@ export class AccessTokenGuard implements CanActivate {
         context: ExecutionContext,
       ): Promise<boolean> {
         // 임시 처리
-        return true
+        // return true
 
         const controllerName = context.getClass().name;
 

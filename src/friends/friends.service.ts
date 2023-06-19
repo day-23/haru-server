@@ -26,9 +26,12 @@ export class FriendsService {
     async deleteFriendRequest(userId: string, createFollowDto: CreateFreindRequestDto): Promise<void> {
         const { acceptorId } = createFollowDto
         //find user by userId and if not exist throw 404 error
+
         await this.userService.findOne(acceptorId)
 
         const isAlreadyMakeRequest = await this.friendRepository.findRequest(userId, acceptorId)
+
+        // console.log('here', userId, acceptorId, isAlreadyMakeRequest)
 
         if (isAlreadyMakeRequest && isAlreadyMakeRequest.status === FriendStatus.FriendRequestSent) {
             await this.friendRepository.delete(isAlreadyMakeRequest.id);
