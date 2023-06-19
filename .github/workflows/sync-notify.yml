@@ -105,6 +105,7 @@ jobs:
         run: |
           source env_docker_image
           docker-compose down
+          docker system prune -a -f
           docker-compose pull
           docker-compose up -d
       
