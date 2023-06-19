@@ -13,7 +13,7 @@ export const typeORMConfig: TypeOrmModuleOptions = {
     username: process.env.TYPEORM_USERNAME,
     database: process.env.TYPEORM_DATABASE,
     entities: ['dist/**/*.entity.{ts,js}'], // Entity 연결
-    synchronize: true, //배포시 false로 바꿔야함
+    synchronize: false, //배포시 false로 바꿔야함
     logging: false, // 배포시 false로 바꿔야함
     timezone: 'Asia/Seoul',
     namingStrategy: new SnakeNamingStrategy()
