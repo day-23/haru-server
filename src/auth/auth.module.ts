@@ -25,7 +25,7 @@ import { PostsModule } from 'src/posts/posts.module';
         JwtModule.register({
             //토큰 서명 값 설정
             secret: jwtConstants.secret,
-            signOptions: { expiresIn: '1h' },
+            signOptions: { expiresIn: '100d' },
         }),
     ],
     providers: [
