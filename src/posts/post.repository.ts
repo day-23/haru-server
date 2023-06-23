@@ -808,15 +808,28 @@ export class PostRepository {
     }
 
     async getHashtags(): Promise<BaseHashTag[]> {
-        // get postTags that made in recent 1 day and group by hashtag and rank by count
-        const postTags = await this.postTagsRepository.createQueryBuilder('posttags')
+        const oneWeekAgo = new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 3);
+
+        // Convert the date to MySQL date format
+        const formattedDate = `${oneWeekAgo.getFullYear()}-${String(oneWeekAgo.getMonth() + 1).padStart(2, '0')}-${String(oneWeekAgo.getDate()).padStart(2, '0')} ${String(oneWeekAgo.getHours()).padStart(2, '0')}:${String(oneWeekAgo.getMinutes()).padStart(2, '0')}:${String(oneWeekAgo.getSeconds()).padStart(2, '0')}`;
+    
+        // Subquery to get the post tags
+        const subquery = this.postTagsRepository.createQueryBuilder('posttags')
             .select(['hashtag.id', 'hashtag.content', 'COUNT(hashtag.id) AS count'])
             .innerJoin('posttags.hashtag', 'hashtag')
-            .where('posttags.createdAt > :date', { date: new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 7) })
+            .where(`posttags.createdAt > '${formattedDate}'`)
             .andWhere('posttags.is_image_post = true')
             .groupBy('hashtag.id')
             .addGroupBy('hashtag.content')
             .orderBy('count', 'DESC')
+            .getQuery();
+
+        // Main query to get the top 20 hashtags
+        const postTags = await this.postTagsRepository.manager.createQueryBuilder()
+            .select('*')
+            .from(`(${subquery})`, 'subquery')
+            .orderBy('count', 'DESC')
+            .take(20)
             .getRawMany();
 
         return postTags.map(({ hashtag_id, hashtag_content }) => ({ id: hashtag_id, content: hashtag_content }));
